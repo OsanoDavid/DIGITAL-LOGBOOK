@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fill Logbook - SIST</title>
+    <link rel="stylesheet" href="/static/css/sist_style.css">
+</head>
+<body>
+    <div class="log-page">
+        <div class="log-shell">
+            <div class="log-card">
+                <div class="log-card-header">
+                    <h2 class="page-title">Record Logbook Activities</h2>
+                    <p class="page-subtitle">Week {{ log.week_number }} · Keep the weekly attachment record clear and complete.</p>
+                </div>
+                <div class="log-card-body">
+                    <div class="log-summary-card">
+                        <p><strong>Attachee:</strong> {{ log.profile.student.get_full_name|default:log.profile.student.username }}</p>
+                        <p><strong>Organization:</strong> {{ log.profile.student.institution_or_company|default:"Kisii University (SIST)" }}</p>
+                        <p><strong>Status:</strong> Drafting weekly progress for the attachment period.</p>
+                    </div>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="log-form-grid">
+                            {% for field in form %}
+                                <div>
+                                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                    {{ field }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="log-actions">
+                            <button type="submit" class="btn btn-blue">Save Log Entry</button>
+                            <a href="{% url 'core:dashboard' %}" class="btn btn-gold">Back to Dashboard</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

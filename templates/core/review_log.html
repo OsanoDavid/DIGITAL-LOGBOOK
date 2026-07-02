@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Log - {{ role }}</title>
+    <link rel="stylesheet" href="/static/css/sist_style.css">
+</head>
+<body>
+    <div class="log-page">
+        <div class="log-shell">
+            <div class="log-card">
+                <div class="log-card-header">
+                    <h2 class="page-title">{{ role }} Verification Workspace</h2>
+                    <p class="page-subtitle">Week {{ log.week_number }} · Review the submitted attachment activities and confirm the sign-off.</p>
+                </div>
+                <div class="log-card-body">
+                    <div class="log-summary-card">
+                        <p><strong>Attachee:</strong> {{ log.profile.student.get_full_name|default:log.profile.student.username }}</p>
+                        <p><strong>Monday:</strong> {{ log.monday_activity|default:"-" }}</p>
+                        <p><strong>Tuesday:</strong> {{ log.tuesday_activity|default:"-" }}</p>
+                        <p><strong>Wednesday:</strong> {{ log.wednesday_activity|default:"-" }}</p>
+                        <p><strong>Thursday:</strong> {{ log.thursday_activity|default:"-" }}</p>
+                        <p><strong>Friday:</strong> {{ log.friday_activity|default:"-" }}</p>
+                    </div>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="log-form-grid">
+                            {% for field in form %}
+                                <div>
+                                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                    {{ field }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="log-actions">
+                            <button type="submit" class="btn btn-blue">Save Evaluation Sign-Off</button>
+                            <a href="{% url 'core:dashboard' %}" class="btn btn-gold">Back to Dashboard</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

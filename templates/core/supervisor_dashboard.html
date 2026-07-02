@@ -1,0 +1,163 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIST Logbook - Industry Supervisor Dashboard</title>
+    <link rel="stylesheet" href="{% static 'css/sist_style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <nav class="supervisor-navbar">
+        <div class="brand-block">
+            <div class="brand-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+            <div>
+                <div class="brand-title">SIST PORTAL</div>
+                <div class="brand-subtitle">Industry Supervisor Workspace</div>
+            </div>
+        </div>
+        <div class="nav-actions">
+            <div class="mini-pill"><i class="fa-solid fa-shield-halved"></i> Verified Access</div>
+            <a href="{% url 'core:logout' %}" class="btn btn-danger"><i class="fa-solid fa-right-from-bracket"></i> Sign Out</a>
+        </div>
+    </nav>
+
+    <div class="dashboard-layout">
+        
+        <aside class="profile-panel">
+            <div class="avatar-container">
+                <img src="https://ui-avatars.com/api/?name={{ request.user.get_full_name|urlencode }}&background=0284c7&color=fff&size=128" alt="Supervisor Avatar" class="avatar-image">
+                <label class="photo-upload-label" title="Upload Photo">
+                    <i class="fa-solid fa-camera"></i>
+                    <input type="file" accept="image/*" class="visually-hidden" />
+                </label>
+            </div>
+            
+            <h3>{{ request.user.get_full_name|default:"Industry Supervisor" }}</h3>
+            <p class="muted-text">Industry Supervisor Workspace</p>
+            
+            <div class="profile-stats">
+                <div><strong>Company</strong><span>{{ request.user.institution_or_company|default:'Not provided' }}</span></div>
+                <div><strong>Course</strong><span>{{ request.user.course|default:'All courses' }}</span></div>
+                <div><strong>Attachés</strong><span>{{ students|length }}</span></div>
+            </div>
+        </aside>
+
+        <main>
+            <div class="page-header">
+                <div>
+                    <h2>Industry Supervisor Review Dashboard</h2>
+                    <p>Manage, check and digitally sign industrial attachment logs efficiently.</p>
+                </div>
+                <div class="header-badge"><i class="fa-solid fa-sparkles"></i> Live Review Queue</div>
+            </div>
+
+            <section class="analytics-row">
+                <div class="kpi-card kpi-card-warn">
+                    <div class="kpi-icon"><i class="fa-solid fa-clock"></i></div>
+                    <div>
+                        <div class="kpi-value">{{ pending_count|default:"0" }}</div>
+                        <div class="kpi-label">Pending Review</div>
+                    </div>
+                </div>
+                <div class="kpi-card kpi-card-success">
+                    <div class="kpi-icon"><i class="fa-solid fa-circle-check"></i></div>
+                    <div>
+                        <div class="kpi-value">{{ verified_count|default:"0" }}</div>
+                        <div class="kpi-label">Total Verified Logs</div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="section-heading">
+                <h3><i class="fa-solid fa-folder-tree"></i> Structural Attachment Weeks (1 - 14)</h3>
+                <span class="section-pill">Weekly log review</span>
+            </div>
+
+            <div class="week-list">
+                {% for week_group in week_groups %}
+                <div class="week-container">
+                    <div class="week-header" onclick="toggleWeekAccordion('week-container-{{ week_group.week_number }}')">
+                        <span><i class="fa-solid fa-calendar-week"></i> Week {{ week_group.week_number }} Submissions</span>
+                        <div class="week-badge-row">
+                            {% if week_group.has_pending %}
+                            <span class="alert-badge">New Entries</span>
+                            {% else %}
+                            <span class="clear-badge">All clear</span>
+                            {% endif %}
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="week-records-content" id="week-container-{{ week_group.week_number }}" style="display: none;">
+                        {% for entry in week_group.entries %}
+                            <div class="attachee-list-row">
+                                <div class="student-info">
+                                    <h4>{{ entry.period.student.get_full_name|default:entry.period.student.username }}</h4>
+                                    <p><i class="fa-solid fa-id-card"></i> {{ entry.period.student.username|default:"SIST/001/2026" }} | <i class="fa-solid fa-building"></i> {{ entry.period.student.institution_or_company|default:"Kisii University (SIST)" }}</p>
+                                    <div class="log-preview">
+                                        {% if entry.log %}
+                                            {% if entry.log.monday_activity or entry.log.tuesday_activity or entry.log.wednesday_activity or entry.log.thursday_activity or entry.log.friday_activity %}
+                                                <span><i class="fa-solid fa-clipboard-list"></i> Weekly log available</span>
+                                            {% else %}
+                                                <span class="empty-log"><i class="fa-solid fa-circle-exclamation"></i> No detailed log yet</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="empty-log"><i class="fa-solid fa-circle-exclamation"></i> Awaiting weekly submission</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="action-stack">
+                                    {% if entry.log and not entry.log.supervisor_approved %}
+                                        <a href="{% url 'core:supervisor_review' entry.log.id %}" class="btn-sign">
+                                            <i class="fa-solid fa-pen-nib"></i> Sign & Approve
+                                        </a>
+                                    {% elif entry.log %}
+                                        <span class="btn-verified">
+                                            <i class="fa-solid fa-check-double"></i> Signed
+                                        </span>
+                                    {% else %}
+                                        <span class="empty-log"><i class="fa-solid fa-clock"></i> Pending entry</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="empty-state">
+                                No attachés allocated.
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-state">
+                    No attachés allocated.
+                </div>
+                {% endfor %}
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function toggleWeekAccordion(elementId) {
+            const container = document.getElementById(elementId);
+            const headerTrigger = container.previousElementSibling;
+            const arrowIcon = headerTrigger.querySelector('.fa-chevron-down, .fa-chevron-up');
+            
+            if (container.style.display === "none" || container.style.display === "") {
+                container.style.display = "block";
+                if(arrowIcon) {
+                    arrowIcon.classList.replace('fa-chevron-down', 'fa-chevron-up');
+                }
+            } else {
+                container.style.display = "none";
+                if(arrowIcon) {
+                    arrowIcon.classList.replace('fa-chevron-up', 'fa-chevron-down');
+                }
+            }
+        }
+    </script>
+</body>
+</html>

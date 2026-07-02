@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIST Logbook - Student Workspace</title>
+    
+    <link rel="icon" type="image/jpeg" href="/static/images/logo.jpeg">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/sist_style.css">
+    
+    <style>
+        :root {
+            --kisii-blue: #0f4c81;
+            --kisii-sky: #0096ff;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+            --border-light: #e2e8f0;
+            --bg-light: #f8fafc;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--kisii-blue) 0%, #062c4e 100%);
+            padding: 24px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #ffffff;
+            box-shadow: 0 4px 24px rgba(15, 76, 129, 0.15);
+        }
+
+        .header-brand h1 { 
+            color: #ffffff !important; 
+            font-size: 1.6rem; 
+            margin: 0; 
+            font-weight: 800; 
+            letter-spacing: 0.5px; 
+            text-transform: uppercase;
+        }
+        
+        .header-brand p { 
+            color: #fef3c7 !important; 
+            margin: 6px 0 0 0; 
+            font-weight: 600;
+            font-size: 0.85rem; 
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            opacity: 0.9;
+        }
+
+        .main-container { max-width: 1300px; margin: 40px auto; padding: 0 24px; box-sizing: border-box; }
+        
+        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 24px; margin-bottom: 24px; }
+        
+        .card {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02), 0 10px 15px -3px rgba(0,0,0,0.04);
+            border: 1px solid var(--border-light);
+            margin-bottom: 28px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(0,0,0,0.05), 0 20px 25px -5px rgba(0,0,0,0.05);
+        }
+
+        .card-header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .card h3 { margin: 0; font-size: 1.25rem; font-weight: 700; color: #0f172a; }
+
+        /* Premium Pipeline Table Rules */
+        .pipeline-table-wrapper { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border-light); background: #ffffff; }
+        table { width: 100%; border-collapse: collapse; text-align: left; background: white; font-size: 0.95rem; }
+        th { background: #f8fafc; padding: 18px 20px; font-weight: 700; color: #475569; border-bottom: 2px solid var(--border-light); text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.5px; }
+        td { padding: 18px 20px; border-bottom: 1px solid var(--border-light); vertical-align: middle; }
+        
+        tr.row-locked { background-color: #fdfdfd; opacity: 0.6; }
+        tr.row-active { background-color: #ffffff; box-shadow: inset 4px 0 0 var(--kisii-sky); }
+        tr:last-child td { border-bottom: none; }
+
+        /* Badges styling */
+        .badge { display: inline-flex; align-items: center; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; border-radius: 30px; }
+        .badge-success { background: #ecfdf5; color: var(--success); }
+        .badge-warning { background: #fffbeb; color: var(--warning); }
+        .badge-locked { background: #f1f5f9; color: var(--text-muted); }
+
+        /* Action Buttons Cluster */
+        .actions-cluster { display: flex; gap: 8px; flex-wrap: wrap; }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 18px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .btn-sm { padding: 8px 14px; font-size: 0.82rem; border-radius: 8px; }
+        .btn-blue { background: var(--kisii-blue); color: white; box-shadow: 0 2px 4px rgba(15, 76, 129, 0.2); }
+        .btn-blue:hover { background: #0b3861; transform: translateY(-1px); }
+        .btn-sky { background: var(--kisii-sky); color: white; box-shadow: 0 2px 4px rgba(0, 150, 255, 0.2); }
+        .btn-sky:hover { background: #0082dd; transform: translateY(-1px); }
+        .btn-outline { background: transparent; border: 1px solid var(--border-light); color: #475569; }
+        .btn-outline:hover { background: #f1f5f9; color: var(--text-dark); }
+        .btn-gold { background: #fff7ed; color: #ea580c; border: 1px solid #ffedd5; }
+        .btn-gold:hover { background: #ffedd5; transform: translateY(-1px); }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-danger:hover { background: #dc2626; }
+        
+        .btn:disabled, .btn.disabled {
+            background: #f1f5f9 !important;
+            color: #94a3b8 !important;
+            border-color: #e2e8f0 !important;
+            cursor: not-allowed;
+            pointer-events: none;
+            transform: none !important;
+            opacity: 0.7;
+        }
+
+        /* Micro View Modal Custom Styles */
+        .log-modal {
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0; 
+            width: 100%; height: 100%; background-color: rgba(15,23,42,0.6); backdrop-filter: blur(5px);
+        }
+        .log-modal-content {
+            background-color: white; margin: 10% auto; padding: 32px; 
+            border-radius: 20px; width: 90%; max-width: 600px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            animation: modalFadeIn 0.3s ease;
+        }
+        @keyframes modalFadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-light); padding-bottom: 18px; margin-bottom: 24px; }
+        .modal-header h4 { margin: 0; font-size: 1.35rem; color: var(--kisii-blue); font-weight: 800; }
+        .close-modal { font-size: 1.75rem; font-weight: bold; cursor: pointer; color: #94a3b8; line-height: 1; }
+        .close-modal:hover { color: var(--danger); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-brand">
+            <h1>SIST DIGITAL LOGBOOK</h1>
+            <p>Student Portal Workspace</p>
+        </div>
+        <a href="{% url 'core:logout' %}" class="btn btn-danger">Logout</a>
+    </header>
+
+    <div class="main-container">
+        
+        <div class="grid-2">
+            <div class="card">
+                <h3>Attachment Profile</h3>
+                <p style="margin: 16px 0 8px 0; color: var(--text-dark);"><strong>Student Course:</strong> {{ period.student.course|default:"Not assigned" }}</p>
+                <p style="margin: 0 0 8px 0; color: var(--text-dark);"><strong>Organization:</strong> {{ period.student.institution_or_company|default:"Not provided" }}</p>
+                <p style="margin: 0 0 8px 0; color: var(--text-dark);"><strong>Field Supervisor:</strong> {{ period.supervisor.get_full_name|default:"Awaiting Field Allocation" }}</p>
+                <p style="margin: 0; color: var(--text-dark);"><strong>KU Lecturer:</strong> {{ period.lecturer.get_full_name|default:"Awaiting Departmental Assignment" }}</p>
+            </div>
+            <div class="card">
+                <h3>Final Grading Results</h3>
+                {% if period.lecturer_signed %}
+                    <p style="font-size:24px; margin: 14px 0 10px 0; font-weight: 800;">Final Grade: <strong style="color:var(--kisii-blue);">{{ period.lecturer_grade }}</strong> ({{ period.lecturer_marks }}%)</p>
+                    <p style="margin: 0; color: var(--text-muted);"><em>Lecturer Comment: {{ period.lecturer_comment }}</em></p>
+                {% else %}
+                    <p style="color:#b45309; font-weight:700; margin: 16px 0 0 0; display: inline-flex; align-items: center; gap: 8px;">
+                        <span>⏳</span> Final verification evaluations ongoing.
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header-flex">
+                <div>
+                    <h3>Weekly Logs Pipeline Matrices</h3>
+                    <p style="margin: 4px 0 0 0; color: var(--text-muted); font-size: 0.88rem;">Manage entries, update draft metrics or review evaluation signatures.</p>
+                </div>
+                <a href="{% url 'core:create_log' period.id %}" class="btn btn-sky {% if not can_add_log %}disabled{% endif %}" {% if not can_add_log %}aria-disabled="true" onclick="return false;"{% endif %}>✨ + Add New Weekly Log</a>
+            </div>
+            {% if not can_add_log %}
+                <p style="margin: 12px 0 0 0; color:#b45309; font-size:0.9rem;">A new log can only be created after your current weekly log has been approved by the field supervisor.</p>
+            {% endif %}
+            <div class="pipeline-table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Week</th>
+                            <th>Status</th>
+                            <th>Supervisor Remarks</th>
+                            <th>Lecturer Signature</th>
+                            <th>Action Matrix Options</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in log_rows %}
+                            {% if not item.locked %}
+                                <tr class="row-active">
+                                    <td><strong>Week {{ item.log.week_number }}</strong></td>
+                                    <td>
+                                        {% if item.log.supervisor_approved %}
+                                            <span class="badge badge-success">Approved & Locked</span>
+                                        {% else %}
+                                            <span class="badge badge-warning">Draft Mode</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ item.log.supervisor_comment|default:"No evaluations added" }}</td>
+                                    <td>{{ item.log.lecturer_comment|default:"No academic signature" }}</td>
+                                    <td>
+                                        <div class="actions-cluster">
+                                            <button type="button" class="btn btn-sm btn-outline view-log-btn"
+                                                    data-week="{{ item.log.week_number }}"
+                                                    data-supervisor="{{ item.log.supervisor_comment|default:'No evaluations added' }}"
+                                                    data-lecturer="{{ item.log.lecturer_comment|default:'No academic signature' }}">
+                                                👁️ View
+                                            </button>
+                                            {% if not item.log.supervisor_approved %}
+                                                <a href="{% url 'core:edit_log' item.log.id %}" class="btn btn-sm btn-gold">✏️ Edit Log</a>
+                                                <button class="btn btn-sm btn-outline disabled" disabled>🖨️ Print</button>
+                                            {% else %}
+                                                <button class="btn btn-sm btn-outline disabled" disabled>✏️ Edit Log</button>
+                                                <button class="btn btn-sm btn-blue" onclick="window.print()">🖨️ Download</button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr class="row-locked">
+                                    <td><strong>Week {{ item.log.week_number }}</strong></td>
+                                    <td><span class="badge badge-locked">🔒 Locked Structure</span></td>
+                                    <td colspan="2" style="color: #94a3b8; font-size: 0.85rem; font-style: italic;">
+                                        Complete and obtain Field Supervisor signoff for Week {{ item.log.week_number|add:"-1" }} to activate tracking nodes.
+                                    </td>
+                                    <td>
+                                        <div class="actions-cluster">
+                                            <button class="btn btn-sm btn-outline disabled" disabled>👁️ View</button>
+                                            <button class="btn btn-sm btn-outline disabled" disabled>✏️ Edit Log</button>
+                                            <button class="btn btn-sm btn-outline disabled" disabled>🖨️ Print</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        {% empty %}
+                                <td colspan="5" style="text-align: center; padding: 40px; color: #64748b; font-style: italic;">
+                                    No active academic assignment records mapped to this system profile.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card" style="border-top: 4px solid var(--kisii-blue);">
+            <h3>Final Assessment Report Submission Hub</h3>
+            <p style="margin: 4px 0 20px 0; color: var(--text-muted); font-size: 0.88rem;">To be populated and executed upon completion of the mandatory 12-14 weeks period.</p>
+            
+            {% if not period.supervisor_signed %}
+                <form method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 18px;">
+                    {% csrf_token %}
+                    <div style="background: var(--bg-light); padding: 20px; border-radius: 12px; border: 1px dashed var(--border-light);">
+                        {{ report_form.as_p }}
+                    </div>
+                    <button type="submit" name="upload_report" class="btn btn-blue" style="align-self: flex-start;">Upload Report Document</button>
+                </form>
+            {% else %}
+                <div style="display: flex; align-items: center; justify-content: space-between; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 20px; border-radius: 12px; flex-wrap: wrap; gap: 16px;">
+                    <p style="color:var(--success); font-weight:700; margin: 0;">✓ Final assessment documents locked and compiled for internal evaluation.</p>
+                    {% if period.final_report %}
+                        <a href="{{ period.final_report.url }}" class="btn btn-blue" download>Download Submitted File</a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <div id="quickViewModal" class="log-modal">
+        <div class="log-modal-content">
+            <div class="modal-header">
+                <h4 id="modalWeekTitle">Week Details</h4>
+                <span class="close-modal" onclick="closeQuickView()">&times;</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+                <div>
+                    <strong style="color: #475569; display: block; margin-bottom: 6px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Industry Supervisor Comments:</strong>
+                    <p id="modalSupervisorText" style="margin: 0; background: #f8fafc; padding: 16px; border-radius: 10px; border: 1px solid var(--border-light); line-height: 1.5; color: var(--text-dark);"></p>
+                </div>
+                <div>
+                    <strong style="color: #475569; display: block; margin-bottom: 6px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">University Lecturer Notes:</strong>
+                    <p id="modalLecturerText" style="margin: 0; background: #f8fafc; padding: 16px; border-radius: 10px; border: 1px solid var(--border-light); line-height: 1.5; color: var(--text-dark);"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const viewButtons = document.querySelectorAll('.view-log-btn');
+            
+            viewButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const week = this.getAttribute('data-week');
+                    const supervisor = this.getAttribute('data-supervisor');
+                    const lecturer = this.getAttribute('data-lecturer');
+                    
+                    openQuickView(week, supervisor, lecturer);
+                });
+            });
+        });
+
+        function openQuickView(weekNumber, supervisorComment, lecturerComment) {
+            document.getElementById('modalWeekTitle').textContent = "Summary Logs Overview — Week " + weekNumber;
+            document.getElementById('modalSupervisorText').textContent = supervisorComment;
+            document.getElementById('modalLecturerText').textContent = lecturerComment;
+            document.getElementById('quickViewModal').style.display = "block";
+        }
+
+        function closeQuickView() {
+            document.getElementById('quickViewModal').style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('quickViewModal');
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>

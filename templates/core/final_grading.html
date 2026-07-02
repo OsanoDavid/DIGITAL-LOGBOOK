@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Final Grading - {{ role }}</title>
+    <link rel="stylesheet" href="/static/css/sist_style.css">
+</head>
+<body>
+    <div class="main-container" style="max-width:650px;">
+        <div class="card">
+            <h2>Final Capstone Grading Panel - {{ role }} View</h2>
+            <p><strong>Student:</strong> {{ period.student.get_full_name }}</p>
+            {% if period.final_report %}<p>📥 <a href="{{ period.final_report.url }}" download>Download Submitted Report Document File</a></p>{% endif %}
+            <hr>
+            <form method="POST">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="btn btn-gold">Lock and Sign Final Grade</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

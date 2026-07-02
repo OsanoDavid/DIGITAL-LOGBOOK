@@ -1,0 +1,459 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIST System Registration - Kisii University</title>
+    
+    <link rel="icon" type="image/jpeg" href="{% static 'images/logo.jpeg' %}">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="{% static 'css/portal.css' %}">
+    
+    <style>
+        .multicolor-gradient-side {
+            flex: 1.1;
+            background: linear-gradient(135deg, #0f4c81 0%, #0096ff 30%, #8b5cf6 70%, #f4a261 100%);
+            position: relative;
+            min-height: 520px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            box-sizing: border-box;
+        }
+        .gradient-overlay-content { z-index: 2; color: #ffffff; text-align: center; }
+        .gradient-logo-frame {
+            background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px);
+            padding: 20px; border-radius: 20px; display: inline-block;
+            margin-bottom: 20px; border: 1px solid rgba(255, 255, 255, 0.25);
+        }
+        .gradient-logo-frame img { height: 90px; width: auto; border-radius: 8px; }
+        .gradient-overlay-content h3 { font-size: 2rem; font-weight: 800; margin: 0 0 10px 0; }
+        .gradient-overlay-content p { font-size: 1.1rem; color: rgba(255, 255, 255, 0.9); margin: 0; }
+        .fee-alert-box {
+            background-color: #fee2e2; border-left: 4px solid #ef4444; color: #991b1b;
+            padding: 12px 16px; border-radius: 8px; font-size: 0.95rem; font-weight: 600;
+            margin-bottom: 20px; display: none;
+        }
+        .conditional-field-wrapper {
+            display: none; background: rgba(15, 150, 255, 0.04); padding: 15px;
+            border-radius: 12px; border: 1px dashed var(--kisii-sky); margin-bottom: 20px;
+        }
+        .live-error-text { font-size: 0.85rem; font-weight: 600; color: #ef4444; margin-top: 5px; display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="portal-toast" class="toast-notification"></div>
+
+    <div class="accessibility-bar">
+        <button onclick="changeFontSize(1)">Font Size Increase (A+)</button>
+        <button onclick="changeFontSize(-1)">Font Size Decrease (A-)</button>
+        <button onclick="resetFontSize()">Reset Font (A)</button>
+        <button onclick="toggleContrast()">Toggle Dark Mode / Contrast</button>
+    </div>
+
+    <nav id="home">
+        <div class="nav-logo-area">
+            <img src="{% static 'images/logo.jpeg' %}" alt="Kisii University Logo">
+            <div class="brand-text">
+                <h1>KISII UNIVERSITY</h1>
+                <p>School of Information Sciences & Technology</p>
+            </div>
+        </div>
+        <div class="nav-links">
+            <a href="{% url 'core:login' %}">Home</a>
+            <a href="#" class="active">Register for Logbook</a>
+            <a href="{% url 'core:login' %}#services">Services</a>
+            <a href="#support">Support</a>
+            <a href="{% url 'core:login' %}" class="btn-nav">Sign In Terminal</a>
+        </div>
+    </nav>
+
+    <main class="main-workspace reveal-on-scroll">
+        <div class="split-card">
+            
+            <div class="sist-header-banner">
+                <h2>SIST <span>System Portal</span> Registration</h2>
+                <p>Create your verified attachment logging credentials for Kisii University evaluation cycles.</p>
+            </div>
+
+            <div class="split-card-body">
+                <div class="multicolor-gradient-side">
+                    <div class="gradient-overlay-content">
+                        <div class="gradient-logo-frame">
+                            <img src="{% static 'images/logo.jpeg' %}" alt="SIST Crest">
+                        </div>
+                        <h3>Inclusivity & Borderlessness</h3>
+                        <p>SIST Digital Logbook Hub</p>
+                    </div>
+                </div>
+
+                <div class="form-side" id="reg-terminal-form">
+                    <h2>Account Creation Portal</h2>
+                    <p class="subtitle">Provide your official academic registry parameters to initialize your profile system node.</p>
+
+                    <div id="fee-blocker-message" class="fee-alert-box">
+                        ⚠️ Registration Blocked: You must have cleared your university tuition fees to register for industrial attachment evaluation.
+                    </div>
+
+                    <form method="POST" id="registrationForm" onsubmit="handleFormSubmissionSystem(event)">
+                        {% csrf_token %}
+
+                        <div class="form-group">
+                            <label for="id_full_name">Full Name</label>
+                            <input type="text" name="full_name" id="id_full_name" class="form-control" placeholder="Enter your Full Name" required>
+                        </div>
+
+                        <div style="display: flex; gap: 15px; width: 100%; flex-wrap: wrap;">
+                            <div class="form-group" style="flex: 1; min-width: 200px;">
+                                <label for="id_email">Official Email Address</label>
+                                <input type="email" name="email" id="id_email" class="form-control" placeholder="name@example.com" required>
+                            </div>
+                            <div class="form-group" style="flex: 1; min-width: 200px;">
+                                <label for="id_phone">Phone Number</label>
+                                <input type="tel" name="phone_number" id="id_phone" class="form-control" placeholder="e.g., +2547..." required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="id_role">System Workspace Profile Assignment Role</label>
+                            <select name="role" id="id_role" class="form-control" onchange="evaluateRoleConditionalFlows()">
+                                <option value="STUDENT" selected>Student / Attachee Node</option>
+                                <option value="SUPERVISOR">External Industry Field Supervisor</option>
+                                <option value="LECTURER">Internal Academic University Assessor</option>
+                            </select>
+                        </div>
+
+                        <div id="course-field-wrapper" class="form-group">
+                            <label for="id_course">Course / Programme</label>
+                            <select name="course" id="id_course" class="form-control">
+                                <option value="">Select course / programme</option>
+                                <option value="Computer Science">Computer Science</option>
+                                <option value="Applied Computer Science">Applied Computer Science</option>
+                                <option value="Software Engineering">Software Engineering</option>
+                                <option value="Information Technology">Information Technology</option>
+                            </select>
+                        </div>
+
+                        <div id="supervisor-company-field" class="conditional-field-wrapper" style="display: none;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label for="id_institution_or_company">Attachment Organisation / Company</label>
+                                <input type="text" name="institution_or_company" id="id_institution_or_company"
+                                       class="form-control" list="org-suggestions"
+                                       placeholder="Search or type your organisation name..."
+                                       autocomplete="off">
+                                <datalist id="org-suggestions">
+                                    <!-- Government ICT & Regulatory Bodies -->
+                                    <option value="ICT Authority of Kenya (ICTA)">
+                                    <option value="NITA-K (National IT Authority Kenya)">
+                                    <option value="Communications Authority of Kenya (CA)">
+                                    <option value="Konza Technopolis Development Authority">
+                                    <option value="Kenya ICT Board">
+                                    <option value="Kenya Revenue Authority (KRA)">
+                                    <option value="Kenya National Bureau of Statistics (KNBS)">
+                                    <option value="National Social Security Fund (NSSF)">
+                                    <option value="National Hospital Insurance Fund (NHIF)">
+                                    <option value="Kenya Broadcasting Corporation (KBC)">
+                                    <option value="National Transport and Safety Authority (NTSA)">
+                                    <option value="Kenya Bureau of Standards (KEBS)">
+                                    <!-- Telecoms & ISPs -->
+                                    <option value="Safaricom PLC">
+                                    <option value="Airtel Kenya">
+                                    <option value="Telkom Kenya">
+                                    <option value="Faiba (Jamii Telecommunications)">
+                                    <option value="Liquid Telecommunications Kenya">
+                                    <option value="AccessKenya Group">
+                                    <!-- Banking & Finance -->
+                                    <option value="Kenya Commercial Bank (KCB)">
+                                    <option value="Equity Bank Kenya">
+                                    <option value="Co-operative Bank of Kenya">
+                                    <option value="NCBA Bank Kenya">
+                                    <option value="Absa Bank Kenya">
+                                    <option value="Standard Chartered Bank Kenya">
+                                    <!-- County & Public Institutions -->
+                                    <option value="Kisii County Government">
+                                    <option value="Nyamira County Government">
+                                    <option value="Nairobi City County">
+                                    <option value="Kisii Teaching and Referral Hospital">
+                                    <option value="Kenya Power and Lighting Company (KPLC)">
+                                    <option value="Kenya Ports Authority (KPA)">
+                                    <option value="Kenya Airports Authority (KAA)">
+                                    <option value="Kenya Railways Corporation">
+                                    <!-- Private Tech & Multinationals -->
+                                    <option value="Microsoft Africa Development Centre">
+                                    <option value="Google Kenya">
+                                    <option value="IBM East Africa">
+                                    <option value="Oracle Kenya">
+                                    <option value="Huawei Technologies Kenya">
+                                    <option value="ZTE Kenya">
+                                    <option value="Craft Silicon">
+                                    <option value="Cellulant Corporation">
+                                    <option value="iProcure">
+                                    <option value="Deloitte East Africa">
+                                    <option value="PwC Kenya">
+                                    <option value="KPMG Kenya">
+                                    <option value="EY Kenya">
+                                </datalist>
+                                <small style="display:block; margin-top:6px; color:#64748b; font-size:0.85rem;">
+                                    💡 Select from the list or type your organisation name if it is not listed above.
+                                </small>
+                            </div>
+                        </div>
+
+                        <div id="student-fee-verification-box" class="conditional-field-wrapper">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label for="id_fees_cleared" style="color: var(--kisii-blue); font-weight: 700;">Have you cleared your University Fees?</label>
+                                <select id="id_fees_cleared" class="form-control" onchange="evaluateFeeClearanceStatus()">
+                                    <option value="" disabled selected>-- Select Status --</option>
+                                    <option value="YES">Yes, I have fully cleared fees</option>
+                                    <option value="NO">No, I have outstanding balance</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="id_username" id="username-label-text">Registration Number</label>
+                            <input type="text" name="username" id="id_username" class="form-control" placeholder="e.g., IN14/00000/22" required>
+                            <small style="display:block; margin-top:8px; color:#334155; font-size:0.92rem;">Student prefix mapping: IN13/ = Computer Science, IN14/ = Applied Computer Science, IN16/ = Software Engineering, IN12/ = Information Technology.</small>
+                        </div>
+
+                        <div style="display: flex; gap: 15px; width: 100%; flex-wrap: wrap;">
+                            <div class="form-group" style="flex: 1; min-width: 200px;">
+                                <label for="id_password">Create Password</label>
+                                <div class="password-container">
+                                    <input type="password" name="password" id="id_password" class="form-control" placeholder="Minimum 8 characters" oninput="verifyPasswordSecurityRules()" required>
+                                    <button type="button" class="toggle-eye-btn" onclick="toggleFieldPassword('id_password', this)">👁️</button>
+                                </div>
+                                <div id="strength-error-line" class="live-error-text">⚠️ Password is weak! Must be at least 8 characters long.</div>
+                            </div>
+                            
+                            <div class="form-group" style="flex: 1; min-width: 200px;">
+                                <label for="id_confirm_password">Confirm Password</label>
+                                <div class="password-container">
+                                    <input type="password" name="confirm_password" id="id_confirm_password" class="form-control" placeholder="Retype your password" oninput="verifyPasswordSecurityRules()" required>
+                                    <button type="button" class="toggle-eye-btn" onclick="toggleFieldPassword('id_confirm_password', this)">👁️</button>
+                                </div>
+                                <div id="match-error-line" class="live-error-text">❌ Passwords do not match!</div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-portal" id="submit-portal-btn">
+                            <span class="btn-text-content">Complete Account Registration</span>
+                            <div class="modern-loading-ring" id="portal-button-spinner"></div>
+                        </button>
+                    </form>
+
+                    <div class="register-prompt-footer">
+                        Already have an operating account? <a href="{% url 'core:login' %}">Sign In Here</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer id="support">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4>SIST Platforms</h4>
+                <ul><li><a href="#" class="active">Logbook Registration</a></li></ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div>&copy; 2026 Kisii University School of Information Sciences & Technology.</div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const itemsToReveal = document.querySelectorAll(".reveal-on-scroll");
+            const scrollTrackingObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add("active"); });
+            }, { threshold: 0.1 });
+            itemsToReveal.forEach(item => scrollTrackingObserver.observe(item));
+            evaluateRoleConditionalFlows();
+        });
+
+        function evaluateRoleConditionalFlows() {
+            const roleSelection = document.getElementById('id_role').value;
+            const feeVerificationWrapper = document.getElementById('student-fee-verification-box');
+            const supervisorCompanyWrapper = document.getElementById('supervisor-company-field');
+            const identityLabelText = document.getElementById('username-label-text');
+            const mainIdentityInputField = document.getElementById('id_username');
+            const companyInput = document.getElementById('id_institution_or_company');
+            
+            const courseInput = document.getElementById('id_course');
+            const courseFieldWrapper = document.getElementById('course-field-wrapper');
+            if (roleSelection === "STUDENT") {
+                feeVerificationWrapper.style.display = "block";
+                supervisorCompanyWrapper.style.display = "block";
+                courseFieldWrapper.style.display = "block";
+                courseInput.required = true;
+                companyInput.required = true;
+                identityLabelText.textContent = "Registration Number";
+                mainIdentityInputField.placeholder = "e.g., IN14/00000/22";
+                evaluateFeeClearanceStatus();
+            } else {
+                feeVerificationWrapper.style.display = "none";
+                document.getElementById('fee-blocker-message').style.display = "none";
+                verifyPasswordSecurityRules();
+                if (roleSelection === "SUPERVISOR") {
+                    supervisorCompanyWrapper.style.display = "block";
+                    // Supervisors match by organisation only — course field is hidden
+                    courseFieldWrapper.style.display = "none";
+                    courseInput.required = false;
+                    courseInput.value = "";
+                    companyInput.required = true;
+                    identityLabelText.textContent = "Supervisor Staff ID Code";
+                    mainIdentityInputField.placeholder = "e.g., SUP-88741";
+                } else {
+                    // LECTURER
+                    supervisorCompanyWrapper.style.display = "none";
+                    courseFieldWrapper.style.display = "block";
+                    courseInput.required = true;
+                    companyInput.required = false;
+                    identityLabelText.textContent = "Lecturer Employee Number";
+                    mainIdentityInputField.placeholder = "e.g., KSU-PF-1024";
+                }
+            }
+        }
+
+        function evaluateFeeClearanceStatus() {
+            if (document.getElementById('id_role').value !== "STUDENT") return;
+            const selectedStatus = document.getElementById('id_fees_cleared').value;
+            if (selectedStatus === "NO") {
+                document.getElementById('fee-blocker-message').style.display = "block";
+                lockFormSubmission();
+            } else {
+                document.getElementById('fee-blocker-message').style.display = "none";
+                verifyPasswordSecurityRules();
+            }
+        }
+
+        function verifyPasswordSecurityRules() {
+            const passwordVal = document.getElementById('id_password').value;
+            const confirmVal = document.getElementById('id_confirm_password').value;
+            const isStrong = passwordVal.length >= 8;
+            const isMatch = passwordVal === confirmVal;
+
+            document.getElementById('strength-error-line').style.display = (passwordVal.length > 0 && !isStrong) ? "block" : "none";
+            document.getElementById('match-error-line').style.display = (confirmVal.length > 0 && !isMatch) ? "block" : "none";
+
+            if (isStrong && isMatch) {
+                const role = document.getElementById('id_role').value;
+                const feeStatus = document.getElementById('id_fees_cleared').value;
+                if (role === "STUDENT" && feeStatus === "NO") lockFormSubmission(); else unlockFormSubmission();
+            } else {
+                lockFormSubmission();
+            }
+        }
+
+        function lockFormSubmission() {
+            const btn = document.getElementById('submit-portal-btn');
+            btn.disabled = true; btn.style.opacity = "0.4"; btn.style.cursor = "not-allowed";
+        }
+
+        function unlockFormSubmission() {
+            const btn = document.getElementById('submit-portal-btn');
+            btn.disabled = false; btn.style.opacity = "1"; btn.style.cursor = "pointer";
+        }
+
+        // Submits registration parameters to database and points immediately to login screen
+        function getCookie(name) {
+            const cookieValue = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith(name + '='));
+            return cookieValue ? decodeURIComponent(cookieValue.split('=')[1]) : null;
+        }
+
+        function handleFormSubmissionSystem(event) {
+            event.preventDefault();
+            const form = document.getElementById('registrationForm');
+            const submitBtn = document.getElementById('submit-portal-btn');
+            const btnText = submitBtn.querySelector('.btn-text-content');
+            const spinner = document.getElementById('portal-button-spinner');
+            const csrfToken = getCookie('csrftoken');
+
+            btnText.textContent = 'Processing registration...';
+            btnText.style.opacity = "0.8";
+            spinner.style.display = "inline-block";
+            submitBtn.disabled = true;
+
+            fetch(form.action || window.location.href, {
+                method: 'POST',
+                credentials: 'same-origin',
+                body: new FormData(form),
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': csrfToken,
+                },
+            })
+            .then(async response => {
+                const payload = await response.json().catch(() => ({}));
+                if (response.ok) {
+                    triggerTemporaryNotification("🎉 Registration successful! Redirecting to login...");
+                    setTimeout(() => {
+                        window.location.href = "{% url 'core:login' %}?registered=true";
+                    }, 1500);
+                    return;
+                }
+
+                const errorMessage = payload.message || 'Registration failed due to invalid input.';
+                const errorItems = payload.errors || [];
+                showRegistrationErrors(errorMessage, errorItems);
+                throw new Error(errorMessage);
+            })
+            .catch(error => {
+                const message = error.message || 'Registration failed. Please check the form and try again.';
+                triggerTemporaryNotification(message, "error");
+                spinner.style.display = "none";
+                btnText.style.opacity = "1";
+                btnText.textContent = 'Complete Account Registration';
+                submitBtn.disabled = false;
+            });
+        }
+
+        function showRegistrationErrors(message, errors) {
+            const panel = document.getElementById('registrationErrorPanel');
+            const messageContainer = document.getElementById('registrationErrorMessage');
+            const list = document.getElementById('registrationErrorList');
+
+            messageContainer.textContent = message;
+            list.innerHTML = '';
+            if (errors && errors.length) {
+                errors.forEach(err => {
+                    const li = document.createElement('li');
+                    li.textContent = err;
+                    list.appendChild(li);
+                });
+            }
+            panel.style.display = 'block';
+        }
+
+        function triggerTemporaryNotification(message, flagType = "success") {
+            const toast = document.getElementById('portal-toast');
+            toast.textContent = message;
+            toast.className = "toast-notification " + (flagType === "success" ? "toast-success" : "toast-error");
+            toast.style.top = "30px";
+            setTimeout(() => { toast.style.top = "-100px"; }, 4000);
+        }
+
+        function toggleFieldPassword(inputId, triggerBtn) {
+            const passInput = document.getElementById(inputId);
+            passInput.type = passInput.type === 'password' ? 'text' : 'password';
+            triggerBtn.textContent = passInput.type === 'password' ? '👁️' : '🙈';
+        }
+
+        let rootPixelSize = 14;
+        function changeFontSize(dir) {
+            rootPixelSize += (dir * 1.5);
+            document.documentElement.style.fontSize = Math.max(11, Math.min(24, rootPixelSize)) + 'px';
+        }
+        function resetFontSize() { document.documentElement.style.fontSize = '14px'; }
+        function toggleContrast() { document.body.classList.toggle('dark-contrast'); }
+    </script>
+</body>
+</html>
