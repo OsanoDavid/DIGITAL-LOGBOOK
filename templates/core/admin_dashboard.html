@@ -579,20 +579,60 @@
             margin-top: auto; color: #f8fafc !important; font-weight: 700; font-size: 0.95rem; padding: 14px 16px; background: rgba(239, 68, 68, 0.15); border-radius: 14px; text-decoration: none; text-align: center; transition: all 0.2s ease; border: 1px solid rgba(239, 68, 68, 0.1);
         }
         .logout-link:hover { background: #ef4444; color: white !important; box-shadow: 0 8px 16px rgba(239, 68, 68, 0.25); }
-        
-        @media (max-width: 1200px) { 
-            .admin-panel { grid-template-columns: 1fr; } 
-            .sidebar { min-height: auto; }
+        .mobile-sidebar-select {
+            display: none;
+            width: 100%;
+            max-width: 100%;
+            margin-bottom: 22px;
+            padding: 14px 18px;
+            border-radius: 14px;
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            font-size: 0.95rem;
+            box-shadow: 0 10px 30px rgba(15, 76, 129, 0.05);
+        }
+        .mobile-nav-header {
+            display: none;
+            margin-bottom: 24px;
+        }
+        .mobile-nav-header h2 {
+            margin: 0;
+            font-size: 1.35rem;
+            color: #0f172a;
+        }
+        .mobile-nav-header p {
+            margin: 6px 0 0;
+            color: #64748b;
+            font-size: 0.92rem;
+        }
+        @media (max-width: 1200px) {
+            .admin-panel { grid-template-columns: 1fr; }
+            .sidebar { display: none; }
+            .mobile-nav-header { display: block; }
+            .content-area { width: 100%; }
             .form-grid { grid-template-columns: 1fr; }
             .form-group.full-width, .btn-portal { grid-column: span 1; }
             .user-list-row { grid-template-columns: 40px 1fr 1fr; gap: 15px; }
             .user-actions { grid-column: 1 / -1; margin-top: 10px; }
+            .mobile-sidebar-select { display: block; }
         }
     </style>
 </head>
 <body>
     <div class="admin-shell">
         <div class="admin-panel">
+            <div class="mobile-nav-header">
+                <h2>System Console</h2>
+                <p>Manage users, monitor activity, and control ecosystem metrics across your workspace application.</p>
+            </div>
+            <select id="mobileSidebarSelect" class="mobile-sidebar-select" aria-label="Select dashboard section">
+                <option value="overview">Overview</option>
+                <option value="create-user-section">Create User</option>
+                <option value="students">Students</option>
+                <option value="supervisors">Supervisors</option>
+                <option value="lecturers">Lecturers</option>
+                <option value="admins">Admins</option>
+            </select>
             <aside class="sidebar">
                 <h2>System Console</h2>
                 <p>Manage users, monitor activity, and control ecosystem metrics across your workspace application.</p>
@@ -908,34 +948,59 @@
     </div>
 
     <script>
+        function showDashboardSection(sectionId) {
+            const sections = document.querySelectorAll('.dashboard-section');
+            const navItems = document.querySelectorAll('.nav-item');
+            const mobileSidebarSelect = document.getElementById('mobileSidebarSelect');
+
+            sections.forEach(section => section.classList.remove('section-active'));
+            navItems.forEach(nav => nav.classList.toggle('active', nav.dataset.target === sectionId));
+
+            if (mobileSidebarSelect) {
+                mobileSidebarSelect.value = sectionId;
+            }
+
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) {
+                targetSection.classList.add('section-active');
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             const navItems = document.querySelectorAll('.nav-item');
-            const sections = document.querySelectorAll('.dashboard-section');
             const loader = document.getElementById('loadingOverlay');
             const loaderText = document.getElementById('loaderText');
+            const mobileSidebarSelect = document.getElementById('mobileSidebarSelect');
 
             navItems.forEach(item => {
                 item.addEventListener('click', (e) => {
                     e.preventDefault();
-                    
                     navItems.forEach(nav => nav.classList.remove('active'));
                     item.classList.add('active');
 
                     const targetSectionId = item.getAttribute('data-target');
-                    
-                    sections.forEach(section => section.classList.remove('section-active'));
                     loaderText.innerText = "Loading Workspace Section...";
                     loader.style.display = 'block';
 
                     setTimeout(() => {
                         loader.style.display = 'none';
-                        const activeSection = document.getElementById(targetSectionId);
-                        if(activeSection) {
-                            activeSection.classList.add('section-active');
-                        }
-                    }, 400); 
+                        showDashboardSection(targetSectionId);
+                    }, 400);
                 });
             });
+
+            if (mobileSidebarSelect) {
+                mobileSidebarSelect.addEventListener('change', function() {
+                    const selectedTarget = this.value;
+                    loaderText.innerText = "Loading Workspace Section...";
+                    loader.style.display = 'block';
+
+                    setTimeout(() => {
+                        loader.style.display = 'none';
+                        showDashboardSection(selectedTarget);
+                    }, 350);
+                });
+            }
         });
 
         /* --- DETAILED STUDENT PATHWAY ROUTING CONTROLLERS --- */

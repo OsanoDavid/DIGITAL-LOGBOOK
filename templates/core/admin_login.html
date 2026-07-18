@@ -134,7 +134,10 @@
             </div>
             <div class="form-group">
                 <label for="password">Admin Password</label>
-                <input type="password" name="password" id="password" class="form-control" placeholder="Enter admin password" required>
+                <div class="password-container">
+                    <input type="password" name="password" id="password" class="form-control" placeholder="Enter admin password" required>
+                    <button type="button" class="toggle-eye-btn" onclick="togglePasswordVisibilityAdmin(this)">👁️</button>
+                </div>
             </div>
             <button type="submit" class="btn-portal" style="width:100%; margin-top: 8px;">
                 <span>🔐 Enter Administrator Dashboard</span>
@@ -143,5 +146,17 @@
 
         <a href="{% url 'core:login' %}" class="admin-back">← Back to Main Login Portal</a>
     </div>
+    <script>
+        function togglePasswordVisibilityAdmin(button) {
+            const input = document.getElementById('password');
+            if (input.type === 'password') {
+                input.type = 'text';
+                button.textContent = '🙈';
+            } else {
+                input.type = 'password';
+                button.textContent = '👁️';
+            }
+        }
+    </script>
 </body>
 </html>

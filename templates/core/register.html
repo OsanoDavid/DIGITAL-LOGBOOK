@@ -92,6 +92,52 @@
             display: none;
         }
 
+        .mobile-nav-toggle {
+            display: none;
+            border: 1px solid rgba(15,76,129,0.25);
+            background: #ffffff;
+            color: #0f172a;
+            border-radius: 10px;
+            padding: 10px 16px;
+            cursor: pointer;
+            font-weight: 700;
+            box-shadow: 0 8px 20px rgba(15,76,129,0.06);
+            margin-left: auto;
+        }
+
+        .mobile-nav-menu {
+            display: none;
+            position: absolute;
+            top: 90px;
+            right: 24px;
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 16px 40px rgba(15,76,129,0.12);
+            overflow: hidden;
+            z-index: 1000;
+        }
+
+        .mobile-nav-menu a {
+            display: block;
+            padding: 14px 18px;
+            color: #0f172a;
+            text-decoration: none;
+            border-bottom: 1px solid #f1f5f9;
+            font-weight: 600;
+        }
+
+        .mobile-nav-menu a:last-child { border-bottom: none; }
+        .mobile-nav-menu a:hover { background: #f8fbff; }
+
+        @media (max-width: 800px) {
+            .nav-links { display: none; }
+            .mobile-nav-toggle { display: inline-flex; }
+            nav { position: relative; }
+            .nav-logo-area { flex-wrap: wrap; justify-content: space-between; }
+            .nav-links { width: 100%; margin-top: 12px; }
+        }
+
         /* Profile Role Selector Cards */
         .profile-card-btn {
             display: flex;
@@ -346,13 +392,6 @@
 
     <div id="portal-toast" class="toast-notification"></div>
 
-    <div class="accessibility-bar">
-        <button onclick="changeFontSize(1)">Font Size Increase (A+)</button>
-        <button onclick="changeFontSize(-1)">Font Size Decrease (A-)</button>
-        <button onclick="resetFontSize()">Reset Font (A)</button>
-        <button onclick="toggleContrast()">Toggle Dark Mode / Contrast</button>
-    </div>
-
     <nav id="home">
         <div class="nav-logo-area">
             <img src="{% static 'images/logo.jpeg' %}" alt="Kisii University Logo">
@@ -361,7 +400,15 @@
                 <p>School of Information Sciences & Technology</p>
             </div>
         </div>
+        <button class="mobile-nav-toggle" id="mobileNavToggle" type="button">Menu ▾</button>
         <div class="nav-links">
+            <a href="{% url 'core:login' %}">Home</a>
+            <a href="#" class="active">Register for Logbook</a>
+            <a href="{% url 'core:login' %}#services">Services</a>
+            <a href="#support">Support</a>
+            <a href="{% url 'core:login' %}" class="btn-nav">Sign In Terminal</a>
+        </div>
+        <div class="mobile-nav-menu" id="mobileNavMenu">
             <a href="{% url 'core:login' %}">Home</a>
             <a href="#" class="active">Register for Logbook</a>
             <a href="{% url 'core:login' %}#services">Services</a>
@@ -714,6 +761,24 @@
             toast.style.top = "30px";
             setTimeout(() => { toast.style.top = "-100px"; }, 5000);
         }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileNavToggle = document.getElementById('mobileNavToggle');
+            const mobileNavMenu = document.getElementById('mobileNavMenu');
+            if (mobileNavToggle) {
+                mobileNavToggle.addEventListener('click', function() {
+                    const isOpen = mobileNavMenu.style.display === 'block';
+                    mobileNavMenu.style.display = isOpen ? 'none' : 'block';
+                    mobileNavToggle.textContent = isOpen ? 'Menu ▾' : 'Close ✕';
+                });
+                document.addEventListener('click', function(event) {
+                    if (!mobileNavMenu.contains(event.target) && event.target !== mobileNavToggle) {
+                        mobileNavMenu.style.display = 'none';
+                        mobileNavToggle.textContent = 'Menu ▾';
+                    }
+                });
+            }
+        });
 
         function toggleFieldPassword(inputId, triggerBtn) {
             const passInput = document.getElementById(inputId);
