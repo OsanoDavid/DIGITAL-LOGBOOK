@@ -25,15 +25,29 @@ class SISTRegistrationForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['username'].required = False
         self.fields['username'].help_text = ''
+        self.fields['email'].required = True
         self.fields['institution_or_company'].widget.attrs.update({'placeholder': 'e.g. Safaricom, Kisii County Hospital'})
         self.fields['course'].widget.attrs.update({'class': 'form-control'})
 
     def clean_username(self):
-        username = self.cleaned_data['username']
+        username = self.cleaned_data.get('username', '').strip()
+        role = self.data.get('role', 'STUDENT')
+
+        # Supervisors and Lecturers use email as their username
+        if role in ('SUPERVISOR', 'LECTURER'):
+            email = self.data.get('email', '').strip().lower()
+            if not email:
+                raise forms.ValidationError('Email is required.')
+            if User.objects.filter(username=email).exists():
+                raise forms.ValidationError('An account with this email already exists.')
+            return email
+
+        # Students and Admins use registration number
         normalized = normalize_username(username)
         if not normalized:
-            raise forms.ValidationError('A username or registration number is required.')
+            raise forms.ValidationError('A registration number is required.')
         if User.objects.filter(username=normalized).exists():
             raise forms.ValidationError('A user with that registration number already exists.')
         return normalized
@@ -46,6 +60,13 @@ class SISTRegistrationForm(forms.ModelForm):
         institution_or_company = (cleaned_data.get('institution_or_company') or '').strip()
         course = cleaned_data.get('course')
 
+        if role in ('SUPERVISOR', 'LECTURER'):
+            email = (cleaned_data.get('email') or '').strip().lower()
+            if email:
+                cleaned_data['username'] = email
+            else:
+                raise forms.ValidationError({'email': 'Email address is required.'})
+
         if password and confirm_password and password != confirm_password:
             raise forms.ValidationError({'confirm_password': 'Passwords do not match.'})
 
@@ -54,8 +75,15 @@ class SISTRegistrationForm(forms.ModelForm):
                 raise forms.ValidationError({'institution_or_company': 'Company or organization is required for students and supervisors.'})
 
         if role in ('STUDENT', 'LECTURER'):
-            if not course:
+            inferred_course = None
+            if role == 'STUDENT':
+                inferred_course = User.infer_course_from_registration(self.cleaned_data.get('username'))
+
+            if not course and not inferred_course:
                 raise forms.ValidationError({'course': 'Please select the course or programme.'})
+
+            if inferred_course:
+                cleaned_data['course'] = inferred_course
 
         return cleaned_data
 
@@ -111,3 +139,23 @@ class FinalLecturerGradingForm(forms.ModelForm):
     class Meta:
         model = AttachmentPeriod
         fields = ['lecturer_marks', 'lecturer_grade', 'lecturer_comment', 'lecturer_signed']
+
+
+class ProfileUpdateForm(forms.ModelForm):
+    avatar_color = forms.CharField(
+        max_length=7,
+        widget=forms.TextInput(attrs={'type': 'color', 'class': 'form-control'}),
+        label='Profile Color',
+        required=False,
+        help_text='Choose a default color for your profile avatar'
+    )
+    profile_photo = forms.ImageField(
+        widget=forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
+        label='Profile Picture',
+        required=False,
+        help_text='Upload a profile picture (optional)'
+    )
+
+    class Meta:
+        model = User
+        fields = ['avatar_color', 'profile_photo']

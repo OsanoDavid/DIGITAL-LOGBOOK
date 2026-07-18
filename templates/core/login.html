@@ -18,12 +18,7 @@
 
     <div id="portal-toast" class="toast-notification"></div>
 
-    <div class="accessibility-bar">
-        <button onclick="changeFontSize(1)">Font Size Increase (A+)</button>
-        <button onclick="changeFontSize(-1)">Font Size Decrease (A-)</button>
-        <button onclick="resetFontSize()">Reset Font (A)</button>
-        <button onclick="toggleContrast()">Toggle Dark Mode / Contrast</button>
-    </div>
+    {% include 'core/accessibility_snippet.html' %}
 
     <nav id="home">
         <div class="nav-logo-area">
@@ -70,8 +65,8 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="id_username">Username / Admission Number</label>
-                            <input type="text" name="username" id="id_username" class="form-control" placeholder="Student No/ Employee No" required>
+                            <label for="id_username">Registration Number / Email Address</label>
+                            <input type="text" name="username" id="id_username" class="form-control" placeholder="Reg No / Email / Username" required>
                         </div>
 
                         <div class="form-group">
@@ -97,6 +92,9 @@
 
                     <div class="register-prompt-footer">
                         Don't have an account? <a href="{% url 'core:register' %}">Sign Up</a>
+                    </div>
+                    <div style="text-align:center; margin-top:10px;">
+                        <a href="{% url 'core:admin_login' %}" style="font-size:0.78rem; color:#94a3b8; text-decoration:none;">🔐 System Administrator Portal</a>
                     </div>
                 </div>
             </div>
@@ -140,8 +138,9 @@
                 <h4>SIST Platforms</h4>
                 <ul>
                     <li><a href="{% url 'core:register' %}">Logbook Registration</a></li>
-                    <li><a href="#">Attachment Guidelines</a></li>
-                    <li><a href="#">Supervisor Manuals</a></li>
+                    <li><a href="{% url 'core:info_page' 'guidelines' %}">Attachment Guidelines</a></li>
+                    <li><a href="{% url 'core:info_page' 'manuals' %}">Supervisor Manuals</a></li>
+                    <li><a href="{% url 'core:admin_login' %}">Administrator Portal</a></li>
                 </ul>
             </div>
             <div class="footer-col">
@@ -149,15 +148,16 @@
                 <ul>
                     <li><a href="https://www.kisiiuniversity.ac.ke" target="_blank">Main University Site</a></li>
                     <li><a href="https://portal.kisiiuniversity.ac.ke" target="_blank">Student Portal</a></li>
-                    <li><a href="#" target="_blank">E-Learning LMS</a></li>
+                    <li><a href="https://elearning.kisiiuniversity.ac.ke/" target="_blank">E-Learning LMS</a></li>
+                    <li><a href="https://digital.kisiiuniversity.ac.ke/" target="_blank">Kisii Huduma-Bora</a></li>
                 </ul>
             </div>
             <div class="footer-col">
                 <h4>Support Center</h4>
                 <ul>
-                    <li><a href="#">SIST ICT Desk</a></li>
-                    <li><a href="#">Logbook Support Help</a></li>
-                    <li><a href="#">Report System Issues</a></li>
+                    <li><a href="https://kisiiuniversity.ac.ke/dpt/information-communication-and-technology-ict" target="_blank">SIST ICT Desk</a></li>
+                    <li><a href="{% url 'core:info_page' 'support' %}">Logbook Support Help</a></li>
+                    <li><a href="{% url 'core:info_page' 'report' %}">Report System Issues</a></li>
                 </ul>
             </div>
         </div>
@@ -187,7 +187,18 @@
             if (urlParameters.get('registered') === 'true') {
                 triggerTemporaryNotification("🎉 Account successfully registered inside database! Please log in below.");
             }
+
+            // Trigger temporary notification if error variable was passed from standard form submission
+            {% if error %}
+            triggerTemporaryNotification("❌ {{ error|escapejs }}", "error");
+            {% endif %}
         });
+
+        // Helper to grab the freshest CSRF token from cookies (prevents back-button stale token issues)
+        function getCookie(name) {
+            const cookieValue = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith(name + '='));
+            return cookieValue ? decodeURIComponent(cookieValue.split('=')[1]) : null;
+        }
 
         // Handle Database Authentication Sequence dynamically using Fetch 
         function handleLoginSubmissionSystem(event) {
@@ -204,30 +215,35 @@
             submitBtn.disabled = true;
 
             const formData = new FormData(form);
+            const csrfToken = getCookie('csrftoken');
 
             // 2. Submit straight to your Java/Django backend login authentication URL endpoint
             fetch(form.action || window.location.href, {
                 method: 'POST',
                 body: formData,
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': csrfToken
                 }
             })
             .then(async response => {
                 const data = await response.json().catch(() => ({}));
 
-                if ((response.ok || response.redirected) && data.status === 'success') {
-                    triggerTemporaryNotification("🔐 Credentials Verified against database! Redirecting to dashboard...");
+                if (response.ok && data.status === 'success') {
+                    triggerTemporaryNotification("✅ Credentials verified! Redirecting to your dashboard...", "success");
                     setTimeout(() => {
                         window.location.href = data.redirect_url || "/portal/dashboard/";
                     }, 1500);
                 } else {
-                    throw new Error(data.message || "Invalid username/registration number or password combination.");
+                    const serverMsg = data.message || "Invalid Registration Number or Password. Please try again.";
+                    triggerTemporaryNotification("❌ " + serverMsg, "error");
+                    spinner.style.display = "none";
+                    btnText.style.opacity = "1";
+                    submitBtn.disabled = false;
                 }
             })
             .catch(error => {
-                triggerTemporaryNotification("❌ Access Denied: " + error.message, "error");
-                // Reset button state on failure so the user can re-try input elements
+                triggerTemporaryNotification("❌ Connection error. Please check your network and try again.", "error");
                 spinner.style.display = "none";
                 btnText.style.opacity = "1";
                 submitBtn.disabled = false;
@@ -240,7 +256,7 @@
             toast.textContent = message;
             toast.className = "toast-notification " + (flagType === "success" ? "toast-success" : "toast-error");
             toast.style.top = "30px";
-            setTimeout(() => { toast.style.top = "-100px"; }, 4000);
+            setTimeout(() => { toast.style.top = "-100px"; }, 5000);
         }
 
         function scrollToAndHighlightForm() {

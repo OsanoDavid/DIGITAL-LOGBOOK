@@ -299,14 +299,32 @@ footer { background: #0f172a; color: #94a3b8; padding: 40px 6% 25px 6%; font-siz
 @media (max-width: 950px) {
     .split-card-body { flex-direction: column; }
     .showcase-side { min-height: 280px; }
-    .form-side { padding: 40px 30px; }
+    .form-side { padding: 32px 24px; }
+    .services-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 680px) {
     nav { flex-direction: column; gap: 15px; text-align: center; padding: 15px; }
     .nav-links { flex-wrap: wrap; justify-content: center; gap: 14px; }
+    .brand-text h1 { font-size: 1.15rem; }
     .sist-header-banner h2 { font-size: 1.8rem; }
     .form-side h2 { font-size: 1.6rem; }
     .form-actions-row { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .services-grid, .footer-grid { grid-template-columns: 1fr; }
+    .service-card, .footer-col { padding: 20px; }
+    .main-workspace { padding: 20px 4%; }
+    .split-card { border-radius: 18px; }
+    .toast-notification { width: min(92vw, 360px); padding: 14px 18px; font-size: 0.95rem; }
+}
+@media (max-width: 480px) {
+    .accessibility-bar { padding: 10px 4%; justify-content: center; }
+    .accessibility-bar button { width: 100%; }
+    .form-side { padding: 24px 16px; }
+    .sist-header-banner { padding: 24px 14px; }
+    .sist-header-banner h2 { font-size: 1.45rem; }
+    .sist-header-banner p { font-size: 0.95rem; }
+    .form-group label { font-size: 0.9rem; }
+    .form-control { padding: 12px 14px; }
 }
 /* Modern Multicolor Dynamic Spinner */
 .modern-loading-ring {

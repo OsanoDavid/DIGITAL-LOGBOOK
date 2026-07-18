@@ -133,5 +133,14 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Media Uploads (For students uploading their 14-week attachment summary reports)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+import os
+
+# Base directory path definitions
+
+import os
+
+# Base directory path definitions
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

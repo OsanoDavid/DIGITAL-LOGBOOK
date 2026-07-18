@@ -1,5 +1,4 @@
-"""
-URL configuration for sist_project project.
+"""URL configuration for sist_project project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/6.0/topics/http/urls/
@@ -14,12 +13,14 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings               # Added to read MEDIA variables
+from django.conf.urls.static import static     # Added to serve file streams
 from core import views # Imports views directly for the landing page hook
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    # /admin/ now redirects to the custom admin login page (portal/admins/)
+    path('admin/', views.admin_login_view, name='custom_admin'),
     
     # 1. Maps the blank root URL directly to your landing login portal page
     path('', views.login_view, name='login'), 
@@ -27,3 +28,7 @@ urlpatterns = [
     # 2. Includes all other workflow routes (register, dashboard, edit_log) from core/urls.py
     path('portal/', include(('core.urls', 'core'), namespace='core')),
 ]
+
+# Append media file routing helper during local development environment checks
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

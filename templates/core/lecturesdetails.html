@@ -1,0 +1,273 @@
+{% load static %}
+
+
+
+
+
+  <div class="container">
+    <h2>Lecturer Details Form</h2>
+    <p class="subtitle">Please update your professional academic credentials profile.</p>
+
+    <!-- Progress Tracking Indicator -->
+    <div class="progress-container">
+      <div class="progress-bar" id="lec_progressBar"></div>
+    </div>
+
+    <!-- Step 1: Personal Information & Credentials Setup -->
+    <div id="lec_step1" class="step active">
+      <div class="form-grid">
+        <!-- Full Name spanning full width -->
+        <div class="form-group full-width">
+          <label for="lec_full_name">Full Name</label>
+          <input type="text" id="lec_full_name" name="full_name" placeholder="Enter your Full Name" required>
+        </div>
+        <div class="form-group">
+          <label for="lec_email">Official Email Address</label>
+          <input type="email" id="lec_email" name="email" placeholder="name@example.com" required>
+        </div>
+        <div class="form-group">
+          <label for="lec_phone">Phone Number</label>
+          <input type="tel" id="lec_phone" name="phone_number" placeholder="e.g., +2547..." required>
+        </div>
+        
+        <!-- System Workspace Profile Assignment Role (Full Width Select) -->
+        <div class="form-group full-width">
+          <label for="lec_workspace_role">System Workspace Profile Assignment Role</label>
+          <select id="lec_workspace_role" required>
+            <option value="Internal Academic University Assessor" selected>Internal Academic University Assessor</option>
+            <option value="External University Representative">External University Representative</option>
+            <option value="Department Administrator">Department Administrator</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="lec_national_id">National ID Number</label>
+          <input type="text" id="lec_national_id" placeholder="Enter ID Number" required>
+        </div>
+        
+        <!-- Academic Specialization Menu Dropdown -->
+        <div class="form-group">
+          <label for="lec_specialization">Academic Specialization</label>
+          <select id="lec_specialization" required>
+            <option value="" disabled selected hidden>Select academic specialization</option>
+            <option value="Computer Science">Computer Science</option>
+            <option value="Applied Computer Science">Applied Computer Science</option>
+            <option value="Software Engineering">Software Engineering</option>
+            <option value="Information Technology">Information Technology</option>
+            <option value="Communication and Media Studies">Communication and Media Studies</option>
+            <option value="Business Information Technology">Business Information Technology</option>
+          </select>
+        </div>
+
+        <!-- Lecturer Employee Number field + descriptive clean text context underneath -->
+        <div class="form-group full-width">
+          <label for="lec_employee_number">Lecturer Employee Number</label>
+          <input type="text" id="lec_employee_number" name="username" placeholder="e.g., KSU-PF-1024" required>
+          <div class="helper-text">
+            Student prefix mapping: IN13/ = Computer Science, IN14/ = Applied Computer Science, IN16/ = Software Engineering, IN12/ = Information Technology.
+          </div>
+        </div>
+
+        <!-- Create Password Field with dynamic Visibility Eye Icon -->
+        <div class="form-group">
+          <label for="lec_password">Create Password</label>
+          <div class="password-wrapper">
+            <input type="password" id="lec_password" name="password" placeholder="Minimum 8 characters" required>
+            <button type="button" class="toggle-eye-btn" onclick="lec_toggleFieldPassword('lec_password', this)">👁️</button>
+          </div>
+        </div>
+
+        <!-- Confirm Password Field with dynamic Visibility Eye Icon -->
+        <div class="form-group">
+          <label for="lec_confirm_password">Confirm Password</label>
+          <div class="password-wrapper">
+            <input type="password" id="lec_confirm_password" name="confirm_password" placeholder="Retype your password" required>
+            <button type="button" class="toggle-eye-btn" onclick="lec_toggleFieldPassword('lec_confirm_password', this)">👁️</button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="nav-buttons">
+        <button class="btn btn-back" disabled>Back</button>
+        <button class="btn btn-next" onclick="lec_nextStep(1)">
+          Next <div class="spinner" id="lec_spinner1"></div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 2: University Information -->
+    <div id="lec_step2" class="step">
+      <div class="form-grid">
+        <!-- University Name spanning full width -->
+        <div class="form-group full-width">
+          <label for="lec_university">University Name</label>
+          <select id="lec_university" name="university" required>
+            <option value="" disabled selected>Select University</option>
+            <option value="Kisii University">Kisii University</option>
+            <option value="University of Nairobi">University of Nairobi</option>
+            <option value="Kenyatta University">Kenyatta University</option>
+            <option value="Moi University">Moi University</option>
+            <option value="Strathmore University">Strathmore University</option>
+            <option value="JKUAT">JKUAT</option>
+            <option value="Maseno University">Maseno University</option>
+            <option value="Egerton University">Egerton University</option>
+            <option value="Karatina University">Karatina University</option>
+            <option value="Dedan Kimathi University">Dedan Kimathi University</option>
+            <option value="Technical University of Kenya">Technical University of Kenya</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="lec_faculty">Faculty / School</label>
+          <select id="lec_faculty" required>
+            <option value="" disabled selected>Select Faculty</option>
+            <option value="School of Information Sciences & Technology">School of Information Sciences &amp; Technology (SIST)</option>
+            <option value="Faculty of Computing">Faculty of Computing</option>
+            <option value="School of Engineering">School of Engineering</option>
+            <option value="Faculty of Science">Faculty of Science</option>
+            <option value="School of Business">School of Business</option>
+            <option value="Faculty of Education">Faculty of Education</option>
+            <option value="School of Pure and Applied Sciences">School of Pure and Applied Sciences</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="lec_department">Department</label>
+          <select id="lec_department" required>
+            <option value="" disabled selected>Select Department</option>
+            <option value="Computing Sciences">Computing Sciences</option>
+            <option value="Information Systems & Technology">Information Systems &amp; Technology</option>
+            <option value="Media and Communications">Media and Communications</option>
+            <option value="Software Engineering">Software Engineering</option>
+            <option value="Mathematics & Computer Science">Mathematics &amp; Computer Science</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="lec_programme">Course / Programme Assignment</label>
+          <select id="lec_programme" name="course" required>
+            <option value="" disabled selected>Select Course</option>
+            <option value="Computer Science">Computer Science</option>
+            <option value="Applied Computer Science">Applied Computer Science</option>
+            <option value="Software Engineering">Software Engineering</option>
+            <option value="Information Technology">Information Technology</option>
+            <option value="Business Information Technology">Business Information Technology</option>
+            <option value="Communication and Media Studies">Communication and Media Studies</option>
+            <option value="Mathematics">Mathematics</option>
+            <option value="All Courses">All Courses (Department Wide)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="lec_uni_email">Official University Email Address</label>
+          <input type="email" id="lec_uni_email" placeholder="lecturer@university.ac.ke" required>
+        </div>
+      </div>
+      <div class="nav-buttons">
+        <button class="btn btn-back" onclick="lec_prevStep(1)">Back</button>
+        <button class="btn btn-next" onclick="lec_nextStep(2)">
+          Next <div class="spinner" id="lec_spinner2"></div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 3: Review & Submit -->
+    <div id="lec_step3" class="step">
+      <div class="review-box">
+        <h3>Verify Your Information</h3>
+        <div id="lec_reviewContent"></div>
+      </div>
+      <div class="nav-buttons">
+        <button class="btn btn-back" onclick="lec_prevStep(2)">Back</button>
+        <button class="btn btn-next btn-submit" onclick="lec_submitForm()">Complete Account Registration</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Toggle field visibility functionality
+    function lec_toggleFieldPassword(inputId, triggerBtn) {
+      const passInput = document.getElementById(inputId);
+      passInput.type = passInput.type === 'password' ? 'text' : 'password';
+      triggerBtn.textContent = passInput.type === 'password' ? '👁️' : '🙈';
+    }
+
+    function lec_validateStep(step) {
+      const stepDiv = document.getElementById("lec_step" + step);
+      const inputs = stepDiv.querySelectorAll("input[required], select[required]");
+      for (let input of inputs) {
+        if (!input.value.trim()) {
+          input.style.borderColor = "#e74c3c";
+          setTimeout(() => { input.style.borderColor = "#e2e8f0"; }, 2500);
+          input.focus();
+          return false;
+        }
+      }
+
+      // Password match check in Step 1
+      if (step === 1) {
+        const pass = document.getElementById('lec_password').value;
+        const confirmPass = document.getElementById('lec_confirm_password').value;
+        if (pass.length < 8) { alert('Password must be at least 8 characters long.'); return false; }
+        if (pass !== confirmPass) { alert('Passwords do not match!'); return false; }
+      }
+      return true;
+    }
+
+    function lec_updateProgress(step) {
+      const progressBar = document.getElementById('lec_progressBar');
+      if (step === 1) progressBar.style.width = "33.33%";
+      if (step === 2) progressBar.style.width = "66.66%";
+      if (step === 3) progressBar.style.width = "100%";
+    }
+
+    function lec_nextStep(step) {
+      if (!lec_validateStep(step)) return;
+
+      const spinner = document.getElementById("lec_spinner" + step);
+      if(spinner) spinner.style.display = "inline-block";
+
+      setTimeout(() => {
+        if(spinner) spinner.style.display = "none";
+        document.getElementById("lec_step" + step).classList.remove("active");
+        document.getElementById("lec_step" + (step + 1)).classList.add("active");
+        lec_updateProgress(step + 1);
+
+        if(step === 2) {
+          const fields = [
+            { id: "lec_full_name", label: "Full Name" },
+            { id: "lec_email", label: "Email Address" },
+            { id: "lec_phone", label: "Phone Number" },
+            { id: "lec_workspace_role", label: "System Role" },
+            { id: "lec_national_id", label: "National ID Number" },
+            { id: "lec_specialization", label: "Specialization" },
+            { id: "lec_employee_number", label: "Employee Number" },
+            { id: "lec_university", label: "University Name" },
+            { id: "lec_faculty", label: "Faculty / School" },
+            { id: "lec_department", label: "Department" },
+            { id: "lec_programme", label: "Course / Programme" },
+            { id: "lec_uni_email", label: "Official Uni Email" }
+          ];
+          
+          let reviewHTML = "<ul>";
+          fields.forEach(field => {
+            const el = document.getElementById(field.id);
+            const val = el ? (el.value.trim() || "Not provided") : "Not provided";
+            reviewHTML += `<li><strong>${field.label}</strong> ${val}</li>`;
+          });
+          reviewHTML += "</ul>";
+          document.getElementById('lec_reviewContent').innerHTML = reviewHTML;
+        }
+      }, 400); 
+    }
+
+    function lec_prevStep(step) {
+      document.getElementById("lec_step" + (step + 1)).classList.remove("active");
+      document.getElementById("lec_step" + step).classList.add("active");
+      lec_updateProgress(step);
+    }
+
+    function lec_submitForm() {
+      document.getElementById('lec_registrationForm').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true}));
+    }
+  </script>

@@ -10,205 +10,122 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/sist_style.css">
-    
-    <style>
-        :root {
-            --kisii-blue: #0f4c81;
-            --kisii-sky: #0096ff;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --text-dark: #1e293b;
-            --text-muted: #64748b;
-            --border-light: #e2e8f0;
-            --bg-light: #f8fafc;
-        }
-
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: var(--bg-light);
-            color: var(--text-dark);
-            margin: 0;
-            padding: 0;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        header {
-            background: linear-gradient(135deg, var(--kisii-blue) 0%, #062c4e 100%);
-            padding: 24px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: #ffffff;
-            box-shadow: 0 4px 24px rgba(15, 76, 129, 0.15);
-        }
-
-        .header-brand h1 { 
-            color: #ffffff !important; 
-            font-size: 1.6rem; 
-            margin: 0; 
-            font-weight: 800; 
-            letter-spacing: 0.5px; 
-            text-transform: uppercase;
-        }
-        
-        .header-brand p { 
-            color: #fef3c7 !important; 
-            margin: 6px 0 0 0; 
-            font-weight: 600;
-            font-size: 0.85rem; 
-            letter-spacing: 0.8px;
-            text-transform: uppercase;
-            opacity: 0.9;
-        }
-
-        .main-container { max-width: 1300px; margin: 40px auto; padding: 0 24px; box-sizing: border-box; }
-        
-        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 24px; margin-bottom: 24px; }
-        
-        .card {
-            background: #ffffff;
-            border-radius: 16px;
-            padding: 32px;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02), 0 10px 15px -3px rgba(0,0,0,0.04);
-            border: 1px solid var(--border-light);
-            margin-bottom: 28px;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        
-        .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px -5px rgba(0,0,0,0.05), 0 20px 25px -5px rgba(0,0,0,0.05);
-        }
-
-        .card-header-flex {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-            gap: 16px;
-        }
-
-        .card h3 { margin: 0; font-size: 1.25rem; font-weight: 700; color: #0f172a; }
-
-        /* Premium Pipeline Table Rules */
-        .pipeline-table-wrapper { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border-light); background: #ffffff; }
-        table { width: 100%; border-collapse: collapse; text-align: left; background: white; font-size: 0.95rem; }
-        th { background: #f8fafc; padding: 18px 20px; font-weight: 700; color: #475569; border-bottom: 2px solid var(--border-light); text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.5px; }
-        td { padding: 18px 20px; border-bottom: 1px solid var(--border-light); vertical-align: middle; }
-        
-        tr.row-locked { background-color: #fdfdfd; opacity: 0.6; }
-        tr.row-active { background-color: #ffffff; box-shadow: inset 4px 0 0 var(--kisii-sky); }
-        tr:last-child td { border-bottom: none; }
-
-        /* Badges styling */
-        .badge { display: inline-flex; align-items: center; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; border-radius: 30px; }
-        .badge-success { background: #ecfdf5; color: var(--success); }
-        .badge-warning { background: #fffbeb; color: var(--warning); }
-        .badge-locked { background: #f1f5f9; color: var(--text-muted); }
-
-        /* Action Buttons Cluster */
-        .actions-cluster { display: flex; gap: 8px; flex-wrap: wrap; }
-        
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 10px 18px;
-            font-size: 0.88rem;
-            font-weight: 600;
-            border-radius: 10px;
-            border: none;
-            cursor: pointer;
-            text-decoration: none;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        .btn-sm { padding: 8px 14px; font-size: 0.82rem; border-radius: 8px; }
-        .btn-blue { background: var(--kisii-blue); color: white; box-shadow: 0 2px 4px rgba(15, 76, 129, 0.2); }
-        .btn-blue:hover { background: #0b3861; transform: translateY(-1px); }
-        .btn-sky { background: var(--kisii-sky); color: white; box-shadow: 0 2px 4px rgba(0, 150, 255, 0.2); }
-        .btn-sky:hover { background: #0082dd; transform: translateY(-1px); }
-        .btn-outline { background: transparent; border: 1px solid var(--border-light); color: #475569; }
-        .btn-outline:hover { background: #f1f5f9; color: var(--text-dark); }
-        .btn-gold { background: #fff7ed; color: #ea580c; border: 1px solid #ffedd5; }
-        .btn-gold:hover { background: #ffedd5; transform: translateY(-1px); }
-        .btn-danger { background: var(--danger); color: white; }
-        .btn-danger:hover { background: #dc2626; }
-        
-        .btn:disabled, .btn.disabled {
-            background: #f1f5f9 !important;
-            color: #94a3b8 !important;
-            border-color: #e2e8f0 !important;
-            cursor: not-allowed;
-            pointer-events: none;
-            transform: none !important;
-            opacity: 0.7;
-        }
-
-        /* Micro View Modal Custom Styles */
-        .log-modal {
-            display: none; position: fixed; z-index: 1000; left: 0; top: 0; 
-            width: 100%; height: 100%; background-color: rgba(15,23,42,0.6); backdrop-filter: blur(5px);
-        }
-        .log-modal-content {
-            background-color: white; margin: 10% auto; padding: 32px; 
-            border-radius: 20px; width: 90%; max-width: 600px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
-            animation: modalFadeIn 0.3s ease;
-        }
-        @keyframes modalFadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-light); padding-bottom: 18px; margin-bottom: 24px; }
-        .modal-header h4 { margin: 0; font-size: 1.35rem; color: var(--kisii-blue); font-weight: 800; }
-        .close-modal { font-size: 1.75rem; font-weight: bold; cursor: pointer; color: #94a3b8; line-height: 1; }
-        .close-modal:hover { color: var(--danger); }
-    </style>
+    <link rel="stylesheet" href="/static/css/sist1_style.css">
 </head>
 <body>
 
     <header>
-        <div class="header-brand">
-            <h1>SIST DIGITAL LOGBOOK</h1>
-            <p>Student Portal Workspace</p>
+        <div class="header-left-cluster">
+            <img src="/static/images/logo.jpeg" alt="SIST Logo" class="nav-logo">
+            <div class="header-brand">
+                <h1>SIST DIGITAL LOGBOOK</h1>
+                <p>Student Portal Workspace</p>
+            </div>
         </div>
-        <a href="{% url 'core:logout' %}" class="btn btn-danger">Logout</a>
+        <div class="right-nav-cluster">
+            <div class="profile-dropdown-container">
+                <div class="profile-trigger-btn" onclick="toggleProfileDropdown(event)">
+                    <span class="profile-display-name">{{ period.student.get_full_name|default:"Student Workspace" }}</span>
+                    <div id="userProfileDisplay" class="profile-avatar-fallback">S</div>
+                    <span class="profile-chevron">▼</span>
+                </div>
+                <div class="profile-dropdown-menu" id="profileDropdownMenu">
+                    <div class="dropdown-user-details">
+                        <h5>{{ period.student.get_full_name|default:"Student Workspace" }}</h5>
+                        <p>{{ period.student.course|default:"Applied Computer Science" }}</p>
+                    </div>
+                    <button class="dropdown-link-item" onclick="openSettingsModal()">⚙️ Customise Profile</button>
+                    <div class="dropdown-divider"></div>
+                    <a href="{% url 'core:logout' %}" class="dropdown-link-item" style="color: var(--danger);">🚪 Complete Signout</a>
+                </div>
+            </div>
+        </div>
     </header>
 
     <div class="main-container">
         
         <div class="grid-2">
-            <div class="card">
+            <div class="card card-profile-accent">
                 <h3>Attachment Profile</h3>
-                <p style="margin: 16px 0 8px 0; color: var(--text-dark);"><strong>Student Course:</strong> {{ period.student.course|default:"Not assigned" }}</p>
-                <p style="margin: 0 0 8px 0; color: var(--text-dark);"><strong>Organization:</strong> {{ period.student.institution_or_company|default:"Not provided" }}</p>
-                <p style="margin: 0 0 8px 0; color: var(--text-dark);"><strong>Field Supervisor:</strong> {{ period.supervisor.get_full_name|default:"Awaiting Field Allocation" }}</p>
-                <p style="margin: 0; color: var(--text-dark);"><strong>KU Lecturer:</strong> {{ period.lecturer.get_full_name|default:"Awaiting Departmental Assignment" }}</p>
+                <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 4px;">
+                    <div class="info-strip"><strong>Student Course:</strong> {{ period.student.course|default:"Not assigned" }}</div>
+                    <div class="info-strip"><strong>Organization:</strong> {{ period.student.institution_or_company|default:"Not provided" }}</div>
+                    <div class="info-strip"><strong>Field Supervisor:</strong> {{ period.supervisor.get_full_name|default:"Awaiting Field Allocation" }}</div>
+                    <div class="info-strip"><strong>KU Lecturer:</strong> {{ period.lecturer.get_full_name|default:"Awaiting Departmental Assignment" }}</div>
+                </div>
             </div>
-            <div class="card">
+            <div class="card card-grading-accent">
                 <h3>Final Grading Results</h3>
                 {% if period.lecturer_signed %}
                     <p style="font-size:24px; margin: 14px 0 10px 0; font-weight: 800;">Final Grade: <strong style="color:var(--kisii-blue);">{{ period.lecturer_grade }}</strong> ({{ period.lecturer_marks }}%)</p>
-                    <p style="margin: 0; color: var(--text-muted);"><em>Lecturer Comment: {{ period.lecturer_comment }}</em></p>
+                    <p style="margin: 0; color: var(--text-muted); background: var(--bg-light); padding: 12px; border-radius: 8px;"><em>Lecturer Comment: {{ period.lecturer_comment }}</em></p>
                 {% else %}
-                    <p style="color:#b45309; font-weight:700; margin: 16px 0 0 0; display: inline-flex; align-items: center; gap: 8px;">
+                    <p style="color:#b45309; font-weight:700; margin: 16px 0 0 0; display: inline-flex; align-items: center; gap: 8px; background: #fffbeb; padding: 14px; border-radius: 12px; border: 1px solid rgba(245, 158, 11, 0.2); width: calc(100% - 28px);">
                         <span>⏳</span> Final verification evaluations ongoing.
                     </p>
                 {% endif %}
             </div>
+            <div class="card" style="border-top: 5px solid #8b5cf6;">
+                <h3>Academic Assessments</h3>
+                <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-light); border-radius: 10px; border: 1px solid var(--border-light);">
+                        <div>
+                            <strong style="font-size: 0.95rem; color: var(--text-dark); display: block;">First Assessment (Week 7)</strong>
+                            {% if period.first_visit_date %}
+                                <span style="font-size: 0.8rem; color: var(--text-muted);">Assessed on: {{ period.first_visit_date }}</span>
+                            {% else %}
+                                <span style="font-size: 0.8rem; color: var(--text-muted);">Pending Academic Visit</span>
+                            {% endif %}
+                        </div>
+                        <span class="badge {% if period.first_visit_comment %}badge-success{% else %}badge-warning{% endif %}">
+                            {% if period.first_visit_comment %}Active{% else %}Pending{% endif %}
+                        </span>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-light); border-radius: 10px; border: 1px solid var(--border-light);">
+                        <div>
+                            <strong style="font-size: 0.95rem; color: var(--text-dark); display: block;">Second Assessment (Week 12)</strong>
+                            {% if period.second_visit_date %}
+                                <span style="font-size: 0.8rem; color: var(--text-muted);">Assessed on: {{ period.second_visit_date }}</span>
+                            {% else %}
+                                <span style="font-size: 0.8rem; color: var(--text-muted);">Pending Academic Visit</span>
+                            {% endif %}
+                        </div>
+                        <span class="badge {% if period.second_visit_comment %}badge-success{% else %}badge-warning{% endif %}">
+                            {% if period.second_visit_comment %}Active{% else %}Pending{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="card">
+        <div class="card card-pipeline-accent">
             <div class="card-header-flex">
                 <div>
                     <h3>Weekly Logs Pipeline Matrices</h3>
                     <p style="margin: 4px 0 0 0; color: var(--text-muted); font-size: 0.88rem;">Manage entries, update draft metrics or review evaluation signatures.</p>
                 </div>
-                <a href="{% url 'core:create_log' period.id %}" class="btn btn-sky {% if not can_add_log %}disabled{% endif %}" {% if not can_add_log %}aria-disabled="true" onclick="return false;"{% endif %}>✨ + Add New Weekly Log</a>
+                {% if not log_rows %}
+                    <a href="{% url 'core:create_log' period.id %}" class="btn btn-sky {% if not can_add_log %}disabled{% endif %}" {% if not can_add_log %}aria-disabled="true" onclick="return false;"{% endif %}>✨ + Add New Weekly Log</a>
+                {% else %}
+                    {% if log_rows.0.log.supervisor_approved %}
+                        <a href="{% url 'core:create_log' period.id %}" class="btn btn-sky {% if not can_add_log %}disabled{% endif %}" {% if not can_add_log %}aria-disabled="true" onclick="return false;"{% endif %}>✨ + Add New Weekly Log</a>
+                    {% else %}
+                        <a href="#" class="btn btn-sky disabled" aria-disabled="true" onclick="return false;">✨ + Add New Weekly Log</a>
+                    {% endif %}
+                {% endif %}
             </div>
-            {% if not can_add_log %}
-                <p style="margin: 12px 0 0 0; color:#b45309; font-size:0.9rem;">A new log can only be created after your current weekly log has been approved by the field supervisor.</p>
+            
+            {% if not log_rows %}
+                {% if not can_add_log %}
+                    <p style="margin: 12px 0 16px 0; color:#b45309; font-size:0.9rem; background: #fffbeb; padding: 10px 14px; border-radius: 8px; border-left: 4px solid var(--warning);">A new log can only be created after your current weekly log has been approved by the field supervisor.</p>
+                {% endif %}
+            {% else %}
+                {% if not log_rows.0.log.supervisor_approved or not can_add_log %}
+                    <p style="margin: 12px 0 16px 0; color:#b45309; font-size:0.9rem; background: #fffbeb; padding: 10px 14px; border-radius: 8px; border-left: 4px solid var(--warning);">A new log can only be created after your current weekly log has been approved by the field supervisor.</p>
+                {% endif %}
             {% endif %}
+            
             <div class="pipeline-table-wrapper">
                 <table>
                     <thead>
@@ -269,6 +186,7 @@
                                 </tr>
                             {% endif %}
                         {% empty %}
+                            <tr>
                                 <td colspan="5" style="text-align: center; padding: 40px; color: #64748b; font-style: italic;">
                                     No active academic assignment records mapped to this system profile.
                                 </td>
@@ -279,7 +197,26 @@
             </div>
         </div>
 
-        <div class="card" style="border-top: 4px solid var(--kisii-blue);">
+        {% if log_rows|length >= 12 %}
+        <div class="card card-profile-accent" style="margin-top: 24px; border-top: 5px solid var(--kisii-blue);">
+            <h3>Student's Comments and Additional Information</h3>
+            <p style="margin: 4px 0 20px 0; color: var(--text-muted); font-size: 0.88rem;">Provide your final overall assessment and any additional information regarding your attachment.</p>
+            
+            {% if period.student_additional_info %}
+                <div style="background: #f8fafc; padding: 16px; border-radius: 10px; border: 1px solid var(--border-light);">
+                    <p style="margin: 0; white-space: pre-wrap; color: var(--text-dark);">{{ period.student_additional_info }}</p>
+                </div>
+            {% else %}
+                <form method="POST" action="{% url 'core:submit_assessment_form' period.id %}" style="display: flex; flex-direction: column; gap: 18px;">
+                    {% csrf_token %}
+                    <textarea name="student_additional_info" class="form-control" rows="5" placeholder="Enter your final comments here..." required style="width: 100%; border: 1px solid var(--border-light); border-radius: 8px; padding: 12px; font-family: inherit; font-size: 0.95rem; resize: vertical;"></textarea>
+                    <button type="submit" class="btn btn-blue" style="align-self: flex-start;">Submit Final Comments</button>
+                </form>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="card" style="border-top: 5px solid var(--kisii-blue);">
             <h3>Final Assessment Report Submission Hub</h3>
             <p style="margin: 4px 0 20px 0; color: var(--text-muted); font-size: 0.88rem;">To be populated and executed upon completion of the mandatory 12-14 weeks period.</p>
             
@@ -322,20 +259,132 @@
         </div>
     </div>
 
+    <div id="settingsModal" class="log-modal">
+        <div class="log-modal-content">
+            <div class="modal-header">
+                <h4>⚙️ Customise Profile</h4>
+                <span class="close-modal" onclick="closeSettingsModal()">&times;</span>
+            </div>
+            <form onsubmit="event.preventDefault(); saveProfileChanges();" style="display: flex; flex-direction: column; gap: 14px;">
+                {% csrf_token %}
+                
+                <div class="settings-input-group">
+                    <label>Profile Picture</label>
+                    <input type="file" id="profilePhotoInput" accept="image/*" style="padding:4px 0;">
+                    <p style="font-size: 0.85rem; color: #64748b; margin-top: 6px;">Upload a picture or leave blank to use your avatar color below.</p>
+                </div>
+                
+                <div class="settings-input-group">
+                    <label>Avatar Color</label>
+                    {% if request.user.avatar_color %}
+                    <input type="color" id="avatarColorInput" value="#{{ request.user.avatar_color }}" style="width:100%; height:40px; border:1px solid var(--border-light); border-radius:8px; cursor:pointer;">
+                    {% else %}
+                    <input type="color" id="avatarColorInput" value="#0284c7" style="width:100%; height:40px; border:1px solid var(--border-light); border-radius:8px; cursor:pointer;">
+                    {% endif %}
+                    <p style="font-size: 0.85rem; color: #64748b; margin-top: 6px;">This color will be used if no picture is uploaded.</p>
+                </div>
+                
+                <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:10px;">
+                    <button type="button" class="btn btn-outline" onclick="closeSettingsModal()">Cancel</button>
+                    <button type="submit" class="btn btn-blue">💾 Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            loadUserProfile();
+
             const viewButtons = document.querySelectorAll('.view-log-btn');
-            
             viewButtons.forEach(button => {
                 button.addEventListener('click', function() {
                     const week = this.getAttribute('data-week');
                     const supervisor = this.getAttribute('data-supervisor');
                     const lecturer = this.getAttribute('data-lecturer');
-                    
                     openQuickView(week, supervisor, lecturer);
                 });
             });
         });
+
+        // Load user profile from database
+        function loadUserProfile() {
+            const targetAvatar = document.getElementById('userProfileDisplay');
+            const fullName = '{{ request.user.get_full_name|default:request.user.username }}';
+            const avatarColor = '{{ request.user.avatar_color|default:"0284c7" }}';
+            const profilePhoto = '{% if request.user.profile_photo %}{{ request.user.profile_photo.url }}{% endif %}';
+            
+            if (profilePhoto) {
+                targetAvatar.textContent = "";
+                targetAvatar.style.backgroundImage = `url('${profilePhoto}')`;
+                targetAvatar.style.backgroundSize = 'cover';
+                targetAvatar.style.backgroundPosition = 'center';
+            } else {
+                const initials = fullName.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
+                targetAvatar.textContent = initials || 'U';
+                targetAvatar.style.backgroundColor = '#' + avatarColor;
+                targetAvatar.style.backgroundImage = 'none';
+            }
+        }
+
+        // Toggle profile dropdown
+        function toggleProfileDropdown(event) {
+            event.stopPropagation();
+            const menu = document.getElementById('profileDropdownMenu');
+            const chevron = document.querySelector('.profile-chevron');
+            if (menu.style.display === "block") {
+                menu.style.display = "none";
+                chevron.style.transform = "rotate(0deg)";
+            } else {
+                menu.style.display = "block";
+                chevron.style.transform = "rotate(180deg)";
+            }
+        }
+
+        // Open settings modal
+        function openSettingsModal() {
+            document.getElementById('profileDropdownMenu').style.display = "none";
+            document.getElementById('settingsModal').style.display = "block";
+        }
+
+        // Close settings modal
+        function closeSettingsModal() {
+            document.getElementById('settingsModal').style.display = "none";
+        }
+
+        // Save profile changes to database
+        async function saveProfileChanges() {
+            const form = new FormData();
+            const colorInput = document.getElementById('avatarColorInput');
+            const photoInput = document.getElementById('profilePhotoInput');
+            
+            if (colorInput && colorInput.value) {
+                form.append('avatar_color', colorInput.value.replace('#', ''));
+            }
+            
+            if (photoInput && photoInput.files.length > 0) {
+                form.append('profile_photo', photoInput.files[0]);
+            }
+            
+            try {
+                const response = await fetch('{% url "core:update_profile_meta" %}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '{% csrf_token %}'
+                    },
+                    body: form
+                });
+                
+                if (response.ok) {
+                    closeSettingsModal();
+                    location.reload();
+                } else {
+                    alert('Failed to save profile changes. Please try again.');
+                }
+            } catch (error) {
+                alert('Error saving profile: ' + error.message);
+            }
+        }
 
         function openQuickView(weekNumber, supervisorComment, lecturerComment) {
             document.getElementById('modalWeekTitle').textContent = "Summary Logs Overview — Week " + weekNumber;
@@ -350,8 +399,15 @@
 
         window.onclick = function(event) {
             const modal = document.getElementById('quickViewModal');
-            if (event.target == modal) {
-                modal.style.display = "none";
+            const settingsModal = document.getElementById('settingsModal');
+            const dropdown = document.getElementById('profileDropdownMenu');
+            const chevron = document.querySelector('.profile-chevron');
+            
+            if (event.target == modal) modal.style.display = "none";
+            if (event.target == settingsModal) settingsModal.style.display = "none";
+            if (dropdown && !event.target.closest('.profile-dropdown-container')) {
+                dropdown.style.display = "none";
+                if(chevron) chevron.style.transform = "rotate(0deg)";
             }
         }
     </script>

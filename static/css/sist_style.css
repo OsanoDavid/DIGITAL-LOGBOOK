@@ -54,8 +54,22 @@ body {
 }
 
 @media(max-width: 900px) {
-    .dashboard-layout { grid-template-columns: 1fr; }
-    .supervisor-navbar { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .dashboard-layout { grid-template-columns: 1fr; gap: 18px; padding: 0 16px; }
+    .supervisor-navbar { flex-direction: column; align-items: flex-start; gap: 12px; padding: 16px 18px; }
+    .page-header { flex-direction: column; align-items: flex-start; }
+    .analytics-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media(max-width: 640px) {
+    .dashboard-layout { padding: 0 12px; margin: 18px auto 28px; }
+    .profile-panel, .week-container, .kpi-card, .week-header, .attachee-list-row { border-radius: 14px; }
+    .profile-panel { padding: 18px; }
+    .analytics-row { grid-template-columns: 1fr; }
+    .section-heading { flex-direction: column; align-items: flex-start; }
+    .attachee-list-row { flex-direction: column; align-items: flex-start; }
+    .action-stack { width: 100%; align-items: stretch; }
+    .btn, .btn-sign { width: 100%; justify-content: center; }
+    .log-page { padding: 12px; }
+    .log-card-header, .log-card-body { padding: 18px; }
 }
 
 .profile-panel {
@@ -136,8 +150,27 @@ body {
 .btn-gold { background: var(--sist-gold); color: white; }
 .btn-danger { background: #ef4444; color: white; }
 
-.btn-sign { background: linear-gradient(135deg, #ffedd5, #fde68a); color: #9a2c00; border: 1px solid #fdba74; padding: 10px 14px; border-radius: 999px; font-weight: 700; text-decoration:none; display:inline-block; }
-.btn-sign:hover { background: linear-gradient(135deg, var(--sist-gold), var(--sist-amber)); color: white; }
+.btn-sign { 
+    background: linear-gradient(135deg, #ffedd5, #fde68a); 
+    color: #9a2c00; 
+    border: 2px solid #fdba74; 
+    padding: 12px 18px; 
+    border-radius: 10px; 
+    font-weight: 700; 
+    text-decoration: none; 
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95rem;
+    box-shadow: 0 4px 12px rgba(255, 165, 0, 0.25);
+    transition: all 0.3s ease;
+}
+.btn-sign:hover { 
+    background: linear-gradient(135deg, var(--sist-gold), var(--sist-amber)); 
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(255, 165, 0, 0.35);
+}
 .btn-verified { background: var(--success-bg); color: var(--success-text); cursor: default; padding: 10px 14px; border-radius: 999px; font-weight: 700; display:inline-block; }
 
 .empty-state { padding: 1rem 1.2rem; text-align: center; color: #64748b; font-size: 0.92rem; }

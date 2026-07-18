@@ -1,0 +1,445 @@
+{% load static %}
+
+
+
+
+
+  <div class="container">
+    <h2>Student Attachment Form</h2>
+    <p class="subtitle">Complete your student attachment profile registration below.</p>
+
+    <!-- Progress Bar -->
+    <div class="progress-container">
+      <div class="progress-bar" id="student_progressBar"></div>
+    </div>
+
+    <!-- Step 1: Personal & Account Information -->
+    <div id="student_step1" class="step active">
+      <div class="form-grid">
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label for="student_full_name">Full Name</label>
+          <input type="text" id="student_full_name" name="full_name" placeholder="Enter Full Name" required>
+        </div>
+        <div class="form-group">
+          <label for="student_reg_number">Registration Number</label>
+          <input type="text" id="student_reg_number" name="username" placeholder="e.g., IN14/00000/22" required>
+        </div>
+        <div class="form-group">
+          <label for="student_email">Email Address</label>
+          <input type="email" id="student_email" name="email" placeholder="name@example.com" required>
+        </div>
+        <div class="form-group">
+          <label for="student_phone">Phone Number</label>
+          <input type="tel" id="student_phone" name="phone_number" placeholder="e.g., +2547..." required>
+        </div>
+        <div class="form-group">
+          <label for="student_year">Year of Study</label>
+          <input type="number" id="student_year" placeholder="e.g., 3" required>
+        </div>
+
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label for="student_organization">Organization Name</label>
+          <input type="text" id="student_organization" name="institution_or_company" list="org-suggestions" placeholder="Search or type organization name..." required>
+                                                  <datalist id="org-suggestions">
+  <option value="ABNO Softwares International — P.O BOX 19892-00100, Nairobi — 020 3573210">
+  <option value="AccessKenya Group — Nairobi —">
+  <option value="Amref Health Africa — P.O BOX 30125-00100, Nairobi — +254 20 6994000">
+  <option value="Amica Savings and Credit — P.O BOX 816-10200, Muranga — 060 2030254">
+  <option value="Aura Safira Consulting — P.O BOX 16298-00100, Nairobi — 254 20 4400450">
+  <option value="BackSpace Software Developers — P.O BOX 57742-00200, Nairobi —">
+  <option value="Belgut Technical Training Institute — P.O BOX 205-20200, Kericho — 254 701566195">
+  <option value="Bunifu Technologies Ltd — P.O BOX 41064-00100, Nairobi — 254 758592949">
+  <option value="Capacity Spring Africa — P.O BOX 4344-30100, Eldoret — 254 741500091">
+  <option value="Chemelil Sugar Company Limited — P.O BOX 177-40107, Muhoroni — 020 2031883">
+  <option value="Co-operative Bank of Kenya — Nairobi —">
+  <option value="Communications Authority of Kenya — Nairobi —">
+  <option value="County Commissioner’s Office, Busia County — P.O BOX 14-50400, Busia —">
+  <option value="County Government of Bomet — P.O BOX 19-20400, Bomet — 202084068">
+  <option value="County Government of Bungoma — P.O BOX 437, Bungoma — 725393939">
+  <option value="County Government of Embu — P.O BOX 126-60100, Embu — 31181">
+  <option value="County Government of Kericho — P.O BOX 112-20200, Kericho — 254 522021100">
+  <option value="County Government of Kisii — P.O BOX 4550-40200, Kisii — 709727038">
+  <option value="County Government of Migori — P.O BOX 195-40400, Suna Migori — 254 0592092">
+  <option value="County Government of Nandi — P.O BOX 802-30300, Kapsabet — 053 5252355">
+  <option value="County Government of Nakuru — P.O BOX 2870-20100, Nakuru — 254 721278798">
+  <option value="County Government of Nyandarua — P.O BOX 701-20303, Ol Kalou — 202660859">
+  <option value="County Government of Siaya — P.O BOX 803-40600, Siaya —">
+  <option value="County Government of Uasin Gishu — P.O BOX 40-30100, Eldoret — 254 0532016153">
+  <option value="County Government of Vihiga — P.O BOX 344-50300, Maragoli —">
+  <option value="Craft Silicon — Nairobi —">
+  <option value="Deloitte East Africa — Nairobi —">
+  <option value="Directline Assurance Company — P.O BOX 40863-00100, GPO Kenya — 711030000">
+  <option value="Eldoret International Airport — P.O BOX 2323-30100, Eldoret — 053 2063377">
+  <option value="Equity Bank Kenya — Nairobi —">
+  <option value="EY Kenya — Nairobi —">
+  <option value="Faiba (Jamii Telecommunications) — Nairobi —">
+  <option value="Flaxem System Enterprises Limited — P.O BOX 3885-00100, Nairobi — 254 20 2305051">
+  <option value="Gicatech Enterprise Solutions — P.O BOX 775, Kisii — 724563348">
+  <option value="Garissa Law Courts — P.O BOX 68-70100, Garissa — 254 702687542">
+  <option value="Getembe Television Network — P.O BOX 3345-40200, Kisii — 254 726547363">
+  <option value="Google Kenya — Nairobi —">
+  <option value="Government of Makueni County — P.O BOX 78-90300, Makueni —">
+  <option value="Huawei Technologies Kenya — Nairobi —">
+  <option value="IBM East Africa — Nairobi —">
+  <option value="ICT Authority Kisumu County — P.O BOX 1912-40100, Kisumu — +254 20 2089061">
+  <option value="ICT Authority Nairobi — P.O BOX 27150-00100, Nairobi — 254 20 2089061">
+  <option value="iProcure — Nairobi —">
+  <option value="Jaramogi Oginga Odinga Referral Hospital — P.O BOX 849-40100, Kisumu — 057 2020801">
+  <option value="Juhudi Kilimo Ltd — P.O BOX 25441-00100, Nairobi — 254 709692030">
+  <option value="Kakamega County General Hospital — P.O BOX 15-50100, Kakamega — 720295739">
+  <option value="Kenya Airports Authority (KAA) — Nairobi —">
+  <option value="Kenya Bureau of Standards (KEBS) — P.O BOX 54974-00200, Nairobi — 254 20 6948000">
+  <option value="Kenya Broadcasting Corporation (KBC) — P.O BOX 30456-00100, Nairobi — 254 2223757">
+  <option value="Kenya Civil Aviation Authority — P.O BOX 30163-00100, Nairobi — 254 020 827470">
+  <option value="Kenya Connect — P.O BOX 223-90103, Wamunyu —">
+  <option value="Kenya Film Classification Board — P.O BOX 44226-00100, Nairobi — 020 2250600">
+  <option value="Kenya Industrial Research and Development — P.O BOX 30650-00100, Nairobi — +254 (20) 2388216">
+  <option value="Kenya Meteorological Department — P.O BOX 30259-00100, Nairobi — 254 020 3867880">
+  <option value="Kenya National Bureau of Statistics (KNBS) — Nairobi —">
+  <option value="Kenya National Library Services — P.O BOX 30573-00100, Nairobi — 254 20 2739893">
+  <option value="Kenya National Archives — P.O BOX 49210, Nairobi — 722509212">
+  <option value="Kenya Ports Authority (KPA) — P.O BOX 20072-00200, Nairobi — 254 20 6931000">
+  <option value="Kenya Power and Lighting Company (KPLC) Kisii Branch — P.O BOX 5-40200, Kisii — 95551">
+  <option value="Kenya Power Coast Region — P.O BOX 90104-80100, Mombasa — 254 041 2225564">
+  <option value="Kenya Power Kisumu Branch — P.O BOX 151-40100, Kisumu — 254 057 2020536">
+  <option value="Kenya Railways Corporation — Nairobi —">
+  <option value="Kenya Revenue Authority (KRA) — Nairobi —">
+  <option value="Kenya Television Network Kisii — P.O BOX 4103-40200, Kisii — 727883074">
+  <option value="Kenya Tourism Fund Coast Region — P.O BOX 46987-00100, Nairobi — 254 20 2714900">
+  <option value="Kenya Wildlife Service — Nairobi —">
+  <option value="Kisii County Government — P.O BOX 4550-40200, Kisii — 709727038">
+  <option value="Kisii Huduma Center — P.O BOX 590-40200, Kisii —">
+  <option value="Kisii Impact Institute of Science and Technology — P.O BOX 3628, Kisii — 254 784663693">
+  <option value="Kisii Law Courts — P.O BOX 69-40200, Kisii — 111431147">
+  <option value="Kisii Municipality — P.O BOX 406-40200, Kisii — 730184301">
+  <option value="Kisii National Polytechnic — P.O BOX 222-40200, Kisii — 752031300">
+  <option value="Kisii Teaching and Referral Hospital — Kisii —">
+  <option value="Konza Technopolis Development Authority — Nairobi —">
+  <option value="KPMG Kenya — Nairobi —">
+  <option value="Liquid Telecommunications Kenya — Nairobi —">
+  <option value="LISH AI Labs — P.O BOX 16412-20100, Nairobi — 254 722575169">
+  <option value="Masinde Muliro University — P.O BOX 190-50100, Kakamega — 254 702597360">
+  <option value="Microsoft Africa Development Centre — Nairobi —">
+  <option value="Ministry of Energy and Petroleum — P.O BOX 30582-00100, Nairobi — 254 20 310112">
+  <option value="Ministry of Health — P.O BOX 30016-00100, Nairobi — 254 20 2717077">
+  <option value="Ministry of ICT and Digital Economy — P.O BOX 8053, Nairobi — 020 3340659">
+  <option value="Ministry of Roads and Transport — P.O BOX 52692-00100, Nairobi — 020 2729200">
+  <option value="Ministry of Tourism and Wildlife — P.O BOX 30027-00100, Nairobi — 254 203310983">
+  <option value="Nairobi City County — P.O BOX 30075-00100, Nairobi — 254 725624489">
+  <option value="Nairobi City County (second entry) — P.O BOX 30075-00100, Nairobi — 020 344194">
+  <option value="Nandi County Assembly — P.O BOX 673-30300, Kapsabet — 780000029">
+  <option value="Nandi Huduma Centre — P.O BOX 30-30300, Kapsabet —">
+  <option value="Nakuru Town West Subcounty — P.O BOX 2870-20100, Nakuru — 254 721278798">
+  <option value="Narok County Government — P.O BOX 898-20500, Narok — 020 2688929">
+  <option value="National Hospital Insurance Fund (NHIF) Eldoret Branch — P.O BOX 3091-30100, Eldoret — 053 2030749">
+  <option value="NHIF Isolo Branch — P.O BOX 476, Isiolo — 705365866">
+  <option value="NHIF Nakuru Branch — P.O BOX 155, Nakuru —">
+  <option value="NHIF Rongai Branch — P.O BOX 231-00511, Mbagathi — 776827879">
+  <option value="Ndege Chai Savings and Credit Co-op Society Ltd — P.O BOX 857, Kericho — 052 30121">
+  <option value="Newton Institute of Technology — P.O BOX 4275-40200, Kisii — 790805493">
+  <option value="NHIF Kisii Branch — P.O BOX 898-40200, Kisii — 582030206">
+  <option value="NIFTECS Company Ltd — P.O BOX 3506-40200, Kisii —">
+  <option value="NITA-K (National IT Authority Kenya) — Nairobi —">
+  <option value="Nyamira County Referral Hospital — P.O BOX 3-40500, Nyamira — 254 738344009">
+  <option value="Nyandaru County Assembly — P.O BOX 720-20303, Ol Kalou — 743079333">
+  <option value="Nyandaru County Government — P.O BOX 701-20303, Ol Kalou — 202660859">
+  <option value="Nyandaru National Polytechnic — P.O BOX 2033-20300, Nyahururu — 727256001">
+  <option value="Nyangena Hospital — P.O BOX 3492-40200, Kisii — 254 732749146">
+  <option value="Oracle Kenya — Nairobi —">
+  <option value="PwC Kenya — Nairobi —">
+  <option value="Radio Lake Victoria — P.O BOX 4580-40103, Kisumu — 7572022937">
+  <option value="Radio Lake Victoria (second entry) — P.O BOX 4580, Kisumu — 254 572021992">
+  <option value="RAM Hospital Ltd — P.O BOX 81, Kisii — 705239281">
+  <option value="Royal Media Services Limited — P.O BOX 7468-00300, Nairobi — 719060000">
+  <option value="Safaricom PLC — Nairobi —">
+  <option value="Sayare Radio and Television Network — P.O BOX 4139-30100, Eldoret — 254 723617867">
+  <option value="Siaya County Referral Hospital — P.O BOX 144-40600, Siaya — 757955067">
+  <option value="Skyline SACCO Society Ltd — P.O BOX 660-20103, Eldama Ravine — 717594338">
+  <option value="Smart Applications International Ltd — P.O BOX 57776-00200, Nairobi — 254 20 3206000">
+  <option value="Standard Chartered Bank Kenya — Nairobi —">
+  <option value="SubCounty Information Office, Malindi — P.O BOX 362-80200, Malindi — 721713757">
+  <option value="Tamnet Systems Limited — P.O BOX 2564-40200, Kisii — 254 707445991">
+  <option value="Telkom Kenya — Nairobi —">
+  <option value="The Kisii National Polytechnic — P.O BOX 222-40200, Kisii — 058-20319558">
+  <option value="The Kisumu National Polytechnic — P.O BOX 143-40100, Kisumu — 057 2501501">
+  <option value="The Mawego National Polytechnic — P.O BOX 289-40222, Oyogis — 0725050033">
+  <option value="The Portable Car Engineering — P.O BOX 52692-00100, Nairobi —">
+  <option value="TV Magharibi — P.O BOX 1138-50200, Bungoma — 790497090">
+  <option value="TV Oyominto — P.O BOX 34786-00100, Nairobi — 254 781891372">
+  <option value="Tamnet Systems Limited — P.O BOX 2564-40200, Kisii — 254 707445991">
+  <option value="Telkom Kenya — Nairobi —">
+  <option value="Thika Level 5 Hospital — P.O BOX 227-01000, Thika — 254 722106797">
+  <option value="Tourism Fund Coast Region — P.O BOX 46987-00100, Nairobi — 254 20 2714900">
+  <option value="TV Magharibi — P.O BOX 1138-50200, Bungoma — 790497090">
+  <option value="TV Oyominto — P.O BOX 34786-00100, Nairobi — 254 781891372">
+  <option value="TV47 Kenya — Nairobi —">
+  <option value="Twitter (X) Kenya — Nairobi —">
+  <option value="UAP Insurance Holdings — Nairobi —">
+  <option value="Uhuru and Jomo Kenyatta Memorial Libraries — P.O BOX 30573-00100, Nairobi —">
+  <option value="Ukulima Sacco Society Ltd — P.O BOX 35369, Nairobi — 020 3310371">
+  <option value="Unilever Kenya — Nairobi —">
+  <option value="Universal College of Technology — P.O BOX 712-40200, Kisii — 254 725928065">
+  <option value="Unspecified Location (Nairobi) — Nairobi —">
+  <option value="Unspecified Location (Nairobi) — P.O BOX 43674-00100, Nairobi —">
+  <option value="USAID — Nairobi —">
+  <option value="USIU-Africa — P.O BOX 14208-00800, Nairobi — 254 730116000">
+  <option value="Veeress Technologies Ltd — P.O BOX 11247-20100, Nakuru — 757621770">
+  <option value="Vihiga County Assembly — P.O BOX 350-50300, Maseno — 056 21417">
+  <option value="Vihiga County Meteorological Service — P.O BOX 183-50307, Luanda — 254 710602712">
+  <option value="Vision Point SACCO Ltd — P.O BOX 42, Nyansiongo — 726632606">
+  <option value="Vivo Energy Kenya — Nairobi —">
+  <option value="Walk Through Africa Expeditions — P.O BOX 12531-00100, Nairobi — 254 722779470">
+  <option value="Western Kenya Eye Care Centre — P.O BOX 2549-40100, Kisumu — 057 2022172">
+  <option value="West Kenya Sugar Company Limited — P.O BOX 2101-50100, Kakamega — 254 20 2036320">
+  <option value="Westtech Communications Ltd — P.O BOX 31135-00100, Nairobi — 254 20 2220968">
+  <option value="Woman Representative’s Office, Nyandarua — P.O BOX 382-20303, Ol Kalou —">
+  <option value="WyMore IT Solutions — P.O BOX 3729-00100, Nairobi — 254 716297960">
+  <option value="Zitron Labs Computing Group — P.O BOX 2327-00100, Nairobi — 724857835">
+  <option value="ZTE Kenya — Nairobi —">
+</datalist>
+        </div>
+
+        <!-- Fees Clearance Status Dropdown Option -->
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label for="student_fees_status">Fees Clearance Status</label>
+          <select id="student_fees_status" onchange="student_evaluateFeesClearance()" required>
+            <option value="" selected>-- Select Status --</option>
+            <option value="cleared">Yes, I have fully cleared fees</option>
+            <option value="balance">No, I have outstanding balance</option>
+          </select>
+        </div>
+
+        <!-- Create Password Field -->
+        <div class="form-group">
+          <label for="student_password">Create Password</label>
+          <div class="password-wrapper">
+            <input type="password" id="student_password" name="password" placeholder="Minimum 8 characters" required>
+            <button type="button" class="toggle-eye-btn" onclick="student_toggleFieldPassword('student_password', this)">👁️</button>
+          </div>
+        </div>
+
+        <!-- Confirm Password Field -->
+        <div class="form-group">
+          <label for="student_confirm_password">Confirm Password</label>
+          <div class="password-wrapper">
+            <input type="password" id="student_confirm_password" name="confirm_password" placeholder="Retype your password" required>
+            <button type="button" class="toggle-eye-btn" onclick="student_toggleFieldPassword('student_confirm_password', this)">👁️</button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="nav-buttons">
+        <button class="btn btn-back" disabled>Back</button>
+        <!-- The Next Button is disabled explicitly until Fees Status switches to Cleared -->
+        <button class="btn btn-next" id="student_step1NextBtn" onclick="student_nextStep(1)" disabled>
+          Next <div class="spinner" id="student_spinner1"></div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 2: Institution & Academic Details -->
+    <div id="student_step2" class="step">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="student_university">University Name</label>
+          <input type="text" id="student_university" placeholder="Enter University" required>
+        </div>
+        <div class="form-group">
+          <label for="student_faculty">Faculty</label>
+          <input type="text" id="student_faculty" placeholder="Enter Faculty" required>
+        </div>
+        
+        <!-- Department Dropdown Configuration -->
+        <div class="form-group">
+          <label for="student_department">Department</label>
+          <select id="student_department" required>
+            <option value="" disabled selected>Select your Department</option>
+            <option value="Computing Sciences">Computing Sciences</option>
+            <option value="Information Systems & Technology">Information Systems & Technology</option>
+            <option value="Media and Communications">Media and Communications</option>
+            <option value="Engineering & Mathematics">Engineering & Mathematics</option>
+          </select>
+        </div>
+
+        <!-- Course / Programme Dropdown Configuration -->
+        <div class="form-group">
+          <label for="student_programme">Course / Programme</label>
+          <select id="student_programme" name="course" required>
+            <option value="" disabled selected>Select your Course</option>
+            <option value="Computer Science">Computer Science</option>
+            <option value="Applied Computer Science">Applied Computer Science</option>
+            <option value="Information Technology">Information Technology</option>
+            <option value="Software Engineering">Software Engineering</option>
+            <option value="Business Information Systems">Business Information Systems</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="student_unit_name">Unit Name</label>
+          <input type="text" id="student_unit_name" placeholder="Enter Unit Name" required>
+        </div>
+        <div class="form-group">
+          <label for="student_unit_code">Unit Code</label>
+          <input type="text" id="student_unit_code" placeholder="Enter Unit Code" required>
+        </div>
+      </div>
+      <div class="nav-buttons">
+        <button class="btn btn-back" onclick="student_prevStep(1)">Back</button>
+        <button class="btn btn-next" onclick="student_directSubmit()">
+          Submit Registration <div class="spinner" id="student_spinner2"></div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3: MODAL POPUP OVERLAY WINDOW -->
+  <div class="overlay-backdrop" id="student_reviewOverlay">
+    <div class="overlay-card">
+      <div class="overlay-header">
+        <h3>Verify Registration Details</h3>
+        <button type="button" class="close-overlay-btn" onclick="student_closeReviewOverlay()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      
+      <div id="student_reviewOverlayContent">
+        <!-- Filled out dynamically via javascript grid metrics layout -->
+      </div>
+      
+      <div class="overlay-actions">
+        <button class="btn btn-back" style="padding: 12px 25px;" onclick="student_closeReviewOverlay()">Make Corrections</button>
+        <button class="btn btn-next" style="padding: 12px 35px;" onclick="student_submitForm()">Confirm & Submit</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Evaluates fee balance to dynamically unlock or lock the Next button
+    function student_evaluateFeesClearance() {
+      const feesStatus = document.getElementById('student_fees_status').value;
+      const nextBtn = document.getElementById('student_step1NextBtn');
+      
+      if (feesStatus === "cleared") {
+        nextBtn.removeAttribute("disabled");
+      } else {
+        nextBtn.setAttribute("disabled", "true");
+      }
+    }
+
+    // Visibility toggle functionality logic
+    function student_toggleFieldPassword(inputId, triggerBtn) {
+      const passInput = document.getElementById(inputId);
+      passInput.type = passInput.type === 'password' ? 'text' : 'password';
+      triggerBtn.textContent = passInput.type === 'password' ? '👁️' : '🙈';
+    }
+
+    // Validates inputs within the active container step card
+    function student_validateStep(step) {
+      const stepDiv = document.getElementById("student_step" + step);
+      const inputs = stepDiv.querySelectorAll("input[required], select[required]");
+      for (let input of inputs) {
+        if (!input.value.trim()) {
+          input.style.borderColor = "#e74c3c";
+          setTimeout(() => { input.style.borderColor = "#e2e8f0"; }, 2500);
+          input.focus();
+          return false;
+        }
+      }
+
+      // Password checks inside step 1 
+      if (step === 1) {
+        const pass = document.getElementById('student_password').value;
+        const confirmPass = document.getElementById('student_confirm_password').value;
+        if (pass.length < 8) { alert('Password must be at least 8 characters long.'); return false; }
+        if (pass !== confirmPass) { alert('Passwords do not match!'); return false; }
+      }
+      return true;
+    }
+
+    // Handles layout progress indicators
+    function student_updateProgress(percent) {
+      document.getElementById('student_progressBar').style.width = percent + "%";
+    }
+
+    // Navigates application form flow layers forwards
+    function student_nextStep(step) {
+      if (!student_validateStep(step)) return;
+
+      const spinner = document.getElementById("student_spinner" + step);
+      if(spinner) spinner.style.display = "inline-block";
+
+      setTimeout(() => {
+        if(spinner) spinner.style.display = "none";
+        document.getElementById("student_step" + step).classList.remove("active");
+        document.getElementById("student_step" + (step + 1)).classList.add("active");
+        student_updateProgress(100);
+      }, 400); 
+    }
+
+    // Navigates application form flow layers backwards
+    function student_prevStep(step) {
+      document.getElementById("student_step" + (step + 1)).classList.remove("active");
+      document.getElementById("student_step" + step).classList.add("active");
+      student_updateProgress(50);
+    }
+
+    // Compiles information and opens the overlay card interface
+    function student_openReviewOverlay() {
+      if (!student_validateStep(2)) return;
+
+      const fields = [
+        { id: "student_full_name", label: "Full Name" },
+        { id: "student_reg_number", label: "Registration Number" },
+        { id: "student_email", label: "Email Address" },
+        { id: "student_phone", label: "Phone Number" },
+        { id: "student_year", label: "Year of Study" },
+        { id: "student_organization", label: "Organization Name" },
+        { id: "student_fees_status", label: "Fees Status" },
+        { id: "student_university", label: "University" },
+        { id: "student_faculty", label: "Faculty" },
+        { id: "student_department", label: "Department" },
+        { id: "student_programme", label: "Course / Programme" },
+        { id: "student_unit_name", label: "Unit Name" },
+        { id: "student_unit_code", label: "Unit Code" }
+      ];
+      
+      let reviewHTML = "<ul class='review-grid-list'>";
+      fields.forEach(field => {
+        const element = document.getElementById(field.id);
+        let val = element ? element.value.trim() : "Not provided";
+        if (!val) val = "Not provided";
+        
+        // Formatting readable value output for fees status dropdown
+        if (field.id === "student_fees_status" && element) {
+          val = element.value === "cleared" ? "Fully Cleared" : "Outstanding Balance";
+        }
+
+        reviewHTML += `<li><strong>${field.label}</strong> ${val}</li>`;
+      });
+      reviewHTML += "</ul>";
+      
+      document.getElementById('student_reviewOverlayContent').innerHTML = reviewHTML;
+      document.getElementById('student_reviewOverlay').classList.add("show");
+    }
+
+    // Closes the overlay view modal
+    function student_closeReviewOverlay() {
+      document.getElementById('student_reviewOverlay').classList.remove("show");
+    }
+
+    // Direct submit without review overlay
+    function student_directSubmit() {
+      if (!student_validateStep(2)) return;
+      const spinner = document.getElementById('student_spinner2');
+      if(spinner) spinner.style.display = 'inline-block';
+      setTimeout(() => {
+        document.getElementById('student_registrationForm').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true}));
+      }, 300);
+    }
+
+    // Submission configuration entry point
+    function student_submitForm() {
+      student_closeReviewOverlay();
+      document.getElementById('student_registrationForm').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true}));
+    }
+  </script>

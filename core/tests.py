@@ -8,6 +8,61 @@ from .views import _ensure_period_assignments
 
 
 class RegistrationFlowTests(TestCase):
+    def test_admin_dashboard_is_available_for_admin_users(self):
+        admin_user = User.objects.create_user(
+            username='ADMIN01',
+            password='Pass1234!',
+            role='ADMIN',
+            first_name='System',
+            last_name='Administrator',
+        )
+
+        self.client.force_login(admin_user)
+        response = self.client.get(reverse('core:admin_dashboard'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Admin Control Center')
+
+    def test_admin_dashboard_can_preselect_role_for_quick_create(self):
+        admin_user = User.objects.create_user(
+            username='ADMIN02',
+            password='Pass1234!',
+            role='ADMIN',
+            first_name='System',
+            last_name='Administrator',
+        )
+
+        self.client.force_login(admin_user)
+        response = self.client.get(reverse('core:admin_dashboard') + '?role=LECTURER')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['selected_role'], 'LECTURER')
+
+    def test_admin_can_create_a_new_user_account(self):
+        admin_user = User.objects.create_user(
+            username='ADMIN02',
+            password='Pass1234!',
+            role='ADMIN',
+            first_name='System',
+            last_name='Administrator',
+        )
+
+        self.client.force_login(admin_user)
+        response = self.client.post(reverse('core:admin_create_user'), {
+            'full_name': 'Grace Lecturer',
+            'username': 'LEC999',
+            'email': 'grace@example.com',
+            'role': 'LECTURER',
+            'phone_number': '+254700000099',
+            'institution_or_company': 'Kisii University',
+            'course': 'Computer Science',
+            'password': 'SecurePass123!',
+            'confirm_password': 'SecurePass123!',
+        })
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(User.objects.filter(username='LEC999').exists())
+
     def test_registration_form_accepts_template_field_names(self):
         form = SISTRegistrationForm(
             data={
@@ -16,6 +71,7 @@ class RegistrationFlowTests(TestCase):
                 'email': 'jane@example.com',
                 'role': 'STUDENT',
                 'phone_number': '+254700000000',
+                'institution_or_company': 'ICT Authority',
                 'password': 'securepass123',
                 'confirm_password': 'securepass123',
             }
@@ -47,7 +103,7 @@ class RegistrationFlowTests(TestCase):
         self.assertIn('institution_or_company', form.errors)
         self.assertIn('Company or organization', str(form.errors))
 
-    def test_period_assignment_falls_back_to_first_supervisor_when_no_company_match(self):
+    def test_period_assignment_requires_matching_supervisor_company(self):
         student = User.objects.create_user(
             username='STU200',
             password='pass1234!',
@@ -56,7 +112,7 @@ class RegistrationFlowTests(TestCase):
             last_name='Student',
             institution_or_company='Kisii County Referral Hospital',
         )
-        supervisor = User.objects.create_user(
+        unmatched_supervisor = User.objects.create_user(
             username='SUP200',
             password='pass1234!',
             role='SUPERVISOR',
@@ -64,11 +120,20 @@ class RegistrationFlowTests(TestCase):
             last_name='Supervisor',
             institution_or_company='Nairobi Hospital',
         )
+        matching_supervisor = User.objects.create_user(
+            username='SUP201',
+            password='pass1234!',
+            role='SUPERVISOR',
+            first_name='Clare',
+            last_name='Supervisor',
+            institution_or_company='Kisii County Referral Hospital',
+        )
         period = AttachmentPeriod.objects.create(student=student, start_date='2026-01-01')
 
         _ensure_period_assignments(period)
 
-        self.assertEqual(period.supervisor, supervisor)
+        self.assertEqual(period.supervisor, matching_supervisor)
+        self.assertNotEqual(period.supervisor, unmatched_supervisor)
 
     def test_supervisor_dashboard_shows_matching_student_logs(self):
         student = User.objects.create_user(
@@ -96,9 +161,34 @@ class RegistrationFlowTests(TestCase):
         self.assertContains(response, 'Grace Student')
         self.assertEqual(len(response.context['students']), 1)
 
-    def test_create_log_creates_only_the_next_missing_week(self):
+    def test_period_assignment_requires_matching_lecturer_course(self):
         student = User.objects.create_user(
             username='STU202',
+            password='pass1234!',
+            role='STUDENT',
+            first_name='Nina',
+            last_name='Student',
+            institution_or_company='Kisii County Referral Hospital',
+            course='Computer Science',
+        )
+        lecturer = User.objects.create_user(
+            username='LEC202',
+            password='pass1234!',
+            role='LECTURER',
+            first_name='Diana',
+            last_name='Lecturer',
+            course='Applied Computer Science',
+        )
+        period = AttachmentPeriod.objects.create(student=student, start_date='2026-01-01')
+
+        _ensure_period_assignments(period)
+
+        self.assertIsNone(period.lecturer)
+        self.assertNotEqual(period.lecturer, lecturer)
+
+    def test_create_log_creates_only_the_next_missing_week(self):
+        student = User.objects.create_user(
+            username='STU203',
             password='pass1234!',
             role='STUDENT',
             first_name='Nina',

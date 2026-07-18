@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SIST Logbook - Lecturer Dashboard</title>
+    <link rel="icon" type="image/jpeg" href="/static/images/logo.jpeg">
     <link rel="stylesheet" href="/static/css/sist_style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -233,15 +234,68 @@
         .status-pill { display: inline-block; padding: 6px 10px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; }
         .status-approved { background: #dcfce7; color: #166534; }
         .status-pending { background: #fef3c7; color: #b45309; }
-        .week-link { display: inline-block; margin: 3px 6px 3px 0; padding: 6px 10px; border-radius: 999px; text-decoration: none; background: #eef6ff; color: #0f4c81; font-weight: 700; transition: all 0.2s ease; }
-        .week-link:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(15, 76, 129, 0.1); }
-        .week-link.done { background: #dcfce7; color: #166534; }
-        .week-link.pending { background: #fef3c7; color: #b45309; }
+        .week-link { 
+            display: inline-block; 
+            margin: 6px 8px 6px 0; 
+            padding: 8px 12px; 
+            border-radius: 10px; 
+            text-decoration: none; 
+            background: #eef6ff; 
+            color: #0f4c81; 
+            font-weight: 700; 
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 6px rgba(15, 76, 129, 0.1);
+            font-size: 0.9rem;
+        }
+        .week-link:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 4px 12px rgba(15, 76, 129, 0.2);
+            background: #d0e3ff;
+        }
+        .week-link.done { 
+            background: #dcfce7; 
+            color: #166534;
+            box-shadow: 0 2px 6px rgba(22, 101, 52, 0.15);
+        }
+        .week-link.done:hover {
+            box-shadow: 0 4px 12px rgba(22, 101, 52, 0.25);
+        }
+        .week-link.pending { 
+            background: #fef3c7; 
+            color: #b45309;
+            box-shadow: 0 2px 6px rgba(180, 83, 9, 0.15);
+        }
+        .week-link.pending:hover {
+            box-shadow: 0 4px 12px rgba(180, 83, 9, 0.25);
+        }
         .empty-state { color: #64748b; padding: 24px 0; text-align: center; font-style: italic; }
-        .action-btn { display: inline-block; padding: 8px 16px; border-radius: 999px; text-decoration: none; font-weight: 700; background: #0f4c81; color: white; transition: background 0.2s ease; }
-        .action-btn:hover { background: #1d65a3; }
+        .action-btn { 
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px; 
+            border-radius: 10px; 
+            text-decoration: none; 
+            font-weight: 700; 
+            background: #0f4c81; 
+            color: white; 
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            box-shadow: 0 4px 12px rgba(15, 76, 129, 0.2);
+        }
+        .action-btn:hover { 
+            background: #1d65a3;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(15, 76, 129, 0.3);
+        }
         .action-btn.secondary { background: #f59e0b; color: white; }
         .action-btn:disabled { opacity: 0.6; pointer-events: none; }
+        .action-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
 
         @keyframes slideDown {
             from { opacity: 0; transform: translateY(-8px); }
@@ -269,7 +323,7 @@
                 </div>
                 
                 <div class="profile-dropdown" id="profileDropdown">
-                    <a href="#" class="dropdown-item"><i class="fa-solid fa-user-gear"></i> Account Settings</a>
+                    <a href="#" onclick="event.preventDefault(); openSettingsModal();" class="dropdown-item"><i class="fa-solid fa-user-gear"></i> Customise Profile</a>
                     <a href="#" class="dropdown-item"><i class="fa-solid fa-id-card"></i> Institution Profile</a>
                     <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 6px 0;">
                     <form action="{% url 'core:logout' %}" method="POST" style="margin: 0;">
@@ -304,7 +358,7 @@
 
         <div class="stats-row">
             <div class="stat-card">
-                <div class="stat-value={{ students|length }}">{{ students|length }}</div>
+                <div class="stat-value">{{ students|length }}</div>
                 <div class="stat-label">Assigned students</div>
             </div>
             <div class="stat-card">
@@ -328,9 +382,10 @@
                         <thead>
                             <tr>
                                 <th>Attachee</th>
+                                <th>Supervisor</th>
                                 <th>Organisation / Company</th>
-                                <th>Supervisor status</th>
                                 <th>Weekly sign-offs</th>
+                                <th>Assessments</th>
                                 <th>Final grade</th>
                             </tr>
                         </thead>
@@ -339,18 +394,18 @@
                             <tr>
                                 <td>
                                     <div class="student-name">{{ p.student.get_full_name|default:p.student.username }}</div>
-                                    <div class="muted">{{ p.student.email|default:"No email on record" }}</div>
+                                    <div class="muted">{{ p.student.username|default:"No registration number" }}</div>
                                     <div class="muted"><strong>Course:</strong> {{ p.student.course|default:"Unassigned" }}</div>
+                                    <div class="muted"><strong>Email:</strong> {{ p.student.email|default:"No email on record" }}</div>
+                                </td>
+                                <td>
+                                    <div class="muted">{{ p.supervisor.get_full_name|default:"Not assigned yet" }}</div>
+                                    {% if p.supervisor %}
+                                        <div class="muted">{{ p.supervisor.institution_or_company|default:"No company listed" }}</div>
+                                    {% endif %}
                                 </td>
                                 <td>
                                     <div class="muted">{{ p.student.institution_or_company|default:"Not specified" }}</div>
-                                </td>
-                                <td>
-                                    {% if p.supervisor_signed %}
-                                        <span class="status-pill status-approved"><i class="fa-solid fa-building-circle-check"></i> Company verified</span>
-                                    {% else %}
-                                        <span class="status-pill status-pending"><i class="fa-solid fa-clock"></i> Awaiting supervisor</span>
-                                    {% endif %}
                                 </td>
                                 <td>
                                     {% for log in p.weekly_logs.all %}
@@ -365,12 +420,63 @@
                                         <span class="empty-state">No approved weekly logs yet.</span>
                                     {% endfor %}
                                 </td>
-                                <td>
-                                    {% if p.supervisor_signed %}
-                                        <a href="{% url 'core:final_grading' p.id %}" class="action-btn"><i class="fa-solid fa-pen-to-square"></i> Allocate grade</a>
+                                <td style="min-width: 250px;">
+                                    {% if p.weekly_logs.all|length >= 7 %}
+                                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin-bottom: 8px;">
+                                            <strong style="font-size: 0.85rem; color: #334155;">Week 7 Assessment</strong>
+                                            {% if p.first_visit_comment %}
+                                                <p style="font-size: 0.8rem; margin: 4px 0; color: #16a34a;">✓ Remarks completed</p>
+                                                {% if p.week_7_returned_doc %}
+                                                    <a href="{{ p.week_7_returned_doc.url }}" style="font-size: 0.8rem; color: #0f4c81;">Download Graded Doc ({{ p.week_7_supervisor_marks|default:"-" }} Marks)</a>
+                                                {% elif p.week_7_grading_doc %}
+                                                    <p style="font-size: 0.8rem; margin: 4px 0; color: #ca8a04;">Pending supervisor grading...</p>
+                                                {% endif %}
+                                            {% else %}
+                                                <form action="{% url 'core:submit_assessment_form' p.id %}" method="POST" enctype="multipart/form-data" style="margin-top: 8px; display: flex; flex-direction: column; gap: 6px;">
+                                                    {% csrf_token %}
+                                                    <textarea name="first_visit_comment" placeholder="First Visit Remarks" required style="width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px; font-size: 0.8rem;" rows="2"></textarea>
+                                                    <input type="date" name="first_visit_date" required style="width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px; font-size: 0.8rem;">
+                                                    <input type="file" name="week_7_grading_doc" accept=".pdf,.doc,.docx" required style="font-size: 0.75rem;">
+                                                    <button type="submit" class="action-btn" style="padding: 6px 12px; font-size: 0.8rem;">Submit Week 7</button>
+                                                </form>
+                                            {% endif %}
+                                        </div>
                                     {% else %}
-                                        <span class="muted"><i class="fa-solid fa-lock"></i> Locked until close</span>
+                                        <span class="muted" style="display: block; font-size: 0.8rem;">Week 7 Assess: Locked</span>
                                     {% endif %}
+
+                                    {% if p.weekly_logs.all|length >= 12 %}
+                                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px;">
+                                            <strong style="font-size: 0.85rem; color: #334155;">Week 12 Assessment</strong>
+                                            {% if p.second_visit_comment %}
+                                                <p style="font-size: 0.8rem; margin: 4px 0; color: #16a34a;">✓ Remarks completed</p>
+                                                {% if p.week_12_returned_doc %}
+                                                    <a href="{{ p.week_12_returned_doc.url }}" style="font-size: 0.8rem; color: #0f4c81;">Download Graded Doc ({{ p.week_12_supervisor_marks|default:"-" }} Marks)</a>
+                                                {% elif p.week_12_grading_doc %}
+                                                    <p style="font-size: 0.8rem; margin: 4px 0; color: #ca8a04;">Pending supervisor grading...</p>
+                                                {% endif %}
+                                            {% else %}
+                                                <form action="{% url 'core:submit_assessment_form' p.id %}" method="POST" enctype="multipart/form-data" style="margin-top: 8px; display: flex; flex-direction: column; gap: 6px;">
+                                                    {% csrf_token %}
+                                                    <textarea name="second_visit_comment" placeholder="Second Visit Remarks" required style="width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px; font-size: 0.8rem;" rows="2"></textarea>
+                                                    <input type="date" name="second_visit_date" required style="width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px; font-size: 0.8rem;">
+                                                    <input type="file" name="week_12_grading_doc" accept=".pdf,.doc,.docx" required style="font-size: 0.75rem;">
+                                                    <button type="submit" class="action-btn" style="padding: 6px 12px; font-size: 0.8rem;">Submit Week 12</button>
+                                                </form>
+                                            {% endif %}
+                                        </div>
+                                    {% else %}
+                                        <span class="muted" style="display: block; font-size: 0.8rem; margin-top: 8px;">Week 12 Assess: Locked</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="action-cell">
+                                        {% if p.supervisor_signed %}
+                                            <a href="{% url 'core:final_grading' p.id %}" class="action-btn"><i class="fa-solid fa-pen-to-square"></i> Allocate Grade</a>
+                                        {% else %}
+                                            <span class="muted" style="display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-lock"></i> Locked until completion</span>
+                                        {% endif %}
+                                    </div>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -402,6 +508,67 @@
             profileDropdown.classList.remove('show');
         });
 
+        // Initialize avatar on page load
+        function initializeAvatar() {
+            const userAvatar = document.getElementById('navbarAvatar');
+            const fullName = '{{ request.user.get_full_name|default:request.user.username }}';
+            const avatarColor = '{{ request.user.avatar_color|default:"0284c7" }}';
+            const profilePhoto = '{% if request.user.profile_photo %}{{ request.user.profile_photo.url }}{% endif %}';
+            
+            if (profilePhoto) {
+                userAvatar.src = profilePhoto;
+            } else {
+                // Generate avatar with initials
+                const initials = fullName.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
+                userAvatar.outerHTML = `<div style="width: 38px; height: 38px; border-radius: 50%; background-color: #${avatarColor}; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 1rem; border: 2px solid white; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);">${initials || 'U'}</div>`;
+            }
+        }
+        
+        // Open settings modal
+        function openSettingsModal() {
+            document.getElementById('settingsModal').style.display = 'flex';
+            profileDropdown.classList.remove('show');
+        }
+        
+        // Close settings modal
+        function closeSettingsModal() {
+            document.getElementById('settingsModal').style.display = 'none';
+        }
+        
+        // Save profile updates
+        async function saveProfileChanges() {
+            const form = new FormData();
+            const colorInput = document.getElementById('avatarColorInput');
+            const photoInput = document.getElementById('profilePhotoInput');
+            
+            if (colorInput && colorInput.value) {
+                form.append('avatar_color', colorInput.value.replace('#', ''));
+            }
+            
+            if (photoInput && photoInput.files.length > 0) {
+                form.append('profile_photo', photoInput.files[0]);
+            }
+            
+            try {
+                const response = await fetch('{% url "core:update_profile_meta" %}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '{% csrf_token %}'
+                    },
+                    body: form
+                });
+                
+                if (response.ok) {
+                    closeSettingsModal();
+                    location.reload();
+                } else {
+                    alert('Failed to save profile changes. Please try again.');
+                }
+            } catch (error) {
+                alert('Error saving profile: ' + error.message);
+            }
+        }
+
         // Instant avatar local image selection preview update
         function previewAvatar(event) {
             const input = event.target;
@@ -413,6 +580,46 @@
                 reader.readAsDataURL(input.files[0]);
             }
         }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', initializeAvatar);
     </script>
+    
+    <!-- Profile Settings Modal -->
+    <div id="settingsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center;">
+        <div style="background: white; border-radius: 20px; padding: 32px; max-width: 500px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h2 style="margin: 0; font-size: 1.35rem; color: #0f4c81;">⚙️ Profile Settings</h2>
+                <button onclick="closeSettingsModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b;">✕</button>
+            </div>
+            
+            <form onsubmit="event.preventDefault(); saveProfileChanges();">
+                {% csrf_token %}
+                
+                <div style="margin-bottom: 24px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #0f172a;">Profile Picture</label>
+                    <input type="file" id="profilePhotoInput" accept="image/*" style="display: block; width: 100%; padding: 12px; border: 2px solid #e5ecf4; border-radius: 12px; cursor: pointer;">
+                    <p style="font-size: 0.85rem; color: #64748b; margin-top: 6px;">Upload a picture or leave blank to use your avatar color below.</p>
+                </div>
+                
+                <div style="margin-bottom: 24px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #0f172a;">Avatar Color</label>
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        {% if request.user.avatar_color %}
+                        <input type="color" id="avatarColorInput" value="#{{ request.user.avatar_color }}" style="width: 80px; height: 50px; border: 2px solid #e5ecf4; border-radius: 12px; cursor: pointer;">
+                        {% else %}
+                        <input type="color" id="avatarColorInput" value="#0284c7" style="width: 80px; height: 50px; border: 2px solid #e5ecf4; border-radius: 12px; cursor: pointer;">
+                        {% endif %}
+                        <p style="margin: 0; font-size: 0.9rem; color: #64748b;">This color will be used for your profile avatar if no picture is uploaded.</p>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                    <button type="button" onclick="closeSettingsModal()" style="padding: 12px 24px; border: 2px solid #e5ecf4; background: white; color: #0f4c81; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s;">Cancel</button>
+                    <button type="submit" style="padding: 12px 24px; background: #0f4c81; color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s;">💾 Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
 </html>

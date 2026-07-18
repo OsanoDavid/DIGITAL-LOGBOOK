@@ -1,19 +1,21 @@
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SIST Digital Attachment Logbook - Kisii University</title>
-    
+
     <link rel="icon" type="image/jpeg" href="/static/images/logo.jpeg">
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
     <link rel="stylesheet" href="/static/css/portal.css">
 </head>
+
 <body>
 
     <div id="portal-toast" class="toast-notification"></div>
@@ -44,10 +46,11 @@
 
     <main class="main-workspace reveal-on-scroll">
         <div class="split-card">
-            
+
             <div class="sist-header-banner">
                 <h2>SIST <span>Digital Attachment</span> Logbook</h2>
-                <p>The centralized evaluation workflow environment for Kisii University students, supervisors, and internal university lecturers.</p>
+                <p>The centralized evaluation workflow environment for Kisii University students, supervisors, and
+                    internal university lecturers.</p>
             </div>
 
             <div class="split-card-body">
@@ -55,11 +58,13 @@
 
                 <div class="form-side" id="auth-terminal-form">
                     <h2>Hi, welcome back</h2>
-                    <p class="subtitle">Please fill in your authentic access details to log into the logbook environment.</p>
+                    <p class="subtitle">Please fill in your authentic access details to log into the logbook
+                        environment.</p>
 
                     <form method="POST" id="loginForm" onsubmit="handleLoginSubmissionSystem(event)">
-                        <input type="hidden" name="csrfmiddlewaretoken" value="5sOEyZBDR9jRnXk9f08P97EdK67b6HyGvH4dQNucbUIAM0WvxpAzQkGj7vsKa3NS">
-                        
+                        <input type="hidden" name="csrfmiddlewaretoken"
+                            value="5sOEyZBDR9jRnXk9f08P97EdK67b6HyGvH4dQNucbUIAM0WvxpAzQkGj7vsKa3NS">
+
                         <div class="form-group">
                             <label for="id_role">Select Target View Workspace Profile</label>
                             <select name="role" id="id_role" class="form-control">
@@ -71,14 +76,17 @@
 
                         <div class="form-group">
                             <label for="id_username">Username / Admission Number</label>
-                            <input type="text" name="username" id="id_username" class="form-control" placeholder="Student No/ Employee No" required>
+                            <input type="text" name="username" id="id_username" class="form-control"
+                                placeholder="Student No/ Employee No" required>
                         </div>
 
                         <div class="form-group">
                             <label for="id_password">Account Security Password</label>
                             <div class="password-container">
-                                <input type="password" name="password" id="id_password" class="form-control" placeholder="Enter your Password" required>
-                                <button type="button" class="toggle-eye-btn" onclick="togglePasswordVisibility()">👁️</button>
+                                <input type="password" name="password" id="id_password" class="form-control"
+                                    placeholder="Enter your Password" required>
+                                <button type="button" class="toggle-eye-btn"
+                                    onclick="togglePasswordVisibility()">👁️</button>
                             </div>
                         </div>
 
@@ -114,22 +122,26 @@
             <div class="service-card sc-blue">
                 <div class="service-icon">📝</div>
                 <h4>Daily Milestone Logging</h4>
-                <p>Enables attachees to record daily operational records, skills mastered, and challenges faced during their 14-week attachment cycle.</p>
+                <p>Enables attachees to record daily operational records, skills mastered, and challenges faced during
+                    their 14-week attachment cycle.</p>
             </div>
             <div class="service-card sc-gold">
                 <div class="service-icon">✅</div>
                 <h4>Supervisor Endorsements</h4>
-                <p>Allows industry field supervisors to review, append custom training feedback, sign off, and digitally validate entries weekly.</p>
+                <p>Allows industry field supervisors to review, append custom training feedback, sign off, and digitally
+                    validate entries weekly.</p>
             </div>
             <div class="service-card sc-green">
                 <div class="service-icon">🎓</div>
                 <h4>Lecturer Assessment Hub</h4>
-                <p>Provides university assessors with real-time remote visibility to track student progress, schedule assessment visits, and submit final marks.</p>
+                <p>Provides university assessors with real-time remote visibility to track student progress, schedule
+                    assessment visits, and submit final marks.</p>
             </div>
             <div class="service-card sc-purple">
                 <div class="service-icon">📊</div>
                 <h4>Automated Reports</h4>
-                <p>Compiles logs into downloadable, cleanly formatted summaries alongside visual attachment progress analytics.</p>
+                <p>Compiles logs into downloadable, cleanly formatted summaries alongside visual attachment progress
+                    analytics.</p>
             </div>
         </div>
     </section>
@@ -140,35 +152,44 @@
                 <h4>SIST Platforms</h4>
                 <ul>
                     <li><a href="/portal/register/">Logbook Registration</a></li>
-                    <li><a href="#">Attachment Guidelines</a></li>
-                    <li><a href="#">Supervisor Manuals</a></li>
+                    <li><a href="/portal/info/guidelines/">Attachment Guidelines</a></li>
+                    <li><a href="/portal/info/manuals/">Supervisor Manuals</a></li>
                 </ul>
             </div>
             <div class="footer-col">
                 <h4>Kisii University Links</h4>
                 <ul>
-                    <li><a href="https://www.kisiiuniversity.ac.ke" target="_blank">Main University Site</a></li>
-                    <li><a href="https://portal.kisiiuniversity.ac.ke" target="_blank">Student Portal</a></li>
-                    <li><a href="#" target="_blank">E-Learning LMS</a></li>
+                    <li><a href="https://kisiiuniversity.ac.ke/" target="_blank" rel="noopener noreferrer">Main
+                            University Site</a></li>
+                    <li><a href="https://portal.kisiiuniversity.ac.ke" target="_blank" rel="noopener noreferrer">Student
+                            Portal</a></li>
+                    <li><a href="https://elearning.kisiiuniversity.ac.ke/" target="_blank"
+                            rel="noopener noreferrer">E-Learning LMS</a></li>
+                    <li><a href="https://digital.kisiiuniversity.ac.ke/" target="_blank" rel="noopener noreferrer">Kisii
+                        Huduma-Bora</a></li>
                 </ul>
             </div>
+
             <div class="footer-col">
                 <h4>Support Center</h4>
                 <ul>
-                    <li><a href="#">SIST ICT Desk</a></li>
-                    <li><a href="#">Logbook Support Help</a></li>
-                    <li><a href="#">Report System Issues</a></li>
+                    <li><a href="https://kisiiuniversity.ac.ke/dpt/information-communication-and-technology-ict"
+                            target="_blank" rel="noopener noreferrer">SIST ICT Desk</a></li>
+                    <li><a href="/portal/info/support/">Logbook Support Help</a></li>
+                    <li><a href="/portal/info/report/">Report System Issues</a></li>
                 </ul>
+
             </div>
         </div>
         <div class="footer-bottom">
             <div>&copy; 2026 Kisii University School of Information Sciences & Technology. All rights reserved.</div>
-            <div><a href="#" onclick="executeCleanPortalExit(event)" style="color: #fca5a5; text-decoration: none; font-weight: 600;">Exit Portal</a></div>
+            <div><a href="#" onclick="executeCleanPortalExit(event)"
+                    style="color: #fca5a5; text-decoration: none; font-weight: 600;">Exit Portal</a></div>
         </div>
     </footer>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function () {
             const itemsToReveal = document.querySelectorAll(".reveal-on-scroll");
             const scrollTrackingObserver = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
@@ -192,12 +213,12 @@
         // Handle Database Authentication Sequence dynamically using Fetch 
         function handleLoginSubmissionSystem(event) {
             event.preventDefault();
-            
+
             const form = document.getElementById('loginForm');
             const submitBtn = document.getElementById('login-submit-btn');
             const btnText = submitBtn.querySelector('.btn-text-content');
             const spinner = document.getElementById('login-button-spinner');
-            
+
             // 1. Activate Multicolor Spinner Animation
             btnText.style.opacity = "0";
             spinner.style.display = "block";
@@ -213,25 +234,25 @@
                     'X-Requested-With': 'XMLHttpRequest'
                 }
             })
-            .then(async response => {
-                const data = await response.json().catch(() => ({}));
+                .then(async response => {
+                    const data = await response.json().catch(() => ({}));
 
-                if ((response.ok || response.redirected) && data.status === 'success') {
-                    triggerTemporaryNotification("🔐 Credentials Verified against database! Redirecting to dashboard...");
-                    setTimeout(() => {
-                        window.location.href = data.redirect_url || "/portal/dashboard/";
-                    }, 1500);
-                } else {
-                    throw new Error(data.message || "Invalid username/registration number or password combination.");
-                }
-            })
-            .catch(error => {
-                triggerTemporaryNotification("❌ Access Denied: " + error.message, "error");
-                // Reset button state on failure so the user can re-try input elements
-                spinner.style.display = "none";
-                btnText.style.opacity = "1";
-                submitBtn.disabled = false;
-            });
+                    if ((response.ok || response.redirected) && data.status === 'success') {
+                        triggerTemporaryNotification("🔐 Credentials Verified against database! Redirecting to dashboard...");
+                        setTimeout(() => {
+                            window.location.href = data.redirect_url || "/portal/dashboard/";
+                        }, 1500);
+                    } else {
+                        throw new Error(data.message || "Invalid username/registration number or password combination.");
+                    }
+                })
+                .catch(error => {
+                    triggerTemporaryNotification("❌ Access Denied: " + error.message, "error");
+                    // Reset button state on failure so the user can re-try input elements
+                    spinner.style.display = "none";
+                    btnText.style.opacity = "1";
+                    submitBtn.disabled = false;
+                });
         }
 
         // Floating Alert Notifications Controller
@@ -266,8 +287,8 @@
         let rootPixelSize = 14;
         function changeFontSize(direction) {
             rootPixelSize += (direction * 1.5);
-            if(rootPixelSize < 11) rootPixelSize = 11;
-            if(rootPixelSize > 24) rootPixelSize = 24;
+            if (rootPixelSize < 11) rootPixelSize = 11;
+            if (rootPixelSize > 24) rootPixelSize = 24;
             document.documentElement.style.fontSize = rootPixelSize + 'px';
         }
         function resetFontSize() {
@@ -286,4 +307,5 @@
         }
     </script>
 </body>
+
 </html>

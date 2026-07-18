@@ -9,6 +9,7 @@ class User(AbstractUser):
         ('STUDENT', 'Student'),
         ('SUPERVISOR', 'Industry Supervisor'),
         ('LECTURER', 'University Lecturer'),
+        ('ADMIN', 'System Administrator'),
     )
     COURSE_PREFIX_MAP = {
         'IN13': 'Computer Science',
@@ -22,10 +23,15 @@ class User(AbstractUser):
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     course = models.CharField(max_length=120, blank=True, null=True)
     profile_photo = models.ImageField(upload_to='profile_photos/', blank=True, null=True)
+    
+    # ADD THIS LINE HERE:
+    avatar_color = models.CharField(max_length=7, default='0284c7')
 
     def __str__(self):
         return f"{self.get_full_name() or self.username} ({self.get_role_display()})"
-
+    
+    # ... leave the rest of your models.py file exactly as it is
+   
     @classmethod
     def infer_course_from_registration(cls, registration_number):
         if not registration_number:
@@ -54,6 +60,25 @@ class AttachmentPeriod(models.Model):
     lecturer_comment = models.TextField(blank=True, null=True)
     lecturer_signed = models.BooleanField(default=False)
 
+    # Academic Supervisor Visits
+    first_visit_comment = models.TextField(blank=True, null=True)
+    first_visit_date = models.DateField(blank=True, null=True)
+    second_visit_comment = models.TextField(blank=True, null=True)
+    second_visit_date = models.DateField(blank=True, null=True)
+
+    # Student & Industry Supervisor final remarks (End of attachment)
+    student_additional_info = models.TextField(blank=True, null=True)
+    industry_supervisor_final_comment = models.TextField(blank=True, null=True)
+
+    # Lecturer Document Upload for Grading
+    week_7_grading_doc = models.FileField(upload_to='sist_reports/week7/', blank=True, null=True)
+    week_7_supervisor_marks = models.FloatField(null=True, blank=True)
+    week_7_returned_doc = models.FileField(upload_to='sist_reports/week7_returned/', blank=True, null=True)
+
+    week_12_grading_doc = models.FileField(upload_to='sist_reports/week12/', blank=True, null=True)
+    week_12_supervisor_marks = models.FloatField(null=True, blank=True)
+    week_12_returned_doc = models.FileField(upload_to='sist_reports/week12_returned/', blank=True, null=True)
+
     def __str__(self):
         return f"SIST Logbook Profile - {self.student.username}"
 
@@ -76,3 +101,4 @@ class WeeklyLog(models.Model):
     class Meta:
         unique_together = ('profile', 'week_number')
         ordering = ['week_number']
+

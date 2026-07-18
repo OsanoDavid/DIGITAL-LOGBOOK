@@ -1,19 +1,21 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SIST System Registration - Kisii University</title>
-    
+
     <link rel="icon" type="image/jpeg" href="{% static 'images/logo.jpeg' %}">
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
     <link rel="stylesheet" href="{% static 'css/portal.css' %}">
-    
+
     <style>
         .multicolor-gradient-side {
             flex: 1.1;
@@ -26,27 +28,320 @@
             padding: 40px;
             box-sizing: border-box;
         }
-        .gradient-overlay-content { z-index: 2; color: #ffffff; text-align: center; }
+
+        .gradient-overlay-content {
+            z-index: 2;
+            color: #ffffff;
+            text-align: center;
+        }
+
         .gradient-logo-frame {
-            background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px);
-            padding: 20px; border-radius: 20px; display: inline-block;
-            margin-bottom: 20px; border: 1px solid rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
         }
-        .gradient-logo-frame img { height: 90px; width: auto; border-radius: 8px; }
-        .gradient-overlay-content h3 { font-size: 2rem; font-weight: 800; margin: 0 0 10px 0; }
-        .gradient-overlay-content p { font-size: 1.1rem; color: rgba(255, 255, 255, 0.9); margin: 0; }
+
+        .gradient-logo-frame img {
+            height: 90px;
+            width: auto;
+            border-radius: 8px;
+        }
+
+        .gradient-overlay-content h3 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin: 0 0 10px 0;
+        }
+
+        .gradient-overlay-content p {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin: 0;
+        }
+
         .fee-alert-box {
-            background-color: #fee2e2; border-left: 4px solid #ef4444; color: #991b1b;
-            padding: 12px 16px; border-radius: 8px; font-size: 0.95rem; font-weight: 600;
-            margin-bottom: 20px; display: none;
+            background-color: #fee2e2;
+            border-left: 4px solid #ef4444;
+            color: #991b1b;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: none;
         }
+
         .conditional-field-wrapper {
-            display: none; background: rgba(15, 150, 255, 0.04); padding: 15px;
-            border-radius: 12px; border: 1px dashed var(--kisii-sky); margin-bottom: 20px;
+            display: none;
+            background: rgba(15, 150, 255, 0.04);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px dashed var(--kisii-sky);
+            margin-bottom: 20px;
         }
-        .live-error-text { font-size: 0.85rem; font-weight: 600; color: #ef4444; margin-top: 5px; display: none; }
+
+        .live-error-text {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #ef4444;
+            margin-top: 5px;
+            display: none;
+        }
+
+        /* Profile Role Selector Cards */
+        .profile-card-btn {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 20px;
+            background: #ffffff;
+            border: 1.5px solid var(--border-color);
+            border-radius: 14px;
+            cursor: pointer;
+            text-align: left;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            width: 100%;
+            color: var(--slate-dark);
+            box-shadow: 0 2px 8px rgba(15, 76, 129, 0.06);
+        }
+
+        .profile-card-btn:hover {
+            border-color: var(--kisii-sky);
+            background: rgba(0, 150, 255, 0.04);
+            box-shadow: 0 6px 20px rgba(15, 76, 129, 0.12);
+            transform: translateY(-2px);
+        }
+
+        .profile-card-btn .profile-icon {
+            font-size: 1.8rem;
+            flex-shrink: 0;
+            width: 44px;
+            text-align: center;
+        }
+
+        .profile-card-btn div {
+            flex: 1;
+        }
+
+        .profile-card-btn strong {
+            display: block;
+            font-size: 0.97rem;
+            font-weight: 700;
+            color: var(--kisii-blue);
+            margin-bottom: 3px;
+        }
+
+        .profile-card-btn small {
+            font-size: 0.82rem;
+            color: #64748b;
+            font-weight: 400;
+        }
+
+        .profile-card-btn .profile-arrow {
+            font-size: 1.3rem;
+            color: var(--kisii-sky);
+            flex-shrink: 0;
+            font-weight: 700;
+        }
+
+        /* === SHARED WIZARD STYLES === */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .form-group label {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .form-control, .form-group input, .form-group select {
+            padding: 14px 18px;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            background: #f8fafc;
+            color: #334155;
+            transition: all 0.2s ease;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .form-control:focus, .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--kisii-blue);
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(15, 76, 129, 0.1);
+        }
+
+        .password-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        .password-wrapper input {
+            width: 100%;
+            padding-right: 45px;
+        }
+
+        .toggle-eye-btn {
+            position: absolute;
+            right: 12px;
+            background: none;
+            border: none;
+            font-size: 1.1rem;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+
+        .toggle-eye-btn:hover {
+            opacity: 1;
+        }
+
+        .wizard-container {
+            width: 100%;
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 25px rgba(15, 76, 129, 0.05);
+            box-sizing: border-box;
+            border: 1px solid var(--border-color);
+        }
+
+        .wizard-container h2 {
+            text-align: center;
+            color: var(--kisii-blue);
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 26px;
+            font-weight: 800;
+        }
+
+        .wizard-container .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .progress-container {
+            width: 100%;
+            background: #f0f3f6;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            height: 8px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 33.33%;
+            background: linear-gradient(90deg, var(--kisii-blue), var(--kisii-sky));
+            border-radius: 20px;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .step { 
+            display: none; 
+            opacity: 0;
+            transform: translateY(8px);
+        }
+        
+        .step.active { 
+            display: block; 
+            animation: fadeInStep 0.4s ease forwards;
+        }
+
+        @keyframes fadeInStep {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .btn-back {
+            background: #f1f5f9;
+            color: #64748b;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s;
+        }
+        .btn-back:hover:not(:disabled) { background: #e2e8f0; color: #334155; }
+        .btn-back:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .btn-next {
+            background: linear-gradient(135deg, var(--kisii-blue), var(--kisii-sky));
+            color: #ffffff;
+            padding: 14px 35px;
+            border-radius: 12px;
+            font-weight: 600;
+            border: none;
+            box-shadow: 0 8px 16px rgba(15, 76, 129, 0.2);
+            display: inline-flex;
+            align-items: center;
+        }
+        .btn-next:disabled { background: #cbd5e1; box-shadow: none; cursor: not-allowed; color: #94a3b8; }
+        .btn-next:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 12px 20px rgba(15, 76, 129, 0.3); }
+
+        .overlay-backdrop {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 9999;
+            align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease;
+        }
+        .overlay-backdrop.show { display: flex; opacity: 1; }
+        .overlay-card {
+            background: #ffffff; width: 90%; max-width: 700px; max-height: 85vh;
+            border-radius: 20px; padding: 35px; overflow-y: auto;
+            transform: scale(0.9) translateY(20px); transition: transform 0.3s;
+        }
+        .overlay-backdrop.show .overlay-card { transform: scale(1) translateY(0); }
+        
+        .review-grid-list {
+            list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
+        }
+        .review-grid-list li {
+            background: #f8fafc; padding: 12px 15px; border-radius: 10px; border: 1px solid #e2e8f0; font-size: 14px; color: #334155;
+        }
+        .review-grid-list li strong { display: block; color: #94a3b8; font-size: 12px; text-transform: uppercase; margin-bottom: 4px; }
+        .overlay-actions { display: flex; justify-content: flex-end; gap: 15px; margin-top: 25px; border-top: 1px solid #e2e8f0; padding-top: 20px; }
+        .close-overlay-btn { background: none; border: none; cursor: pointer; color: #94a3b8; padding: 5px; border-radius: 8px; transition: all 0.2s; }
+        .close-overlay-btn:hover { background: #f1f5f9; color: #ef4444; }
+
+        @media (max-width: 768px) { .form-grid, .review-grid-list { grid-template-columns: 1fr; } }
     </style>
 </head>
+
 <body>
 
     <div id="portal-toast" class="toast-notification"></div>
@@ -77,7 +372,7 @@
 
     <main class="main-workspace reveal-on-scroll">
         <div class="split-card">
-            
+
             <div class="sist-header-banner">
                 <h2>SIST <span>System Portal</span> Registration</h2>
                 <p>Create your verified attachment logging credentials for Kisii University evaluation cycles.</p>
@@ -96,158 +391,82 @@
 
                 <div class="form-side" id="reg-terminal-form">
                     <h2>Account Creation Portal</h2>
-                    <p class="subtitle">Provide your official academic registry parameters to initialize your profile system node.</p>
+                    <p class="subtitle">Provide your official academic registry parameters to initialize your profile
+                        system node.</p>
 
                     <div id="fee-blocker-message" class="fee-alert-box">
-                        ⚠️ Registration Blocked: You must have cleared your university tuition fees to register for industrial attachment evaluation.
+                        ⚠️ Registration Blocked: You must have cleared your university tuition fees to register for
+                        industrial attachment evaluation.
                     </div>
 
-                    <form method="POST" id="registrationForm" onsubmit="handleFormSubmissionSystem(event)">
-                        {% csrf_token %}
+                    <div id="registrationErrorPanel" class="fee-alert-box" {% if errors %}style="display: block;"{% endif %}>
+                        <span id="registrationErrorMessage">{% if errors %}Please correct the highlighted fields:{% endif %}</span>
+                        <ul id="registrationErrorList" style="margin: 8px 0 0 0; padding-left: 20px; font-size: 0.85rem; font-weight: normal;">
+                            {% if errors %}
+                                {% for err in errors %}
+                                    <li>{{ err }}</li>
+                                {% endfor %}
+                            {% endif %}
+                        </ul>
+                    </div>
 
-                        <div class="form-group">
-                            <label for="id_full_name">Full Name</label>
-                            <input type="text" name="full_name" id="id_full_name" class="form-control" placeholder="Enter your Full Name" required>
-                        </div>
-
-                        <div style="display: flex; gap: 15px; width: 100%; flex-wrap: wrap;">
-                            <div class="form-group" style="flex: 1; min-width: 200px;">
-                                <label for="id_email">Official Email Address</label>
-                                <input type="email" name="email" id="id_email" class="form-control" placeholder="name@example.com" required>
-                            </div>
-                            <div class="form-group" style="flex: 1; min-width: 200px;">
-                                <label for="id_phone">Phone Number</label>
-                                <input type="tel" name="phone_number" id="id_phone" class="form-control" placeholder="e.g., +2547..." required>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="id_role">System Workspace Profile Assignment Role</label>
-                            <select name="role" id="id_role" class="form-control" onchange="evaluateRoleConditionalFlows()">
-                                <option value="STUDENT" selected>Student / Attachee Node</option>
-                                <option value="SUPERVISOR">External Industry Field Supervisor</option>
-                                <option value="LECTURER">Internal Academic University Assessor</option>
-                            </select>
-                        </div>
-
-                        <div id="course-field-wrapper" class="form-group">
-                            <label for="id_course">Course / Programme</label>
-                            <select name="course" id="id_course" class="form-control">
-                                <option value="">Select course / programme</option>
-                                <option value="Computer Science">Computer Science</option>
-                                <option value="Applied Computer Science">Applied Computer Science</option>
-                                <option value="Software Engineering">Software Engineering</option>
-                                <option value="Information Technology">Information Technology</option>
-                            </select>
-                        </div>
-
-                        <div id="supervisor-company-field" class="conditional-field-wrapper" style="display: none;">
-                            <div class="form-group" style="margin-bottom: 0;">
-                                <label for="id_institution_or_company">Attachment Organisation / Company</label>
-                                <input type="text" name="institution_or_company" id="id_institution_or_company"
-                                       class="form-control" list="org-suggestions"
-                                       placeholder="Search or type your organisation name..."
-                                       autocomplete="off">
-                                <datalist id="org-suggestions">
-                                    <!-- Government ICT & Regulatory Bodies -->
-                                    <option value="ICT Authority of Kenya (ICTA)">
-                                    <option value="NITA-K (National IT Authority Kenya)">
-                                    <option value="Communications Authority of Kenya (CA)">
-                                    <option value="Konza Technopolis Development Authority">
-                                    <option value="Kenya ICT Board">
-                                    <option value="Kenya Revenue Authority (KRA)">
-                                    <option value="Kenya National Bureau of Statistics (KNBS)">
-                                    <option value="National Social Security Fund (NSSF)">
-                                    <option value="National Hospital Insurance Fund (NHIF)">
-                                    <option value="Kenya Broadcasting Corporation (KBC)">
-                                    <option value="National Transport and Safety Authority (NTSA)">
-                                    <option value="Kenya Bureau of Standards (KEBS)">
-                                    <!-- Telecoms & ISPs -->
-                                    <option value="Safaricom PLC">
-                                    <option value="Airtel Kenya">
-                                    <option value="Telkom Kenya">
-                                    <option value="Faiba (Jamii Telecommunications)">
-                                    <option value="Liquid Telecommunications Kenya">
-                                    <option value="AccessKenya Group">
-                                    <!-- Banking & Finance -->
-                                    <option value="Kenya Commercial Bank (KCB)">
-                                    <option value="Equity Bank Kenya">
-                                    <option value="Co-operative Bank of Kenya">
-                                    <option value="NCBA Bank Kenya">
-                                    <option value="Absa Bank Kenya">
-                                    <option value="Standard Chartered Bank Kenya">
-                                    <!-- County & Public Institutions -->
-                                    <option value="Kisii County Government">
-                                    <option value="Nyamira County Government">
-                                    <option value="Nairobi City County">
-                                    <option value="Kisii Teaching and Referral Hospital">
-                                    <option value="Kenya Power and Lighting Company (KPLC)">
-                                    <option value="Kenya Ports Authority (KPA)">
-                                    <option value="Kenya Airports Authority (KAA)">
-                                    <option value="Kenya Railways Corporation">
-                                    <!-- Private Tech & Multinationals -->
-                                    <option value="Microsoft Africa Development Centre">
-                                    <option value="Google Kenya">
-                                    <option value="IBM East Africa">
-                                    <option value="Oracle Kenya">
-                                    <option value="Huawei Technologies Kenya">
-                                    <option value="ZTE Kenya">
-                                    <option value="Craft Silicon">
-                                    <option value="Cellulant Corporation">
-                                    <option value="iProcure">
-                                    <option value="Deloitte East Africa">
-                                    <option value="PwC Kenya">
-                                    <option value="KPMG Kenya">
-                                    <option value="EY Kenya">
-                                </datalist>
-                                <small style="display:block; margin-top:6px; color:#64748b; font-size:0.85rem;">
-                                    💡 Select from the list or type your organisation name if it is not listed above.
-                                </small>
-                            </div>
-                        </div>
-
-                        <div id="student-fee-verification-box" class="conditional-field-wrapper">
-                            <div class="form-group" style="margin-bottom: 0;">
-                                <label for="id_fees_cleared" style="color: var(--kisii-blue); font-weight: 700;">Have you cleared your University Fees?</label>
-                                <select id="id_fees_cleared" class="form-control" onchange="evaluateFeeClearanceStatus()">
-                                    <option value="" disabled selected>-- Select Status --</option>
-                                    <option value="YES">Yes, I have fully cleared fees</option>
-                                    <option value="NO">No, I have outstanding balance</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="id_username" id="username-label-text">Registration Number</label>
-                            <input type="text" name="username" id="id_username" class="form-control" placeholder="e.g., IN14/00000/22" required>
-                            <small style="display:block; margin-top:8px; color:#334155; font-size:0.92rem;">Student prefix mapping: IN13/ = Computer Science, IN14/ = Applied Computer Science, IN16/ = Software Engineering, IN12/ = Information Technology.</small>
-                        </div>
-
-                        <div style="display: flex; gap: 15px; width: 100%; flex-wrap: wrap;">
-                            <div class="form-group" style="flex: 1; min-width: 200px;">
-                                <label for="id_password">Create Password</label>
-                                <div class="password-container">
-                                    <input type="password" name="password" id="id_password" class="form-control" placeholder="Minimum 8 characters" oninput="verifyPasswordSecurityRules()" required>
-                                    <button type="button" class="toggle-eye-btn" onclick="toggleFieldPassword('id_password', this)">👁️</button>
+                    <!-- === PROFILE SELECTOR LANDING === -->
+                    <div id="profile-selector-section">
+                        <p style="font-size:0.95rem; color:#475569; margin-bottom:18px; font-weight:500;">Select your system workspace profile to begin registration:</p>
+                        <div style="display:flex; flex-direction:column; gap:14px;">
+                            <button type="button" class="profile-card-btn" onclick="selectWorkspaceProfile('STUDENT')">
+                                <span class="profile-icon">🎓</span>
+                                <div>
+                                    <strong>Student / Attachee Node</strong>
+                                    <small>Register as an industrial attachment student</small>
                                 </div>
-                                <div id="strength-error-line" class="live-error-text">⚠️ Password is weak! Must be at least 8 characters long.</div>
-                            </div>
-                            
-                            <div class="form-group" style="flex: 1; min-width: 200px;">
-                                <label for="id_confirm_password">Confirm Password</label>
-                                <div class="password-container">
-                                    <input type="password" name="confirm_password" id="id_confirm_password" class="form-control" placeholder="Retype your password" oninput="verifyPasswordSecurityRules()" required>
-                                    <button type="button" class="toggle-eye-btn" onclick="toggleFieldPassword('id_confirm_password', this)">👁️</button>
+                                <span class="profile-arrow">→</span>
+                            </button>
+                            <button type="button" class="profile-card-btn" onclick="selectWorkspaceProfile('SUPERVISOR')">
+                                <span class="profile-icon">🏢</span>
+                                <div>
+                                    <strong>External Industry Field Supervisor</strong>
+                                    <small>Register as an industry / company supervisor</small>
                                 </div>
-                                <div id="match-error-line" class="live-error-text">❌ Passwords do not match!</div>
-                            </div>
+                                <span class="profile-arrow">→</span>
+                            </button>
+                            <button type="button" class="profile-card-btn" onclick="selectWorkspaceProfile('LECTURER')">
+                                <span class="profile-icon">📚</span>
+                                <div>
+                                    <strong>Internal Academic University Assessor</strong>
+                                    <small>Register as a university academic lecturer</small>
+                                </div>
+                                <span class="profile-arrow">→</span>
+                            </button>
                         </div>
+                    </div>
+                    <!-- === END PROFILE S                    <!-- Dynamic Wizard Wrappers -->
+                    <div id="student_wizard_wrapper" style="display:none;">
+                        <button type="button" class="btn-back" onclick="returnToProfileSelector()" style="margin-bottom:15px; padding: 10px 20px;">← Back to Roles</button>
+                        <form method="POST" id="student_registrationForm" onsubmit="handleFormSubmissionSystem(event, 'STUDENT')">
+                            {% csrf_token %}
+                            <input type="hidden" name="role" value="STUDENT">
+                            {% include 'core/studentdetails.html' %}
+                        </form>
+                    </div>
 
-                        <button type="submit" class="btn-portal" id="submit-portal-btn">
-                            <span class="btn-text-content">Complete Account Registration</span>
-                            <div class="modern-loading-ring" id="portal-button-spinner"></div>
-                        </button>
-                    </form>
+                    <div id="sup_wizard_wrapper" style="display:none;">
+                        <button type="button" class="btn-back" onclick="returnToProfileSelector()" style="margin-bottom:15px; padding: 10px 20px;">← Back to Roles</button>
+                        <form method="POST" id="sup_registrationForm" onsubmit="handleFormSubmissionSystem(event, 'SUPERVISOR')">
+                            {% csrf_token %}
+                            <input type="hidden" name="role" value="SUPERVISOR">
+                            {% include 'core/superviosorsdetails.html' %}
+                        </form>
+                    </div>
+
+                    <div id="lec_wizard_wrapper" style="display:none;">
+                        <button type="button" class="btn-back" onclick="returnToProfileSelector()" style="margin-bottom:15px; padding: 10px 20px;">← Back to Roles</button>
+                        <form method="POST" id="lec_registrationForm" onsubmit="handleFormSubmissionSystem(event, 'LECTURER')">
+                            {% csrf_token %}
+                            <input type="hidden" name="role" value="LECTURER">
+                            {% include 'core/lecturesdetails.html' %}
+                        </form>
+                    </div>
 
                     <div class="register-prompt-footer">
                         Already have an operating account? <a href="{% url 'core:login' %}">Sign In Here</a>
@@ -261,7 +480,28 @@
         <div class="footer-grid">
             <div class="footer-col">
                 <h4>SIST Platforms</h4>
-                <ul><li><a href="#" class="active">Logbook Registration</a></li></ul>
+                <ul>
+                    <li><a href="{% url 'core:register' %}">Logbook Registration</a></li>
+                    <li><a href="{% url 'core:info_page' 'guidelines' %}">Attachment Guidelines</a></li>
+                    <li><a href="{% url 'core:info_page' 'manuals' %}">Supervisor Manuals</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Kisii University Links</h4>
+                <ul>
+                    <li><a href="https://www.kisiiuniversity.ac.ke" target="_blank">Main University Site</a></li>
+                    <li><a href="https://portal.kisiiuniversity.ac.ke" target="_blank">Student Portal</a></li>
+                    <li><a href="https://elearning.kisiiuniversity.ac.ke/" target="_blank">E-Learning LMS</a></li>
+                    <li><a href="https://digital.kisiiuniversity.ac.ke/" target="_blank">Kisii Huduma-Bora</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Support Center</h4>
+                <ul>
+                    <li><a href="https://kisiiuniversity.ac.ke/dpt/information-communication-and-technology-ict" target="_blank">SIST ICT Desk</a></li>
+                    <li><a href="{% url 'core:info_page' 'support' %}">Logbook Support Help</a></li>
+                    <li><a href="{% url 'core:info_page' 'report' %}">Report System Issues</a></li>
+                </ul>
             </div>
         </div>
         <div class="footer-bottom">
@@ -270,14 +510,48 @@
     </footer>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function () {
             const itemsToReveal = document.querySelectorAll(".reveal-on-scroll");
             const scrollTrackingObserver = new IntersectionObserver((entries) => {
                 entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add("active"); });
             }, { threshold: 0.1 });
             itemsToReveal.forEach(item => scrollTrackingObserver.observe(item));
+
+            // Trigger temporary notification if errors were passed from standard form submission
+            {% if errors %}
+            triggerTemporaryNotification("❌ Please correct the registration errors displayed in the form.", "error");
+            // If there were errors on POST, show the form directly
+            document.getElementById('profile-selector-section').style.display = 'none';
+            document.getElementById('registrationForm').style.display = 'block';
             evaluateRoleConditionalFlows();
+            {% endif %}
         });
+
+        // Profile selector functions
+        function selectWorkspaceProfile(role) {
+            document.getElementById('profile-selector-section').style.display = 'none';
+            document.getElementById('student_wizard_wrapper').style.display = 'none';
+            document.getElementById('sup_wizard_wrapper').style.display = 'none';
+            document.getElementById('lec_wizard_wrapper').style.display = 'none';
+
+            if (role === 'STUDENT') {
+                document.getElementById('student_wizard_wrapper').style.display = 'block';
+            } else if (role === 'SUPERVISOR') {
+                document.getElementById('sup_wizard_wrapper').style.display = 'block';
+            } else if (role === 'LECTURER') {
+                document.getElementById('lec_wizard_wrapper').style.display = 'block';
+            }
+        }
+
+        function returnToProfileSelector() {
+            document.getElementById('student_wizard_wrapper').style.display = 'none';
+            document.getElementById('sup_wizard_wrapper').style.display = 'none';
+            document.getElementById('lec_wizard_wrapper').style.display = 'none';
+            document.getElementById('profile-selector-section').style.display = 'block';
+            document.getElementById('fee-blocker-message').style.display = 'none';
+            document.getElementById('registrationErrorPanel').style.display = 'none';
+        }
+
 
         function evaluateRoleConditionalFlows() {
             const roleSelection = document.getElementById('id_role').value;
@@ -286,7 +560,7 @@
             const identityLabelText = document.getElementById('username-label-text');
             const mainIdentityInputField = document.getElementById('id_username');
             const companyInput = document.getElementById('id_institution_or_company');
-            
+
             const courseInput = document.getElementById('id_course');
             const courseFieldWrapper = document.getElementById('course-field-wrapper');
             if (roleSelection === "STUDENT") {
@@ -369,18 +643,21 @@
             return cookieValue ? decodeURIComponent(cookieValue.split('=')[1]) : null;
         }
 
-        function handleFormSubmissionSystem(event) {
+        function handleFormSubmissionSystem(event, role) {
             event.preventDefault();
-            const form = document.getElementById('registrationForm');
-            const submitBtn = document.getElementById('submit-portal-btn');
-            const btnText = submitBtn.querySelector('.btn-text-content');
-            const spinner = document.getElementById('portal-button-spinner');
+            
+            let formId = '';
+            if (role === 'STUDENT') formId = 'student_registrationForm';
+            if (role === 'SUPERVISOR') formId = 'sup_registrationForm';
+            if (role === 'LECTURER') formId = 'lec_registrationForm';
+
+            const form = document.getElementById(formId);
             const csrfToken = getCookie('csrftoken');
 
-            btnText.textContent = 'Processing registration...';
-            btnText.style.opacity = "0.8";
-            spinner.style.display = "inline-block";
-            submitBtn.disabled = true;
+            // Find exactly which button fired this so we can show loading.
+            // In these wizards, it's usually inside an overlay or similar.
+            // Let's just do a generic loading state for the whole body for simplicity.
+            document.body.style.opacity = '0.7';
 
             fetch(form.action || window.location.href, {
                 method: 'POST',
@@ -391,29 +668,26 @@
                     'X-CSRFToken': csrfToken,
                 },
             })
-            .then(async response => {
-                const payload = await response.json().catch(() => ({}));
-                if (response.ok) {
-                    triggerTemporaryNotification("🎉 Registration successful! Redirecting to login...");
-                    setTimeout(() => {
-                        window.location.href = "{% url 'core:login' %}?registered=true";
-                    }, 1500);
-                    return;
-                }
+                .then(async response => {
+                    document.body.style.opacity = '1';
+                    const payload = await response.json().catch(() => ({}));
+                    if (response.ok) {
+                        triggerTemporaryNotification("🎉 Registration successful! Redirecting to login...", "success");
+                        setTimeout(() => {
+                            window.location.href = "{% url 'core:login' %}?registered=true";
+                        }, 1500);
+                        return;
+                    }
 
-                const errorMessage = payload.message || 'Registration failed due to invalid input.';
-                const errorItems = payload.errors || [];
-                showRegistrationErrors(errorMessage, errorItems);
-                throw new Error(errorMessage);
-            })
-            .catch(error => {
-                const message = error.message || 'Registration failed. Please check the form and try again.';
-                triggerTemporaryNotification(message, "error");
-                spinner.style.display = "none";
-                btnText.style.opacity = "1";
-                btnText.textContent = 'Complete Account Registration';
-                submitBtn.disabled = false;
-            });
+                    const errorMessage = payload.message || 'Registration failed. Please check the form and try again.';
+                    const errorItems = payload.errors || [];
+                    triggerTemporaryNotification("❌ " + errorMessage, "error");
+                    showRegistrationErrors(errorMessage, errorItems);
+                })
+                .catch(error => {
+                    document.body.style.opacity = '1';
+                    triggerTemporaryNotification("❌ Connection error. Please check your network and try again.", "error");
+                });
         }
 
         function showRegistrationErrors(message, errors) {
@@ -438,7 +712,7 @@
             toast.textContent = message;
             toast.className = "toast-notification " + (flagType === "success" ? "toast-success" : "toast-error");
             toast.style.top = "30px";
-            setTimeout(() => { toast.style.top = "-100px"; }, 4000);
+            setTimeout(() => { toast.style.top = "-100px"; }, 5000);
         }
 
         function toggleFieldPassword(inputId, triggerBtn) {
@@ -456,4 +730,5 @@
         function toggleContrast() { document.body.classList.toggle('dark-contrast'); }
     </script>
 </body>
+
 </html>

@@ -1,0 +1,1070 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Control Center | SIST Logbook</title>
+    <link rel="stylesheet" href="{% static 'css/portal.css' %}">
+    <style>
+        /* Modern System Dashboard Styling */
+        body { 
+            background: #f8fafc; 
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .admin-shell { 
+            width: 100%;
+            max-width: 1600px; 
+            margin: 0 auto; 
+            padding: 40px 30px;
+            box-sizing: border-box;
+        }
+        
+        .admin-panel { 
+            display: grid; 
+            grid-template-columns: 320px 1fr; 
+            gap: 35px; 
+            align-items: start;
+        }
+
+        /* --- VIBRANT MULTICOLOR SIDEBAR --- */
+        .sidebar { 
+            background: #0f172a; 
+            color: #ffffff; 
+            border-radius: 24px; 
+            padding: 35px 24px; 
+            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15); 
+            display: flex;
+            flex-direction: column;
+            min-height: 750px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            position: sticky;
+            top: 40px;
+            box-sizing: border-box;
+        }
+        
+        .sidebar h2 { 
+            margin-top: 0; 
+            margin-bottom: 8px; 
+            font-size: 1.6rem; 
+            color: #ffffff !important; 
+            font-weight: 800; 
+            letter-spacing: -0.5px;
+        }
+        
+        .sidebar p { 
+            color: #94a3b8 !important; 
+            font-size: 0.9rem; 
+            line-height: 1.5; 
+            font-weight: 400;
+            margin-bottom: 30px;
+        }
+        
+        .sidebar-nav { 
+            display: flex !important; 
+            flex-direction: column !important; 
+            gap: 12px !important; 
+            background: transparent !important; 
+            padding: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            width: 100%;
+        }
+        
+        .sidebar-nav a { 
+            text-decoration: none !important; 
+            color: #94a3b8 !important; 
+            padding: 14px 20px !important; 
+            border-radius: 14px !important; 
+            background: rgba(255, 255, 255, 0.03) !important; 
+            font-weight: 600 !important; 
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important; 
+            font-size: 0.98rem !important; 
+            display: flex !important;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.02) !important;
+            cursor: pointer;
+            box-sizing: border-box;
+            width: 100% !important;
+            text-align: left;
+        }
+        
+        .sidebar-nav a:hover { 
+            color: #ffffff !important;
+            background: rgba(255, 255, 255, 0.08) !important;
+            transform: translateX(4px);
+        }
+
+        /* Multicolor Active Navigation Tabs */
+        .sidebar-nav a[data-target="overview"].active { background: linear-gradient(135deg, #2563eb, #1d4ed8) !important; color: #ffffff !important; box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3) !important; }
+        .sidebar-nav a[data-target="create-user-section"].active { background: linear-gradient(135deg, #7c3aed, #6d28d9) !important; color: #ffffff !important; box-shadow: 0 10px 20px rgba(124, 58, 237, 0.3) !important; }
+        .sidebar-nav a[data-target="students"].active { background: linear-gradient(135deg, #10b981, #059669) !important; color: #ffffff !important; box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3) !important; }
+        .sidebar-nav a[data-target="supervisors"].active { background: linear-gradient(135deg, #6366f1, #4f46e5) !important; color: #ffffff !important; box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3) !important; }
+        .sidebar-nav a[data-target="lecturers"].active { background: linear-gradient(135deg, #f59e0b, #d97706) !important; color: #ffffff !important; box-shadow: 0 10px 20px rgba(245, 158, 11, 0.3) !important; }
+        .sidebar-nav a[data-target="admins"].active { background: linear-gradient(135deg, #06b6d4, #0891b2) !important; color: #ffffff !important; box-shadow: 0 10px 20px rgba(6, 182, 212, 0.3) !important; }
+        
+        /* --- CONTENT AREA & WIDE VIEWS --- */
+        .content-area { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 30px; 
+            position: relative;
+            width: 100%;
+        }
+
+        .dashboard-section {
+            display: none;
+            opacity: 0;
+            width: 100%;
+        }
+
+        .dashboard-section.section-active {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            opacity: 1;
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* --- LOADING SPIN ANIMATION --- */
+        .loading-overlay {
+            display: none;
+            position: absolute;
+            top: 150px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 999;
+            text-align: center;
+        }
+
+        .spinner {
+            width: 55px;
+            height: 55px;
+            border: 5px solid #e2e8f0;
+            border-top: 5px solid #0f172a;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* --- DYNAMIC COURSE PATHWAY SELECTOR STYLES --- */
+        .course-picker-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .course-selection-card {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 26px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            text-align: left;
+        }
+
+        .course-selection-card:hover {
+            border-color: #10b981;
+            background: #ffffff;
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(16, 185, 129, 0.06);
+        }
+
+        .course-selection-card h4 {
+            margin: 0 0 6px 0;
+            color: #0f172a;
+            font-size: 1.2rem;
+            font-weight: 800;
+        }
+
+        .course-selection-card p {
+            margin: 0;
+            color: #64748b;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .course-selection-card.master-option {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: none;
+        }
+        .course-selection-card.master-option h4 { color: #ffffff; }
+        .course-selection-card.master-option p { color: #94a3b8; }
+        .course-selection-card.master-option:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(15, 23, 42, 0.15);
+            background: linear-gradient(135deg, #334155, #1e293b);
+        }
+
+        .back-to-courses-btn {
+            background: #f1f5f9;
+            color: #334155;
+            border: 1px solid #cbd5e1;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .back-to-courses-btn:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+
+        /* === SHARED WIZARD STYLES === */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .form-group label {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .form-control, .form-group input, .form-group select {
+            padding: 14px 18px;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            background: #f8fafc;
+            color: #334155;
+            transition: all 0.2s ease;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .form-control:focus, .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--kisii-blue);
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(15, 76, 129, 0.1);
+        }
+
+        .password-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        .password-wrapper input {
+            width: 100%;
+            padding-right: 45px;
+        }
+
+        .toggle-eye-btn {
+            position: absolute;
+            right: 12px;
+            background: none;
+            border: none;
+            font-size: 1.1rem;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+
+        .toggle-eye-btn:hover {
+            opacity: 1;
+        }
+
+        .wizard-container {
+            width: 100%;
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 25px rgba(15, 76, 129, 0.05);
+            box-sizing: border-box;
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-portal {
+            background: linear-gradient(135deg, var(--kisii-blue), var(--kisii-sky));
+            color: #ffffff;
+            padding: 14px 35px;
+            border-radius: 12px;
+            font-weight: 600;
+            border: none;
+            box-shadow: 0 8px 16px rgba(15, 76, 129, 0.2);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            transition: all 0.2s ease;
+        }
+        .btn-portal:hover { transform: translateY(-1px); box-shadow: 0 12px 20px rgba(15, 76, 129, 0.3); }
+
+        .wizard-container h2 {
+            text-align: center;
+            color: var(--kisii-blue);
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 26px;
+            font-weight: 800;
+        }
+
+        .wizard-container .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .progress-container {
+            width: 100%;
+            background: #f0f3f6;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            height: 8px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 33.33%;
+            background: linear-gradient(90deg, var(--kisii-blue), var(--kisii-sky));
+            border-radius: 20px;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .step { 
+            display: none; 
+            opacity: 0;
+            transform: translateY(8px);
+        }
+        
+        .step.active { 
+            display: block; 
+            animation: fadeInStep 0.4s ease forwards;
+        }
+
+        @keyframes fadeInStep {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .btn-back {
+            background: #f1f5f9;
+            color: #64748b;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s;
+        }
+        .btn-back:hover:not(:disabled) { background: #e2e8f0; color: #334155; }
+        .btn-back:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .btn-next {
+            background: linear-gradient(135deg, var(--kisii-blue), var(--kisii-sky));
+            color: #ffffff;
+            padding: 14px 35px;
+            border-radius: 12px;
+            font-weight: 600;
+            border: none;
+            box-shadow: 0 8px 16px rgba(15, 76, 129, 0.2);
+            display: inline-flex;
+            align-items: center;
+        }
+        .btn-next:disabled { background: #cbd5e1; box-shadow: none; cursor: not-allowed; color: #94a3b8; }
+        .btn-next:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 12px 20px rgba(15, 76, 129, 0.3); }
+
+        .overlay-backdrop {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 9999;
+            align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease;
+        }
+        .overlay-backdrop.show { display: flex; opacity: 1; }
+        .overlay-card {
+            background: #ffffff; width: 90%; max-width: 700px; max-height: 85vh;
+            border-radius: 20px; padding: 35px; overflow-y: auto;
+            transform: scale(0.9) translateY(20px); transition: transform 0.3s;
+        }
+        .overlay-backdrop.show .overlay-card { transform: scale(1) translateY(0); }
+        
+        .review-grid-list {
+            list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
+        }
+        .review-grid-list li {
+            background: #f8fafc; padding: 12px 15px; border-radius: 10px; border: 1px solid #e2e8f0; font-size: 14px; color: #334155;
+        }
+        .review-grid-list li strong { display: block; color: #94a3b8; font-size: 12px; text-transform: uppercase; margin-bottom: 4px; }
+        .overlay-actions { display: flex; justify-content: flex-end; gap: 15px; margin-top: 25px; border-top: 1px solid #e2e8f0; padding-top: 20px; }
+        .close-overlay-btn { background: none; border: none; cursor: pointer; color: #94a3b8; padding: 5px; border-radius: 8px; transition: all 0.2s; }
+        .close-overlay-btn:hover { background: #f1f5f9; color: #ef4444; }
+
+        @media (max-width: 768px) { .form-grid, .review-grid-list { grid-template-columns: 1fr; } }
+        
+        /* --- EXPANDED MULTI-COLUMN CREATE USER FORM --- */
+        .form-panel { 
+            background: #ffffff; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 24px; 
+            padding: 40px; 
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.02); 
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .fee-alert-box {
+            background-color: #fee2e2;
+            border-left: 4px solid #ef4444;
+            color: #991b1b;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .form-panel h3 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin-top: 0;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 15px;
+        }
+        
+        .form-grid { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px; 
+        }
+
+        .form-group { display: flex; flex-direction: column; gap: 8px; }
+        .form-group.full-width, .btn-portal { grid-column: span 2; }
+        .form-panel label { font-weight: 700; color: #334155; font-size: 0.95rem; }
+
+        .form-panel .form-control { 
+            border: 1.5px solid #cbd5e1; 
+            border-radius: 14px;
+            padding: 14px 16px; 
+            font-size: 1rem; 
+            color: #1e293b;
+            background-color: #f8fafc;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+            width: 100%;
+        }
+        .form-panel .form-control:focus { border-color: #6366f1; background: #ffffff; outline: none; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15); }
+        
+        .btn-portal { 
+            padding: 16px; font-size: 1.05rem; font-weight: 700; border-radius: 14px; color: white; border: none; cursor: pointer; background: #0f172a; box-shadow: 0 8px 20px rgba(15, 23, 42, 0.15); transition: all 0.2s ease; margin-top: 10px;
+        }
+        .btn-portal:hover { background: #1e293b; transform: translateY(-2px); }
+
+        /* --- STAT CARDS --- */
+        .stats-grid { 
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; 
+        }
+        .stat-card { 
+            background: white; border-radius: 20px; padding: 26px; box-shadow: 0 10px 25px rgba(15, 23, 42, 0.02); border-top: 4px solid #3b82f6; border-left: 1px solid #edf2f7; border-right: 1px solid #edf2f7; border-bottom: 1px solid #edf2f7;
+        }
+        .stat-card strong { display: block; font-size: 2.2rem; color: #0f172a; font-weight: 800; margin-bottom: 4px; }
+        .stat-card span { color: #64748b; font-size: 0.95rem; font-weight: 600; }
+        
+        /* --- COMPONENT PANELS --- */
+        .panel { 
+            background: white; border-radius: 24px; padding: 35px; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.02); border: 1px solid #e2e8f0; width: 100%; box-sizing: border-box;
+        }
+        .panel h3 { margin-top: 0; color: #0f172a; font-size: 1.6rem; font-weight: 800; margin-bottom: 25px; }
+        
+        /* --- EXPANDED VERTICAL USER LISTS --- */
+        .role-section-list { 
+            display: flex; flex-direction: column; gap: 14px; margin-top: 20px; 
+        }
+        
+        .user-list-row { 
+            display: grid;
+            grid-template-columns: 60px 2.5fr 2.5fr 1.8fr auto;
+            align-items: center;
+            border-left: 5px solid #e2e8f0; 
+            border-radius: 16px; 
+            padding: 20px 24px; 
+            background: #ffffff; 
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.01);
+            border-top: 1px solid #f1f5f9;
+            border-right: 1px solid #f1f5f9;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .user-list-row:hover { transform: translateX(6px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04); }
+        .row-number { font-weight: 800; color: #94a3b8; font-size: 1.1rem; }
+        .user-list-row h4 { margin: 0; color: #0f172a; font-size: 1.1rem; font-weight: 700; }
+        .user-list-row p { margin: 0; color: #64748b; font-size: 1rem; }
+        .status-container { display: flex; gap: 8px; align-items: center; }
+        .pill, .role-status { display: inline-block; padding: 5px 12px; border-radius: 8px; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        #students .user-list-row { border-left-color: #10b981; }
+        #students .pill { background: #d1fae5; color: #065f46; }
+        #students .role-status { background: #ecfdf5; color: #047857; }
+
+        #supervisors .user-list-row { border-left-color: #6366f1; }
+        #supervisors .pill { background: #e0e7ff; color: #3730a3; }
+        #supervisors .role-status { background: #f5f3ff; color: #6d28d9; }
+
+        #lecturers .user-list-row { border-left-color: #f59e0b; }
+        #lecturers .pill { background: #fef3c7; color: #92400e; }
+        #lecturers .role-status { background: #fffbeb; color: #b45309; }
+
+        #admins .user-list-row { border-left-color: #06b6d4; }
+        #admins .pill { background: #cffafe; color: #155e75; }
+        #admins .role-status { background: #ecfeff; color: #0891b2; }
+
+        .user-actions { display: flex; gap: 10px; }
+        .user-action-btn { text-decoration: none; font-size: 0.85rem; font-weight: 700; padding: 10px 16px; border-radius: 10px; border: none; cursor: pointer; transition: all 0.2s ease; color: white; }
+        .user-action-btn.edit-btn { background: #f1f5f9; color: #1e293b; border: 1px solid #cbd5e1; }
+        .user-action-btn.edit-btn:hover { background: #e2e8f0; transform: translateY(-1px); }
+        .user-action-btn.disable-btn { background: #334155; }
+        .user-action-btn.disable-btn:hover { background: #1e293b; transform: translateY(-1px); }
+        .user-action-btn.delete { background: #ef4444; }
+        .user-action-btn.delete:hover { background: #dc2626; transform: translateY(-1px); }
+
+        .action-row { display: flex; gap: 12px; margin-bottom: 20px; align-items: center; justify-content: space-between; }
+        .action-btn { text-decoration: none; font-size: 0.9rem; font-weight: 700; padding: 12px 20px; border-radius: 12px; color: white; border: none; cursor: pointer; transition: all 0.2s ease; }
+
+        #students .action-btn { background: #10b981; }
+        #supervisors .action-btn { background: #6366f1; }
+        #lecturers .action-btn { background: #f59e0b; }
+        #admins .action-btn { background: #06b6d4; }
+        .action-btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
+
+        .logout-link { 
+            margin-top: auto; color: #f8fafc !important; font-weight: 700; font-size: 0.95rem; padding: 14px 16px; background: rgba(239, 68, 68, 0.15); border-radius: 14px; text-decoration: none; text-align: center; transition: all 0.2s ease; border: 1px solid rgba(239, 68, 68, 0.1);
+        }
+        .logout-link:hover { background: #ef4444; color: white !important; box-shadow: 0 8px 16px rgba(239, 68, 68, 0.25); }
+        
+        @media (max-width: 1200px) { 
+            .admin-panel { grid-template-columns: 1fr; } 
+            .sidebar { min-height: auto; }
+            .form-grid { grid-template-columns: 1fr; }
+            .form-group.full-width, .btn-portal { grid-column: span 1; }
+            .user-list-row { grid-template-columns: 40px 1fr 1fr; gap: 15px; }
+            .user-actions { grid-column: 1 / -1; margin-top: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-shell">
+        <div class="admin-panel">
+            <aside class="sidebar">
+                <h2>System Console</h2>
+                <p>Manage users, monitor activity, and control ecosystem metrics across your workspace application.</p>
+                <nav class="sidebar-nav">
+                    <a data-target="overview" class="nav-item active">
+                        <span style="display:inline-block; width:8px; height:8px; background:#2563eb; border-radius:50%;"></span>
+                        Overview
+                    </a>
+                    <a data-target="create-user-section" class="nav-item">
+                        <span style="display:inline-block; width:8px; height:8px; background:#7c3aed; border-radius:50%;"></span>
+                        Create User
+                    </a>
+                    <a data-target="students" class="nav-item" onclick="resetStudentSectionView()">
+                        <span style="display:inline-block; width:8px; height:8px; background:#10b981; border-radius:50%;"></span>
+                        Students
+                    </a>
+                    <a data-target="supervisors" class="nav-item">
+                        <span style="display:inline-block; width:8px; height:8px; background:#6366f1; border-radius:50%;"></span>
+                        Supervisors
+                    </a>
+                    <a data-target="lecturers" class="nav-item">
+                        <span style="display:inline-block; width:8px; height:8px; background:#f59e0b; border-radius:50%;"></span>
+                        Lecturers
+                    </a>
+                    <a data-target="admins" class="nav-item">
+                        <span style="display:inline-block; width:8px; height:8px; background:#06b6d4; border-radius:50%;"></span>
+                        Admins
+                    </a>
+                </nav>
+                <a class="logout-link" href="{% url 'core:logout' %}">Logout</a>
+            </aside>
+
+            <div class="content-area">
+                <!-- SPINNING LOADER ELEMENT -->
+                <div class="loading-overlay" id="loadingOverlay">
+                    <div class="spinner"></div>
+                    <p id="loaderText">Loading Workspace Section...</p>
+                </div>
+
+                <!-- OVERVIEW SECTION -->
+                <div id="overview" class="dashboard-section section-active">
+                    <div class="admin-hero">
+                        <h1>Admin Control Center</h1>
+                        <p>Manage the full SIST logbook ecosystem, create system users, oversee activity, and keep the platform secure.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card" style="border-top-color: #3b82f6;"><strong>{{ stats.total_users }}</strong><span>Total Users</span></div>
+                        <div class="stat-card" style="border-top-color: #10b981;"><strong>{{ stats.students }}</strong><span>Students</span></div>
+                        <div class="stat-card" style="border-top-color: #6366f1;"><strong>{{ stats.supervisors }}</strong><span>Supervisors</span></div>
+                        <div class="stat-card" style="border-top-color: #f59e0b;"><strong>{{ stats.lecturers }}</strong><span>Lecturers</span></div>
+                        <div class="stat-card" style="border-top-color: #06b6d4;"><strong>{{ stats.admins }}</strong><span>Admins</span></div>
+                    </div>
+                </div>
+
+                <!-- CREATE USER SECTION -->
+                <div id="create-user-section" class="dashboard-section">
+                    <div class="panel form-panel">
+                        <h3>Create a New User Profile</h3>
+
+                        {% if form.errors %}
+                        <div class="fee-alert-box" style="display: block;">
+                            <strong>Please correct the highlighted fields:</strong>
+                            <ul style="margin: 8px 0 0 0; padding-left: 20px; font-size: 0.85rem; font-weight: normal; color: #991b1b;">
+                                {% for field, errors in form.errors.items %}
+                                    {% for error in errors %}
+                                        <li>{{ field|title }}: {{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- === PROFILE SELECTOR LANDING === -->
+                        <div id="admin-profile-selector">
+                            <p style="font-size:0.95rem; color:#475569; margin-bottom:18px; font-weight:500;">Select the role of the user you want to create:</p>
+                            <div style="display:flex; flex-direction:column; gap:14px;">
+                                <button type="button" class="course-selection-card" onclick="selectAdminCreateProfile('STUDENT')">
+                                    <h4>🎓 Student / Attachee Node</h4>
+                                    <p>Register as an industrial attachment student</p>
+                                </button>
+                                <button type="button" class="course-selection-card" onclick="selectAdminCreateProfile('SUPERVISOR')">
+                                    <h4>🏢 External Industry Field Supervisor</h4>
+                                    <p>Register as an industry / company supervisor</p>
+                                </button>
+                                <button type="button" class="course-selection-card" onclick="selectAdminCreateProfile('LECTURER')">
+                                    <h4>📚 Internal Academic University Assessor</h4>
+                                    <p>Register as a university academic lecturer</p>
+                                </button>
+                                <button type="button" class="course-selection-card master-option" onclick="selectAdminCreateProfile('ADMIN')">
+                                    <h4>🛡️ System Administrator</h4>
+                                    <p>Create a new superuser or staff admin</p>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- === END PROFILE SELECTOR === -->
+
+                        <!-- Dynamic Wizard Wrappers -->
+                        <div id="admin_student_wizard" style="display:none;">
+                            <button type="button" class="btn-back" onclick="returnToAdminProfileSelector()" style="margin-bottom:15px; padding: 10px 20px;">← Back to Roles</button>
+                            <form method="POST" action="{% url 'core:admin_create_user' %}" id="student_registrationForm">
+                                {% csrf_token %}
+                                <input type="hidden" name="role" value="STUDENT">
+                                {% include 'core/studentdetails.html' %}
+                            </form>
+                        </div>
+
+                        <div id="admin_sup_wizard" style="display:none;">
+                            <button type="button" class="btn-back" onclick="returnToAdminProfileSelector()" style="margin-bottom:15px; padding: 10px 20px;">← Back to Roles</button>
+                            <form method="POST" action="{% url 'core:admin_create_user' %}" id="sup_registrationForm">
+                                {% csrf_token %}
+                                <input type="hidden" name="role" value="SUPERVISOR">
+                                {% include 'core/superviosorsdetails.html' %}
+                            </form>
+                        </div>
+
+                        <div id="admin_lec_wizard" style="display:none;">
+                            <button type="button" class="btn-back" onclick="returnToAdminProfileSelector()" style="margin-bottom:15px; padding: 10px 20px;">← Back to Roles</button>
+                            <form method="POST" action="{% url 'core:admin_create_user' %}" id="lec_registrationForm">
+                                {% csrf_token %}
+                                <input type="hidden" name="role" value="LECTURER">
+                                {% include 'core/lecturesdetails.html' %}
+                            </form>
+                        </div>
+
+                        <div id="admin_admin_wizard" style="display:none;">
+                            <button type="button" class="btn-back" onclick="returnToAdminProfileSelector()" style="margin-bottom:15px; padding: 10px 20px;">← Back to Roles</button>
+                            <form method="post" action="{% url 'core:admin_create_user' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="role" value="ADMIN">
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label for="id_full_name">Full Name</label>
+                                        <input type="text" name="full_name" class="form-control" required placeholder="e.g. John Doe">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="id_username">Username</label>
+                                        <input type="text" name="username" class="form-control" required placeholder="e.g. admin_johndoe">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="id_email">Email Address</label>
+                                        <input type="email" name="email" class="form-control" required placeholder="e.g. email@example.com">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="id_phone_number">Phone Number</label>
+                                        <input type="text" name="phone_number" class="form-control" placeholder="e.g. 0712345678">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="id_password">Account Password</label>
+                                        <input type="password" name="password" class="form-control" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="id_confirm_password">Confirm Password</label>
+                                        <input type="password" name="confirm_password" class="form-control" required>
+                                    </div>
+                                    <button type="submit" class="btn-portal" style="grid-column: 1 / -1;">Save Administrator Record</button>
+                                </div>
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- STUDENTS SECTION (WITH MATCHING SYSTEM COURSE ROUTING FLOW) -->
+<div id="students" class="dashboard-section">
+    <div class="panel">
+        <div class="action-row">
+            <h3 id="studentSectionTitle" style="margin:0;">Students Registry</h3>
+            <div>
+                <button id="backToCoursesBtn" class="back-to-courses-btn" style="display: none;" onclick="showCoursePickerMenu()">← Back to Courses</button>
+                <button class="action-btn" onclick="navigateToSection('create-user-section', 'STUDENT')">Add New Student</button>
+            </div>
+        </div>
+
+        <!-- STEP 1: SELECT COHORT BY SPECIFIC COURSE STREAM -->
+        <div id="coursePickerContainer">
+            <p style="color: #64748b; font-size: 1.05rem; margin-top:-10px; margin-bottom:25px;">Select a system course pathway to view registered candidates:</p>
+            <div class="course-picker-grid">
+                
+                <div class="course-selection-card" onclick="filterStudentsByCourse('Computer Science')">
+                    <h4>Computer Science</h4>
+                    <p>View active Computer Science profiles</p>
+                </div>
+
+                <div class="course-selection-card" onclick="filterStudentsByCourse('Applied Computer Science')">
+                    <h4>Applied Computer Science</h4>
+                    <p>View Applied Computer Science entries</p>
+                </div>
+
+                <div class="course-selection-card" onclick="filterStudentsByCourse('Software Engineering')">
+                    <h4>Software Engineering</h4>
+                    <p>View platform software engineering records</p>
+                </div>
+
+                <div class="course-selection-card" onclick="filterStudentsByCourse('Information Technology')">
+                    <h4>Information Technology</h4>
+                    <p>View registered Information Technology metrics</p>
+                </div>
+
+                <div class="course-selection-card" onclick="filterStudentsByCourse('Communication and Media Studies')">
+                    <h4>Communication and Media Studies</h4>
+                    <p>View Communication and Media attachés</p>
+                </div>
+
+                <div class="course-selection-card" onclick="filterStudentsByCourse('Business Information Technology')">
+                    <h4>Business Information Technology</h4>
+                    <p>View Business IT distributions</p>
+                </div>
+
+                <!-- ALL STUDENTS MASTER OPTION -->
+                <div class="course-selection-card master-option" onclick="filterStudentsByCourse('ALL')">
+                    <h4>All Students Master List</h4>
+                    <p>See all course profiles concurrently</p>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- STEP 2: VERTICAL ROW VIEWS -->
+        <div class="role-section-list" id="studentRowsContainer" style="display: none;">
+            {% for user in role_groups.students %}
+            <div class="user-list-row student-data-row" data-course="{{ user.course|default:'' }}">
+                <div class="row-number generated-index">1</div>
+                <div><h4>{{ user.get_full_name|default:user.username }}</h4></div>
+                <div><p>{{ user.email|default:'No email configured' }}</p></div>
+                <div class="status-container">
+                    <span class="pill">{{ user.course|default:'General' }}</span>
+                    <span class="role-status">Active</span>
+                </div>
+                <div class="user-actions">
+                    <button class="user-action-btn edit-btn" onclick="alert('Edit action loaded')">Edit</button>
+                    <button class="user-action-btn delete" onclick="confirm('Remove record permanently?')">Delete</button>
+                </div>
+            </div>
+            {% empty %}
+            <div class="user-list-row empty-notice-row" style="grid-template-columns: 1fr; text-align: center;">
+                <p>No registered students found inside database records.</p>
+            </div>
+            {% endfor %}
+            
+            <!-- Fallback notice container if filtering matches zero records -->
+            <div class="user-list-row client-empty-row" style="grid-template-columns: 1fr; text-align: center; display: none;">
+                <p>No active workspace records matched this chosen system course pathway.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+                <!-- SUPERVISORS SECTION -->
+                <div id="supervisors" class="dashboard-section">
+                    <div class="panel">
+                        <h3>Industry Supervisors</h3>
+                        <div class="role-section-list">
+                            {% for user in role_groups.supervisors %}
+                            <div class="user-list-row">
+                                <div class="row-number">{{ forloop.counter }}</div>
+                                <div><h4>{{ user.get_full_name|default:user.username }}</h4></div>
+                                <div><p>{{ user.email|default:'No email configured' }}</p></div>
+                                <div class="status-container"><span class="pill">Supervisor</span><span class="role-status">Available</span></div>
+                                <div class="user-actions">
+                                    <button class="user-action-btn edit-btn" onclick="alert('Edit action loaded')">Edit</button>
+                                    <button class="user-action-btn delete" onclick="confirm('Remove record permanently?')">Delete</button>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LECTURERS SECTION -->
+                <div id="lecturers" class="dashboard-section">
+                    <div class="panel">
+                        <h3>Faculty Lecturers</h3>
+                        <div class="role-section-list">
+                            {% for user in role_groups.lecturers %}
+                            <div class="user-list-row">
+                                <div class="row-number">{{ forloop.counter }}</div>
+                                <div><h4>{{ user.get_full_name|default:user.username }}</h4></div>
+                                <div><p>{{ user.email|default:'No email configured' }}</p></div>
+                                <div class="status-container"><span class="pill">Lecturer</span><span class="role-status">Ready</span></div>
+                                <div class="user-actions">
+                                    <button class="user-action-btn edit-btn" onclick="alert('Edit action loaded')">Edit</button>
+                                    <button class="user-action-btn delete" onclick="confirm('Remove record permanently?')">Delete</button>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ADMINS SECTION -->
+                <div id="admins" class="dashboard-section">
+                    <div class="panel">
+                        <h3>Administrators</h3>
+                        <div class="role-section-list">
+                            {% for user in role_groups.admins %}
+                            <div class="user-list-row">
+                                <div class="row-number">{{ forloop.counter }}</div>
+                                <div><h4>{{ user.get_full_name|default:user.username }}</h4></div>
+                                <div><p>{{ user.email|default:'No email configured' }}</p></div>
+                                <div class="status-container"><span class="pill">Admin</span><span class="role-status">Secure</span></div>
+                                <div class="user-actions">
+                                    <button class="user-action-btn edit-btn" onclick="alert('Edit action loaded')">Edit</button>
+                                    <button class="user-action-btn delete" onclick="confirm('Remove permanent admin?')">Delete</button>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const navItems = document.querySelectorAll('.nav-item');
+            const sections = document.querySelectorAll('.dashboard-section');
+            const loader = document.getElementById('loadingOverlay');
+            const loaderText = document.getElementById('loaderText');
+
+            navItems.forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    item.classList.add('active');
+
+                    const targetSectionId = item.getAttribute('data-target');
+                    
+                    sections.forEach(section => section.classList.remove('section-active'));
+                    loaderText.innerText = "Loading Workspace Section...";
+                    loader.style.display = 'block';
+
+                    setTimeout(() => {
+                        loader.style.display = 'none';
+                        const activeSection = document.getElementById(targetSectionId);
+                        if(activeSection) {
+                            activeSection.classList.add('section-active');
+                        }
+                    }, 400); 
+                });
+            });
+        });
+
+        /* --- DETAILED STUDENT PATHWAY ROUTING CONTROLLERS --- */
+        
+        // Forces student panel view back to initial question flow step
+        function resetStudentSectionView() {
+            document.getElementById('coursePickerContainer').style.display = 'block';
+            document.getElementById('studentRowsContainer').style.display = 'none';
+            document.getElementById('backToCoursesBtn').style.display = 'none';
+            document.getElementById('studentSectionTitle').innerText = "Students Registry";
+        }
+
+        function showCoursePickerMenu() {
+            const loader = document.getElementById('loadingOverlay');
+            const loaderText = document.getElementById('loaderText');
+            
+            loaderText.innerText = "Returning to Course Streams...";
+            loader.style.display = 'block';
+            
+            setTimeout(() => {
+                loader.style.display = 'none';
+                resetStudentSectionView();
+            }, 300);
+        }
+
+        function filterStudentsByCourse(courseName) {
+            const loader = document.getElementById('loadingOverlay');
+            const loaderText = document.getElementById('loaderText');
+            
+            loaderText.innerText = `Filtering for ${courseName === 'ALL' ? 'All Students' : courseName}...`;
+            loader.style.display = 'block';
+
+            setTimeout(() => {
+                loader.style.display = 'none';
+                
+                // Toggle view boxes
+                document.getElementById('coursePickerContainer').style.display = 'none';
+                document.getElementById('studentRowsContainer').style.display = 'flex';
+                document.getElementById('backToCoursesBtn').style.display = 'inline-flex';
+                document.getElementById('studentSectionTitle').innerText = courseName === 'ALL' ? "All Registered Students" : `${courseName} Registry`;
+
+                const rows = document.querySelectorAll('.student-data-row');
+                const clientEmptyRow = document.querySelector('.client-empty-row');
+                let visibleCount = 0;
+
+                rows.forEach(row => {
+                    const rowCourse = row.getAttribute('data-course').trim().toLowerCase();
+                    const targetFilter = courseName.trim().toLowerCase();
+
+                    // Display calculation logic matches
+                    if (courseName === 'ALL' || rowCourse === targetFilter || (targetFilter === 'computer science' && rowCourse === '')) {
+                        row.style.display = 'grid';
+                        visibleCount++;
+                        // Dynamically update numbers linearly down (1, 2, 3, 4...) based on current filtered view state
+                        row.querySelector('.generated-index').innerText = visibleCount;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+
+                // Display custom notice if filter match yields an empty workspace context
+                if (visibleCount === 0) {
+                    if (clientEmptyRow) clientEmptyRow.style.display = 'grid';
+                } else {
+                    if (clientEmptyRow) clientEmptyRow.style.display = 'none';
+                }
+
+            }, 450);
+        }
+
+        function navigateToSection(sectionId, roleValue) {
+            const loader = document.getElementById('loadingOverlay');
+            const sections = document.querySelectorAll('.dashboard-section');
+            const navItems = document.querySelectorAll('.nav-item');
+
+            sections.forEach(section => section.classList.remove('section-active'));
+            navItems.forEach(nav => nav.classList.remove('active'));
+            
+            const targetLink = document.querySelector(`[data-target="${sectionId}"]`);
+            if(targetLink) targetLink.classList.add('active');
+
+            loader.style.display = 'block';
+
+            setTimeout(() => {
+                loader.style.display = 'none';
+                const formSection = document.getElementById(sectionId);
+                if(formSection) formSection.classList.add('section-active');
+                
+                const roleSelect = document.getElementById('id_role');
+                if(roleSelect) roleSelect.value = roleValue;
+            }, 350);
+        }
+    </script>
+    
+    <script>
+        function selectAdminCreateProfile(role) {
+            document.getElementById('admin-profile-selector').style.display = 'none';
+            document.getElementById('admin_student_wizard').style.display = 'none';
+            document.getElementById('admin_sup_wizard').style.display = 'none';
+            document.getElementById('admin_lec_wizard').style.display = 'none';
+            document.getElementById('admin_admin_wizard').style.display = 'none';
+
+            if (role === 'STUDENT') {
+                document.getElementById('admin_student_wizard').style.display = 'block';
+            } else if (role === 'SUPERVISOR') {
+                document.getElementById('admin_sup_wizard').style.display = 'block';
+            } else if (role === 'LECTURER') {
+                document.getElementById('admin_lec_wizard').style.display = 'block';
+            } else if (role === 'ADMIN') {
+                document.getElementById('admin_admin_wizard').style.display = 'block';
+            }
+        }
+
+        function returnToAdminProfileSelector() {
+            document.getElementById('admin_student_wizard').style.display = 'none';
+            document.getElementById('admin_sup_wizard').style.display = 'none';
+            document.getElementById('admin_lec_wizard').style.display = 'none';
+            document.getElementById('admin_admin_wizard').style.display = 'none';
+            document.getElementById('admin-profile-selector').style.display = 'block';
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const selectedRole = "{{ selected_role }}";
+            if (selectedRole) {
+                // Instantly open the form section and expand the selected wizard role
+                navigateToSection('create-user-section', selectedRole);
+                selectAdminCreateProfile(selectedRole);
+            }
+        });
+    </script>
+</body>
+</html>
