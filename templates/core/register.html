@@ -458,10 +458,17 @@
                     </div>
 
                     <!-- === PROFILE SELECTOR LANDING === -->
+                    <div id="calmTransitionOverlay" class="calm-overlay">
+                        <div class="calm-spinner"></div>
+                        <div>
+                            <h3 style="margin:0; font-size:1.1rem; color:#0f172a;">Preparing your profile form...</h3>
+                            <p style="margin: 10px 0 0; color:#475569; font-size:0.95rem; max-width: 320px;">Just a moment while we load the registration fields calmly.</p>
+                        </div>
+                    </div>
                     <div id="profile-selector-section">
                         <p style="font-size:0.95rem; color:#475569; margin-bottom:18px; font-weight:500;">Select your system workspace profile to begin registration:</p>
                         <div style="display:flex; flex-direction:column; gap:14px;">
-                            <button type="button" class="profile-card-btn" onclick="selectWorkspaceProfile('STUDENT')">
+                            <button type="button" class="profile-card-btn" onclick="selectWorkspaceProfile('STUDENT', this)">
                                 <span class="profile-icon">🎓</span>
                                 <div>
                                     <strong>Student / Attachee Node</strong>
@@ -469,7 +476,7 @@
                                 </div>
                                 <span class="profile-arrow">→</span>
                             </button>
-                            <button type="button" class="profile-card-btn" onclick="selectWorkspaceProfile('SUPERVISOR')">
+                            <button type="button" class="profile-card-btn" onclick="selectWorkspaceProfile('SUPERVISOR', this)">
                                 <span class="profile-icon">🏢</span>
                                 <div>
                                     <strong>External Industry Field Supervisor</strong>
@@ -477,7 +484,7 @@
                                 </div>
                                 <span class="profile-arrow">→</span>
                             </button>
-                            <button type="button" class="profile-card-btn" onclick="selectWorkspaceProfile('LECTURER')">
+                            <button type="button" class="profile-card-btn" onclick="selectWorkspaceProfile('LECTURER', this)">
                                 <span class="profile-icon">📚</span>
                                 <div>
                                     <strong>Internal Academic University Assessor</strong>
@@ -575,19 +582,40 @@
         });
 
         // Profile selector functions
-        function selectWorkspaceProfile(role) {
-            document.getElementById('profile-selector-section').style.display = 'none';
-            document.getElementById('student_wizard_wrapper').style.display = 'none';
-            document.getElementById('sup_wizard_wrapper').style.display = 'none';
-            document.getElementById('lec_wizard_wrapper').style.display = 'none';
+        function selectWorkspaceProfile(role, button) {
+            const overlay = document.getElementById('calmTransitionOverlay');
+            const chooser = document.getElementById('profile-selector-section');
+            const studentWrapper = document.getElementById('student_wizard_wrapper');
+            const supervisorWrapper = document.getElementById('sup_wizard_wrapper');
+            const lecturerWrapper = document.getElementById('lec_wizard_wrapper');
+            const profileButtons = document.querySelectorAll('.profile-card-btn');
 
-            if (role === 'STUDENT') {
-                document.getElementById('student_wizard_wrapper').style.display = 'block';
-            } else if (role === 'SUPERVISOR') {
-                document.getElementById('sup_wizard_wrapper').style.display = 'block';
-            } else if (role === 'LECTURER') {
-                document.getElementById('lec_wizard_wrapper').style.display = 'block';
-            }
+            profileButtons.forEach(btn => btn.disabled = true);
+            overlay.classList.add('show');
+
+            setTimeout(() => {
+                overlay.classList.remove('show');
+                chooser.style.display = 'none';
+                studentWrapper.style.display = 'none';
+                supervisorWrapper.style.display = 'none';
+                lecturerWrapper.style.display = 'none';
+
+                let revealWrapper = null;
+                if (role === 'STUDENT') revealWrapper = studentWrapper;
+                else if (role === 'SUPERVISOR') revealWrapper = supervisorWrapper;
+                else if (role === 'LECTURER') revealWrapper = lecturerWrapper;
+
+                if (revealWrapper) {
+                    revealWrapper.style.display = 'block';
+                    revealWrapper.classList.add('fade-in-section');
+                    setTimeout(() => revealWrapper.classList.add('active'), 30);
+                }
+
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                    profileButtons.forEach(btn => btn.disabled = false);
+                }, 320);
+            }, 650);
         }
 
         function returnToProfileSelector() {
