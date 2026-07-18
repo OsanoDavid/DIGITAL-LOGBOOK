@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: digital-logbook
+    env: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput"
+    startCommand: "gunicorn sist_project.wsgi:application"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: digital-logbook-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DJANGO_SETTINGS_MODULE
+        value: sist_project.settings
+      - key: PYTHON_VERSION
+        value: 3.13.0
+      - key: WEB_CONCURRENCY
+        value: 2
+
+databases:
+  - name: digital-logbook-db
+    plan: free
+    databaseName: digital_logbook
+    user: digital_logbook
