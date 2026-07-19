@@ -1,3 +1,7 @@
+import importlib
+import os
+from unittest.mock import patch
+
 from django.contrib.auth import authenticate
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
@@ -6,6 +10,19 @@ from django.urls import reverse
 from .forms import SISTRegistrationForm
 from .models import User, AttachmentPeriod, WeeklyLog
 from .views import _ensure_period_assignments
+
+
+class DatabaseSettingsTests(TestCase):
+    def test_falls_back_to_sqlite_when_database_url_is_missing_in_debug_mode(self):
+        with patch.dict(os.environ, {'DEBUG': 'True'}, clear=False):
+            os.environ.pop('DATABASE_URL', None)
+            settings_module = importlib.import_module('sist_project.settings')
+            reloaded_module = importlib.reload(settings_module)
+
+            self.assertEqual(
+                reloaded_module.DATABASES['default']['ENGINE'],
+                'django.db.backends.sqlite3',
+            )
 
 
 class RegistrationFlowTests(TestCase):

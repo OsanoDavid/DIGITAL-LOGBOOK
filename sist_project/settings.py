@@ -71,7 +71,10 @@ import dj_database_url
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
 if not DATABASE_URL:
-    raise ImproperlyConfigured('DATABASE_URL is not set. Production must use the Render database.')
+    if DEBUG:
+        DATABASE_URL = f"sqlite:///{BASE_DIR / 'db.sqlite3'}"
+    else:
+        raise ImproperlyConfigured('DATABASE_URL is not set. Production must use the Render database.')
 
 if '://' not in DATABASE_URL:
     raise ImproperlyConfigured(
