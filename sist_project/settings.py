@@ -95,6 +95,7 @@ DATABASE_URL = os.environ.get('DATABASE_URL')
 SQLITE_DB_PATH = os.environ.get('SQLITE_DB_PATH')
 USE_SQLITE = os.environ.get('USE_SQLITE', 'false').lower() in {'1', 'true', 'yes', 'on'}
 IS_RENDER = os.environ.get('RENDER', '').lower() in {'1', 'true', 'yes', 'on'}
+LEGACY_RENDER_DATABASE_NAME = False
 
 if DATABASE_URL and not USE_SQLITE:
     if '://' not in DATABASE_URL:
@@ -103,6 +104,7 @@ if DATABASE_URL and not USE_SQLITE:
         # prevent collectstatic or migrations from starting.
         if IS_RENDER:
             USE_SQLITE = True
+            LEGACY_RENDER_DATABASE_NAME = True
         else:
             raise ImproperlyConfigured(
                 'DATABASE_URL is invalid. It must be a full connection string like postgres://user:pass@host:port/dbname, not just a service name.'
@@ -114,7 +116,10 @@ if DATABASE_URL and not USE_SQLITE:
         }
 
 if SQLITE_DB_PATH or USE_SQLITE:
-    sqlite_path = SQLITE_DB_PATH or str(BASE_DIR / 'db.sqlite3')
+    # /var/data belongs to Render's persistent-disk mount and isn't available
+    # while a build is running. Ignore the retained legacy value in this one
+    # compatibility case so migrations can run in the build workspace.
+    sqlite_path = str(BASE_DIR / 'db.sqlite3') if LEGACY_RENDER_DATABASE_NAME else (SQLITE_DB_PATH or str(BASE_DIR / 'db.sqlite3'))
     _ensure_parent_directory(sqlite_path)
     DATABASES = {
         'default': {

@@ -55,7 +55,7 @@ class DatabaseSettingsTests(TestCase):
             reloaded_module = importlib.reload(settings_module)
 
             self.assertEqual(reloaded_module.DATABASES['default']['ENGINE'], 'django.db.backends.sqlite3')
-            self.assertEqual(reloaded_module.DATABASES['default']['NAME'], '/tmp/render-db.sqlite3')
+            self.assertEqual(reloaded_module.DATABASES['default']['NAME'], str(reloaded_module.BASE_DIR / 'db.sqlite3'))
 
 
 class MediaUploadSettingsTests(TestCase):
