@@ -3,7 +3,7 @@ services:
     name: digital-logbook
     env: python
     plan: free
-    buildCommand: "bash build.sh"
+    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate --noinput"
     startCommand: "gunicorn --bind 0.0.0.0:$PORT sist_project.wsgi:application"
     envVars:
       - key: SECRET_KEY
@@ -17,4 +17,6 @@ services:
       - key: SQLITE_DB_PATH
         value: /var/data/db.sqlite3
       - key: USE_SQLITE
+        value: "true"
+      - key: RENDER
         value: "true"
