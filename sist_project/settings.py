@@ -93,19 +93,9 @@ import dj_database_url
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
 SQLITE_DB_PATH = os.environ.get('SQLITE_DB_PATH')
-USE_SQLITE = os.environ.get('USE_SQLITE', 'true').lower() in {'1', 'true', 'yes', 'on'}
-IS_RENDER = os.environ.get('RENDER', '').lower() in {'1', 'true', 'yes', 'on'}
+USE_SQLITE = os.environ.get('USE_SQLITE', 'false').lower() in {'1', 'true', 'yes', 'on'}
 
-if SQLITE_DB_PATH or USE_SQLITE or IS_RENDER:
-    sqlite_path = SQLITE_DB_PATH or str(BASE_DIR / 'db.sqlite3')
-    _ensure_parent_directory(sqlite_path)
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': sqlite_path,
-        }
-    }
-elif DATABASE_URL:
+if DATABASE_URL and not USE_SQLITE:
     if '://' not in DATABASE_URL:
         raise ImproperlyConfigured(
             'DATABASE_URL is invalid. It must be a full connection string like postgres://user:pass@host:port/dbname, not just a service name.'
@@ -113,6 +103,15 @@ elif DATABASE_URL:
 
     DATABASES = {
         'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=False)
+    }
+elif SQLITE_DB_PATH or USE_SQLITE:
+    sqlite_path = SQLITE_DB_PATH or str(BASE_DIR / 'db.sqlite3')
+    _ensure_parent_directory(sqlite_path)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': sqlite_path,
+        }
     }
 else:
     if DEBUG:
