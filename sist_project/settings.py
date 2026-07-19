@@ -9,9 +9,16 @@ from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
 
 # Render-compatible filesystem fallback for SQLite persistence
+
+def _ensure_parent_directory(path):
+    parent = os.path.dirname(path)
+    if parent:
+        os.makedirs(parent, exist_ok=True)
+
+
 DATA_DIR = os.environ.get('SQLITE_DB_PATH')
 if DATA_DIR:
-    os.makedirs(os.path.dirname(DATA_DIR), exist_ok=True)
+    _ensure_parent_directory(DATA_DIR)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -83,19 +90,18 @@ import dj_database_url
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
 SQLITE_DB_PATH = os.environ.get('SQLITE_DB_PATH')
+USE_SQLITE = os.environ.get('USE_SQLITE', 'true').lower() in {'1', 'true', 'yes', 'on'}
 
-if not DATABASE_URL:
-    if DEBUG:
-        sqlite_path = SQLITE_DB_PATH or str(BASE_DIR / 'db.sqlite3')
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': sqlite_path,
-            }
+if SQLITE_DB_PATH or USE_SQLITE:
+    sqlite_path = SQLITE_DB_PATH or str(BASE_DIR / 'db.sqlite3')
+    _ensure_parent_directory(sqlite_path)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': sqlite_path,
         }
-    else:
-        raise ImproperlyConfigured('DATABASE_URL is not set. Production must use the Render database.')
-else:
+    }
+elif DATABASE_URL:
     if '://' not in DATABASE_URL:
         raise ImproperlyConfigured(
             'DATABASE_URL is invalid. It must be a full connection string like postgres://user:pass@host:port/dbname, not just a service name.'
@@ -104,6 +110,17 @@ else:
     DATABASES = {
         'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=False)
     }
+else:
+    if DEBUG:
+        sqlite_path = str(BASE_DIR / 'db.sqlite3')
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': sqlite_path,
+            }
+        }
+    else:
+        raise ImproperlyConfigured('DATABASE_URL is not set. Production must use the Render database.')
 
 
 # Password validation

@@ -32,6 +32,14 @@ class DatabaseSettingsTests(TestCase):
 
             self.assertEqual(reloaded_module.DATABASES['default']['NAME'], '/tmp/custom-db.sqlite3')
 
+    def test_prefers_sqlite_when_use_sqlite_is_enabled_even_if_database_url_exists(self):
+        with patch.dict(os.environ, {'DEBUG': 'True', 'USE_SQLITE': 'true', 'SQLITE_DB_PATH': '/tmp/custom-db.sqlite3', 'DATABASE_URL': 'postgres://user:pass@localhost:5432/db'}, clear=False):
+            settings_module = importlib.import_module('sist_project.settings')
+            reloaded_module = importlib.reload(settings_module)
+
+            self.assertEqual(reloaded_module.DATABASES['default']['ENGINE'], 'django.db.backends.sqlite3')
+            self.assertEqual(reloaded_module.DATABASES['default']['NAME'], '/tmp/custom-db.sqlite3')
+
 
 class RegistrationFlowTests(TestCase):
     def test_admin_dashboard_is_available_for_admin_users(self):
