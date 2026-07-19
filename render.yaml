@@ -14,7 +14,15 @@ services:
         value: 3.12.0
       - key: WEB_CONCURRENCY
         value: 2
-      - key: SQLITE_DB_PATH
-        value: /var/data/db.sqlite3
+      - key: DATABASE_URL
+        fromDatabase:
+          name: dhangongo
+          property: connectionString
       - key: RENDER
         value: "true"
+
+databases:
+  - name: dhangongo
+    plan: free
+    databaseName: digital_logbook
+    user: digital_logbook
