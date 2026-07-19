@@ -16,3 +16,5 @@ services:
         value: 2
       - key: SQLITE_DB_PATH
         value: /var/data/db.sqlite3
+      - key: USE_SQLITE
+        value: "true"

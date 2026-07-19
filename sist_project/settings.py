@@ -31,10 +31,13 @@ DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
 
 ALLOWED_HOSTS = ['*']
 CSRF_TRUSTED_ORIGINS = [
-    'https://kisii-university-digital-logbook.onrender.com',
     'http://localhost:8000',
     'http://127.0.0.1:8000',
 ]
+render_hostname = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if render_hostname:
+    CSRF_TRUSTED_ORIGINS.append(f'https://{render_hostname}')
+CSRF_TRUSTED_ORIGINS.append('https://kisii-university-digital-logbook.onrender.com')
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 USE_X_FORWARDED_HOST = True
 
@@ -91,8 +94,9 @@ import dj_database_url
 DATABASE_URL = os.environ.get('DATABASE_URL')
 SQLITE_DB_PATH = os.environ.get('SQLITE_DB_PATH')
 USE_SQLITE = os.environ.get('USE_SQLITE', 'true').lower() in {'1', 'true', 'yes', 'on'}
+IS_RENDER = os.environ.get('RENDER', '').lower() in {'1', 'true', 'yes', 'on'}
 
-if SQLITE_DB_PATH or USE_SQLITE:
+if SQLITE_DB_PATH or USE_SQLITE or IS_RENDER:
     sqlite_path = SQLITE_DB_PATH or str(BASE_DIR / 'db.sqlite3')
     _ensure_parent_directory(sqlite_path)
     DATABASES = {
