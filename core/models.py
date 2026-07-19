@@ -2,6 +2,8 @@ import re
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.db.models import Q
+from django.db.models.functions import Lower
 from .auth_utils import normalize_username
 
 class User(AbstractUser):
@@ -27,6 +29,15 @@ class User(AbstractUser):
     # ADD THIS LINE HERE:
     avatar_color = models.CharField(max_length=7, default='0284c7')
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                Lower('email'),
+                name='unique_lower_email',
+                condition=Q(email__isnull=False) & ~Q(email=''),
+            )
+        ]
+
     def __str__(self):
         return f"{self.get_full_name() or self.username} ({self.get_role_display()})"
     
@@ -51,6 +62,8 @@ class AttachmentPeriod(models.Model):
     
     # Final Capstone Uploads & Grading Chain
     final_report = models.FileField(upload_to='sist_reports/', blank=True, null=True)
+    report_status = models.CharField(max_length=24, default='NOT_SUBMITTED')
+    report_review_comment = models.TextField(blank=True, null=True)
     supervisor_marks = models.FloatField(null=True, blank=True)
     supervisor_comment = models.TextField(blank=True, null=True)
     supervisor_signed = models.BooleanField(default=False)

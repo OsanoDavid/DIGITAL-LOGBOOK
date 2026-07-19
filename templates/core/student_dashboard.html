@@ -218,23 +218,30 @@
 
         <div class="card" style="border-top: 5px solid var(--kisii-blue);">
             <h3>Final Assessment Report Submission Hub</h3>
-            <p style="margin: 4px 0 20px 0; color: var(--text-muted); font-size: 0.88rem;">To be populated and executed upon completion of the mandatory 12-14 weeks period.</p>
+            <p style="margin: 4px 0 20px 0; color: var(--text-muted); font-size: 0.88rem;">Upload your final report here. It will be sent to your assigned lecturer for review and approval.</p>
             
-            {% if not period.supervisor_signed %}
+            {% if period.report_status == 'APPROVED' %}
+                <div style="display: flex; align-items: center; justify-content: space-between; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 20px; border-radius: 12px; flex-wrap: wrap; gap: 16px;">
+                    <p style="color:var(--success); font-weight:700; margin: 0;">✓ Your final report has been approved by the lecturer.</p>
+                    {% if period.final_report %}
+                        <a href="{{ period.final_report.url }}" class="btn btn-blue" download>Download Submitted File</a>
+                    {% endif %}
+                </div>
+            {% elif period.report_status == 'RETURNED' %}
+                <div style="display: flex; flex-direction: column; gap: 12px; background: #fef2f2; border: 1px solid #fecaca; padding: 20px; border-radius: 12px;">
+                    <p style="color:#b91c1c; font-weight:700; margin: 0;">⚠ Your report needs revision.</p>
+                    {% if period.report_review_comment %}<p style="margin: 0; color: #7f1d1d;">{{ period.report_review_comment }}</p>{% endif %}
+                    {% if period.final_report %}<a href="{{ period.final_report.url }}" class="btn btn-blue" download>Download Submitted File</a>{% endif %}
+                </div>
+            {% else %}
                 <form method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 18px;">
                     {% csrf_token %}
                     <div style="background: var(--bg-light); padding: 20px; border-radius: 12px; border: 1px dashed var(--border-light);">
                         {{ report_form.as_p }}
                     </div>
                     <button type="submit" name="upload_report" class="btn btn-blue" style="align-self: flex-start;">Upload Report Document</button>
+                    <p style="margin: 0; color: #64748b; font-size: 0.9rem;">Status: <strong>Pending lecturer review</strong></p>
                 </form>
-            {% else %}
-                <div style="display: flex; align-items: center; justify-content: space-between; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 20px; border-radius: 12px; flex-wrap: wrap; gap: 16px;">
-                    <p style="color:var(--success); font-weight:700; margin: 0;">✓ Final assessment documents locked and compiled for internal evaluation.</p>
-                    {% if period.final_report %}
-                        <a href="{{ period.final_report.url }}" class="btn btn-blue" download>Download Submitted File</a>
-                    {% endif %}
-                </div>
             {% endif %}
         </div>
 

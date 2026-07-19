@@ -32,25 +32,48 @@ class SISTRegistrationForm(forms.ModelForm):
         self.fields['course'].widget.attrs.update({'class': 'form-control'})
 
     def clean_username(self):
-        username = self.cleaned_data.get('username', '').strip()
+        username = (self.cleaned_data.get('username') or '').strip()
         role = self.data.get('role', 'STUDENT')
 
-        # Supervisors and Lecturers use email as their username
         if role in ('SUPERVISOR', 'LECTURER'):
+            provided_username = (self.data.get('username') or '').strip()
+            if provided_username:
+                if User.objects.filter(username__iexact=provided_username).exists():
+                    raise forms.ValidationError('An account with this username already exists.')
+                return provided_username
+
             email = self.data.get('email', '').strip().lower()
             if not email:
                 raise forms.ValidationError('Email is required.')
-            if User.objects.filter(username=email).exists():
+            if User.objects.filter(username__iexact=email).exists():
                 raise forms.ValidationError('An account with this email already exists.')
             return email
 
-        # Students and Admins use registration number
         normalized = normalize_username(username)
         if not normalized:
             raise forms.ValidationError('A registration number is required.')
-        if User.objects.filter(username=normalized).exists():
-            raise forms.ValidationError('A user with that registration number already exists.')
+
+        normalized_lookup = normalized.lower()
+        for existing in User.objects.values_list('username', flat=True):
+            if existing and normalize_username(existing).lower() == normalized_lookup:
+                raise forms.ValidationError('A user with that registration number already exists.')
         return normalized
+
+    def clean_email(self):
+        email = (self.cleaned_data.get('email') or '').strip().lower()
+        role = self.data.get('role', 'STUDENT')
+        if not email:
+            raise forms.ValidationError('Email is required.')
+
+        if role in ('SUPERVISOR', 'LECTURER'):
+            if User.objects.filter(username__iexact=email).exists():
+                raise forms.ValidationError('An account with this email already exists.')
+        else:
+            if User.objects.filter(email__iexact=email).exists():
+                raise forms.ValidationError('An account with this email already exists.')
+            if User.objects.filter(username__iexact=email).exists():
+                raise forms.ValidationError('An account with this email already exists.')
+        return email
 
     def clean(self):
         cleaned_data = super().clean()
@@ -62,10 +85,14 @@ class SISTRegistrationForm(forms.ModelForm):
 
         if role in ('SUPERVISOR', 'LECTURER'):
             email = (cleaned_data.get('email') or '').strip().lower()
-            if email:
-                cleaned_data['username'] = email
-            else:
+            if not email:
                 raise forms.ValidationError({'email': 'Email address is required.'})
+
+            username_value = (cleaned_data.get('username') or '').strip()
+            if username_value:
+                cleaned_data['username'] = username_value
+            else:
+                cleaned_data['username'] = email
 
         if password and confirm_password and password != confirm_password:
             raise forms.ValidationError({'confirm_password': 'Passwords do not match.'})

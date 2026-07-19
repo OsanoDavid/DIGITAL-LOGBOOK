@@ -10,6 +10,7 @@ urlpatterns = [
     path('admins/dashboard/', views.admin_dashboard_view, name='admin_dashboard'),
     path('admin-dashboard/', views.admin_dashboard_view, name='admin_dashboard_legacy'),
     path('admin-create-user/', views.admin_create_user_view, name='admin_create_user'),
+    path('admin/users/<int:user_id>/manage/', views.admin_manage_user_view, name='admin_manage_user'),
     path('debug/login-supervisor/', views.debug_login_supervisor, name='debug_login_supervisor'),
 
     # highlight-start
@@ -23,5 +24,6 @@ urlpatterns = [
     path('log/sign/lecturer/<int:log_id>/', views.lecturer_sign_log, name='lecturer_sign'),
     path('grading/final/<int:period_id>/', views.final_grading_view, name='final_grading'),
     path('assessment/submit/<int:period_id>/', views.submit_assessment_form, name='submit_assessment_form'),
+    path('report/review/<int:period_id>/', views.review_final_report, name='review_final_report'),
     path('info/<str:page_name>/', views.info_page_view, name='info_page'),
 ]

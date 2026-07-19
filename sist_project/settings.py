@@ -73,6 +73,11 @@ DATABASE_URL = os.environ.get('DATABASE_URL')
 if not DATABASE_URL:
     raise ImproperlyConfigured('DATABASE_URL is not set. Production must use the Render database.')
 
+if '://' not in DATABASE_URL:
+    raise ImproperlyConfigured(
+        'DATABASE_URL is invalid. It must be a full connection string like postgres://user:pass@host:port/dbname, not just a service name.'
+    )
+
 DATABASES = {
     'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=False)
 }

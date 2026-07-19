@@ -522,8 +522,9 @@
         
         .user-list-row { 
             display: grid;
-            grid-template-columns: 60px 2.5fr 2.5fr 1.8fr auto;
+            grid-template-columns: 50px minmax(260px, 2.8fr) minmax(280px, 3.6fr) auto;
             align-items: center;
+            gap: 18px;
             border-left: 5px solid #e2e8f0; 
             border-radius: 16px; 
             padding: 20px 24px; 
@@ -537,7 +538,12 @@
         .user-list-row:hover { transform: translateX(6px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04); }
         .row-number { font-weight: 800; color: #94a3b8; font-size: 1.1rem; }
         .user-list-row h4 { margin: 0; color: #0f172a; font-size: 1.1rem; font-weight: 700; }
-        .user-list-row p { margin: 0; color: #64748b; font-size: 1rem; }
+        .user-list-row p { margin: 6px 0 0 0; color: #475569; font-size: 0.95rem; line-height: 1.5; }
+        .sub-info { color: #64748b; font-size: 0.88rem; }
+        .detail-column { display: grid; gap: 10px; }
+        .detail-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+        .detail-label { min-width: 90px; color: #475569; font-weight: 700; font-size: 0.82rem; }
+        .detail-value { color: #334155; font-size: 0.95rem; }
         .status-container { display: flex; gap: 8px; align-items: center; }
         .pill, .role-status { display: inline-block; padding: 5px 12px; border-radius: 8px; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
 
@@ -872,17 +878,27 @@
         <!-- STEP 2: VERTICAL ROW VIEWS -->
         <div class="role-section-list" id="studentRowsContainer" style="display: none;">
             {% for user in role_groups.students %}
-            <div class="user-list-row student-data-row" data-course="{{ user.course|default:'' }}">
+            <div id="user-row-{{ user.id }}" class="user-list-row student-data-row" data-user-id="{{ user.id }}" data-username="{{ user.username }}" data-full-name="{{ user.get_full_name|default:user.username }}" data-email="{{ user.email|default:'' }}" data-phone="{{ user.phone_number|default:'' }}" data-company="{{ user.institution_or_company|default:'' }}" data-course="{{ user.course|default:'' }}" data-role="{{ user.role }}" data-joined="{{ user.date_joined|date:'d M Y' }}">
                 <div class="row-number generated-index">1</div>
-                <div><h4>{{ user.get_full_name|default:user.username }}</h4></div>
-                <div><p>{{ user.email|default:'No email configured' }}</p></div>
-                <div class="status-container">
-                    <span class="pill">{{ user.course|default:'General' }}</span>
-                    <span class="role-status">Active</span>
+                <div>
+                    <h4>{{ user.get_full_name|default:user.username }}</h4>
+                    <p class="sub-info">{{ user.username }} • {{ user.get_role_display }}</p>
+                    <p class="sub-info">Joined {{ user.date_joined|date:"d M Y" }}</p>
+                </div>
+                <div class="detail-column">
+                    <div class="detail-row"><span class="detail-label">Email:</span><span class="detail-value">{{ user.email|default:'Not set' }}</span></div>
+                    <div class="detail-row"><span class="detail-label">Phone:</span><span class="detail-value">{{ user.phone_number|default:'Not set' }}</span></div>
+                    <div class="detail-row"><span class="detail-label">Company:</span><span class="detail-value">{{ user.institution_or_company|default:'N/A' }}</span></div>
+                    <div class="detail-row"><span class="detail-label">Course:</span><span class="detail-value">{{ user.course|default:'General' }}</span></div>
+                    <div class="detail-row"><span class="detail-label">Reg No:</span><span class="detail-value">{{ user.username }}</span></div>
                 </div>
                 <div class="user-actions">
-                    <button class="user-action-btn edit-btn" onclick="alert('Edit action loaded')">Edit</button>
-                    <button class="user-action-btn delete" onclick="confirm('Remove record permanently?')">Delete</button>
+                    <button type="button" class="user-action-btn edit-btn" onclick="openUserDetails('{{ user.id }}')">Details</button>
+                    <form method="post" action="{% url 'core:admin_manage_user' user.id %}" style="display:inline;" onsubmit="return confirm('Remove this user permanently?');">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="delete">
+                        <button type="submit" class="user-action-btn delete">Delete</button>
+                    </form>
                 </div>
             </div>
             {% empty %}
@@ -905,14 +921,26 @@
                         <h3>Industry Supervisors</h3>
                         <div class="role-section-list">
                             {% for user in role_groups.supervisors %}
-                            <div class="user-list-row">
+                            <div id="user-row-{{ user.id }}" class="user-list-row" data-user-id="{{ user.id }}" data-username="{{ user.username }}" data-full-name="{{ user.get_full_name|default:user.username }}" data-email="{{ user.email|default:'' }}" data-phone="{{ user.phone_number|default:'' }}" data-company="{{ user.institution_or_company|default:'' }}" data-course="{{ user.course|default:'' }}" data-role="{{ user.role }}" data-joined="{{ user.date_joined|date:'d M Y' }}">
                                 <div class="row-number">{{ forloop.counter }}</div>
-                                <div><h4>{{ user.get_full_name|default:user.username }}</h4></div>
-                                <div><p>{{ user.email|default:'No email configured' }}</p></div>
-                                <div class="status-container"><span class="pill">Supervisor</span><span class="role-status">Available</span></div>
+                                <div>
+                                    <h4>{{ user.get_full_name|default:user.username }}</h4>
+                                    <p class="sub-info">{{ user.username }} • {{ user.get_role_display }}</p>
+                                    <p class="sub-info">Joined {{ user.date_joined|date:"d M Y" }}</p>
+                                </div>
+                                <div class="detail-column">
+                                    <div class="detail-row"><span class="detail-label">Email:</span><span class="detail-value">{{ user.email|default:'Not set' }}</span></div>
+                                    <div class="detail-row"><span class="detail-label">Phone:</span><span class="detail-value">{{ user.phone_number|default:'Not set' }}</span></div>
+                                    <div class="detail-row"><span class="detail-label">Company:</span><span class="detail-value">{{ user.institution_or_company|default:'N/A' }}</span></div>
+                                    <div class="detail-row"><span class="detail-label">Assigned:</span><span class="detail-value">{{ user.course|default:'N/A' }}</span></div>
+                                </div>
                                 <div class="user-actions">
-                                    <button class="user-action-btn edit-btn" onclick="alert('Edit action loaded')">Edit</button>
-                                    <button class="user-action-btn delete" onclick="confirm('Remove record permanently?')">Delete</button>
+                                    <button type="button" class="user-action-btn edit-btn" onclick="openUserDetails('{{ user.id }}')">Details</button>
+                                    <form method="post" action="{% url 'core:admin_manage_user' user.id %}" style="display:inline;" onsubmit="return confirm('Remove this user permanently?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete">
+                                        <button type="submit" class="user-action-btn delete">Delete</button>
+                                    </form>
                                 </div>
                             </div>
                             {% endfor %}
@@ -926,14 +954,26 @@
                         <h3>Faculty Lecturers</h3>
                         <div class="role-section-list">
                             {% for user in role_groups.lecturers %}
-                            <div class="user-list-row">
+                            <div id="user-row-{{ user.id }}" class="user-list-row" data-user-id="{{ user.id }}" data-username="{{ user.username }}" data-full-name="{{ user.get_full_name|default:user.username }}" data-email="{{ user.email|default:'' }}" data-phone="{{ user.phone_number|default:'' }}" data-company="{{ user.institution_or_company|default:'' }}" data-course="{{ user.course|default:'' }}" data-role="{{ user.role }}" data-joined="{{ user.date_joined|date:'d M Y' }}">
                                 <div class="row-number">{{ forloop.counter }}</div>
-                                <div><h4>{{ user.get_full_name|default:user.username }}</h4></div>
-                                <div><p>{{ user.email|default:'No email configured' }}</p></div>
-                                <div class="status-container"><span class="pill">Lecturer</span><span class="role-status">Ready</span></div>
+                                <div>
+                                    <h4>{{ user.get_full_name|default:user.username }}</h4>
+                                    <p class="sub-info">{{ user.username }} • {{ user.get_role_display }}</p>
+                                    <p class="sub-info">Joined {{ user.date_joined|date:"d M Y" }}</p>
+                                </div>
+                                <div class="detail-column">
+                                    <div class="detail-row"><span class="detail-label">Email:</span><span class="detail-value">{{ user.email|default:'Not set' }}</span></div>
+                                    <div class="detail-row"><span class="detail-label">Phone:</span><span class="detail-value">{{ user.phone_number|default:'Not set' }}</span></div>
+                                    <div class="detail-row"><span class="detail-label">Campus:</span><span class="detail-value">{{ user.institution_or_company|default:'N/A' }}</span></div>
+                                    <div class="detail-row"><span class="detail-label">Department:</span><span class="detail-value">{{ user.course|default:'N/A' }}</span></div>
+                                </div>
                                 <div class="user-actions">
-                                    <button class="user-action-btn edit-btn" onclick="alert('Edit action loaded')">Edit</button>
-                                    <button class="user-action-btn delete" onclick="confirm('Remove record permanently?')">Delete</button>
+                                    <button type="button" class="user-action-btn edit-btn" onclick="openUserDetails('{{ user.id }}')">Details</button>
+                                    <form method="post" action="{% url 'core:admin_manage_user' user.id %}" style="display:inline;" onsubmit="return confirm('Remove this user permanently?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete">
+                                        <button type="submit" class="user-action-btn delete">Delete</button>
+                                    </form>
                                 </div>
                             </div>
                             {% endfor %}
@@ -947,14 +987,26 @@
                         <h3>Administrators</h3>
                         <div class="role-section-list">
                             {% for user in role_groups.admins %}
-                            <div class="user-list-row">
+                            <div id="user-row-{{ user.id }}" class="user-list-row" data-user-id="{{ user.id }}" data-username="{{ user.username }}" data-full-name="{{ user.get_full_name|default:user.username }}" data-email="{{ user.email|default:'' }}" data-phone="{{ user.phone_number|default:'' }}" data-company="{{ user.institution_or_company|default:'' }}" data-course="{{ user.course|default:'' }}" data-role="{{ user.role }}" data-joined="{{ user.date_joined|date:'d M Y' }}">
                                 <div class="row-number">{{ forloop.counter }}</div>
-                                <div><h4>{{ user.get_full_name|default:user.username }}</h4></div>
-                                <div><p>{{ user.email|default:'No email configured' }}</p></div>
-                                <div class="status-container"><span class="pill">Admin</span><span class="role-status">Secure</span></div>
+                                <div>
+                                    <h4>{{ user.get_full_name|default:user.username }}</h4>
+                                    <p class="sub-info">{{ user.username }} • {{ user.get_role_display }}</p>
+                                    <p class="sub-info">Joined {{ user.date_joined|date:"d M Y" }}</p>
+                                </div>
+                                <div class="detail-column">
+                                    <div class="detail-row"><span class="detail-label">Email:</span><span class="detail-value">{{ user.email|default:'Not set' }}</span></div>
+                                    <div class="detail-row"><span class="detail-label">Phone:</span><span class="detail-value">{{ user.phone_number|default:'Not set' }}</span></div>
+                                    <div class="detail-row"><span class="detail-label">Office:</span><span class="detail-value">{{ user.institution_or_company|default:'N/A' }}</span></div>
+                                    <div class="detail-row"><span class="detail-label">Course:</span><span class="detail-value">{{ user.course|default:'N/A' }}</span></div>
+                                </div>
                                 <div class="user-actions">
-                                    <button class="user-action-btn edit-btn" onclick="alert('Edit action loaded')">Edit</button>
-                                    <button class="user-action-btn delete" onclick="confirm('Remove permanent admin?')">Delete</button>
+                                    <button type="button" class="user-action-btn edit-btn" onclick="openUserDetails('{{ user.id }}')">Details</button>
+                                    <form method="post" action="{% url 'core:admin_manage_user' user.id %}" style="display:inline;" onsubmit="return confirm('Remove this user permanently?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete">
+                                        <button type="submit" class="user-action-btn delete">Delete</button>
+                                    </form>
                                 </div>
                             </div>
                             {% endfor %}
@@ -963,6 +1015,72 @@
                 </div>
 
             </div>
+        </div>
+    </div>
+
+    <div class="overlay-backdrop" id="userDetailsOverlay">
+        <div class="overlay-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:20px;">
+                <div>
+                    <h3 id="detailName" style="margin:0;">User Details</h3>
+                    <p class="sub-info" id="detailRole" style="margin:6px 0 0 0;"></p>
+                </div>
+                <button type="button" class="close-overlay-btn" onclick="closeUserDetails()">Close ×</button>
+            </div>
+            <ul class="review-grid-list" style="margin-top:0;">
+                <li><strong>Username</strong><span id="detailUsername"></span></li>
+                <li><strong>Joined</strong><span id="detailJoined"></span></li>
+                <li><strong>Email</strong><span id="detailEmail"></span></li>
+                <li><strong>Phone</strong><span id="detailPhone"></span></li>
+                <li><strong>Organization</strong><span id="detailCompany"></span></li>
+                <li><strong>Course / Department</strong><span id="detailCourse"></span></li>
+                <li><strong>Role</strong><span id="detailRoleLabel"></span></li>
+            </ul>
+            <form id="userDetailsEditForm" method="post" style="margin-top:24px;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="edit">
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label for="detailFullNameInput">Full Name</label>
+                        <input type="text" id="detailFullNameInput" name="full_name" class="form-control" required>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="detailEmailInput">Email</label>
+                        <input type="email" id="detailEmailInput" name="email" class="form-control" required>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="detailPhoneInput">Phone</label>
+                        <input type="text" id="detailPhoneInput" name="phone_number" class="form-control">
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="detailCompanyInput">Organization</label>
+                        <input type="text" id="detailCompanyInput" name="institution_or_company" class="form-control">
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="detailCourseInput">Course / Department</label>
+                        <input type="text" id="detailCourseInput" name="course" class="form-control">
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="detailRoleInput">Role</label>
+                        <select id="detailRoleInput" name="role" class="form-control">
+                            <option value="STUDENT">Student</option>
+                            <option value="SUPERVISOR">Industry Supervisor</option>
+                            <option value="LECTURER">Lecturer</option>
+                            <option value="ADMIN">Admin</option>
+                        </select>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="detailPasswordInput">New Password (optional)</label>
+                        <input type="password" id="detailPasswordInput" name="new_password" class="form-control" placeholder="Leave blank to keep current password">
+                    </div>
+                </div>
+                <button type="submit" class="btn-portal" style="width:100%; margin-top:20px;">Save User Changes</button>
+            </form>
+            <form id="userDetailsDeleteForm" method="post" style="margin-top:18px; display:flex; justify-content:flex-end;" onsubmit="return confirm('Delete this user and all related access?');">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete">
+                <button type="submit" class="btn btn-gold" style="background:#ef4444; color:#ffffff; border:none; width:auto; padding:12px 18px;">Delete User</button>
+            </form>
         </div>
     </div>
 
@@ -1116,6 +1234,55 @@
                 const roleSelect = document.getElementById('id_role');
                 if(roleSelect) roleSelect.value = roleValue;
             }, 350);
+        }
+
+        const adminManageUserUrlTemplate = "{% url 'core:admin_manage_user' 0 %}";
+
+        function openUserDetails(userId) {
+            const row = document.querySelector(`#user-row-${userId}`);
+            const overlay = document.getElementById('userDetailsOverlay');
+            if (!row || !overlay) return;
+
+            const name = row.dataset.fullName || row.dataset.username;
+            const role = row.dataset.role || 'STUDENT';
+            const email = row.dataset.email || '';
+            const phone = row.dataset.phone || '';
+            const company = row.dataset.company || '';
+            const course = row.dataset.course || '';
+            const joined = row.dataset.joined || '';
+
+            document.getElementById('detailName').innerText = name;
+            document.getElementById('detailRole').innerText = `${role} profile`;
+            document.getElementById('detailRoleLabel').innerText = role;
+            document.getElementById('detailUsername').innerText = row.dataset.username || '';
+            document.getElementById('detailJoined').innerText = joined;
+            document.getElementById('detailEmail').innerText = email || 'Not set';
+            document.getElementById('detailPhone').innerText = phone || 'Not set';
+            document.getElementById('detailCompany').innerText = company || 'Not set';
+            document.getElementById('detailCourse').innerText = course || 'Not set';
+
+            document.getElementById('detailFullNameInput').value = name;
+            document.getElementById('detailEmailInput').value = email;
+            document.getElementById('detailPhoneInput').value = phone;
+            document.getElementById('detailCompanyInput').value = company;
+            document.getElementById('detailCourseInput').value = course;
+            document.getElementById('detailRoleInput').value = role;
+            document.getElementById('detailPasswordInput').value = '';
+
+            const editForm = document.getElementById('userDetailsEditForm');
+            const deleteForm = document.getElementById('userDetailsDeleteForm');
+            const actionUrl = adminManageUserUrlTemplate.replace('/0/', `/${userId}/`);
+            editForm.action = actionUrl;
+            deleteForm.action = actionUrl;
+
+            overlay.classList.add('show');
+        }
+
+        function closeUserDetails() {
+            const overlay = document.getElementById('userDetailsOverlay');
+            if (overlay) {
+                overlay.classList.remove('show');
+            }
         }
     </script>
     

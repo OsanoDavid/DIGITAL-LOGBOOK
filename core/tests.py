@@ -1,4 +1,5 @@
 from django.contrib.auth import authenticate
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 
@@ -84,6 +85,33 @@ class RegistrationFlowTests(TestCase):
         self.assertEqual(user.last_name, 'Doe')
         self.assertEqual(user.course, 'Applied Computer Science')
         self.assertTrue(authenticate(username='IN14/00000/22', password='securepass123'))
+
+    def test_student_registration_rejects_duplicate_registration_number_and_email(self):
+        User.objects.create_user(
+            username='IN14/00000/22',
+            email='duplicate@example.com',
+            password='SecurePass123!',
+            role='STUDENT',
+            first_name='Existing',
+            last_name='Student',
+        )
+
+        form = SISTRegistrationForm(
+            data={
+                'username': 'IN14/00000/22',
+                'full_name': 'New Student',
+                'email': 'duplicate@example.com',
+                'role': 'STUDENT',
+                'phone_number': '+254700000001',
+                'institution_or_company': 'Kisii County Referral Hospital',
+                'password': 'SecurePass123!',
+                'confirm_password': 'SecurePass123!',
+            }
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn('username', form.errors)
+        self.assertIn('email', form.errors)
 
     def test_supervisor_registration_requires_company_or_organization(self):
         form = SISTRegistrationForm(
@@ -203,3 +231,56 @@ class RegistrationFlowTests(TestCase):
         logs = WeeklyLog.objects.filter(profile=period).order_by('week_number')
         self.assertEqual(logs.count(), 1)
         self.assertEqual(logs[0].week_number, 1)
+
+    def test_lecturer_dashboard_lists_pending_reports_for_review(self):
+        student = User.objects.create_user(
+            username='STU204',
+            password='pass1234!',
+            role='STUDENT',
+            first_name='Miriam',
+            last_name='Student',
+            institution_or_company='Kisii County Referral Hospital',
+        )
+        lecturer = User.objects.create_user(
+            username='LEC204',
+            password='pass1234!',
+            role='LECTURER',
+            first_name='Kevin',
+            last_name='Lecturer',
+            course='Computer Science',
+        )
+        period = AttachmentPeriod.objects.create(student=student, lecturer=lecturer, start_date='2026-01-01')
+        period.final_report = SimpleUploadedFile('report.pdf', b'content', content_type='application/pdf')
+        period.report_status = 'PENDING_REVIEW'
+        period.save()
+
+        self.client.force_login(lecturer)
+        response = self.client.get(reverse('core:dashboard'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(period, response.context['pending_reports'])
+
+    def test_admin_can_reset_a_user_password(self):
+        admin_user = User.objects.create_user(
+            username='ADMIN03',
+            password='Pass1234!',
+            role='ADMIN',
+            first_name='System',
+            last_name='Administrator',
+        )
+        target_user = User.objects.create_user(
+            username='STU205',
+            password='OldPass123!',
+            role='STUDENT',
+            first_name='Old',
+            last_name='Student',
+        )
+
+        self.client.force_login(admin_user)
+        response = self.client.post(reverse('core:admin_manage_user', args=[target_user.id]), {
+            'action': 'reset_password',
+            'new_password': 'NewPass123!',
+        })
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(authenticate(username='STU205', password='NewPass123!'))
