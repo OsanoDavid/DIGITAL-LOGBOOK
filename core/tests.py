@@ -24,6 +24,14 @@ class DatabaseSettingsTests(TestCase):
                 'django.db.backends.sqlite3',
             )
 
+    def test_uses_sqlite_path_override_when_provided(self):
+        with patch.dict(os.environ, {'DEBUG': 'True', 'SQLITE_DB_PATH': '/tmp/custom-db.sqlite3'}, clear=False):
+            os.environ.pop('DATABASE_URL', None)
+            settings_module = importlib.import_module('sist_project.settings')
+            reloaded_module = importlib.reload(settings_module)
+
+            self.assertEqual(reloaded_module.DATABASES['default']['NAME'], '/tmp/custom-db.sqlite3')
+
 
 class RegistrationFlowTests(TestCase):
     def test_admin_dashboard_is_available_for_admin_users(self):
