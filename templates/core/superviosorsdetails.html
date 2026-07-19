@@ -63,8 +63,8 @@
       </div>
 
       <div class="nav-buttons">
-        <button class="btn btn-back" disabled>Back</button>
-        <button class="btn btn-next" onclick="sup_nextStep(1)">
+        <button type="button" class="btn btn-back" disabled>Back</button>
+        <button type="button" class="btn btn-next" onclick="sup_nextStep(1)">
           Next <div class="spinner" id="sup_spinner1"></div>
         </button>
       </div>
@@ -252,10 +252,22 @@
         </div>
       </div>
       <div class="nav-buttons">
-        <button class="btn btn-back" onclick="sup_prevStep(1)">Back</button>
-        <button class="btn btn-next" onclick="sup_directSubmit()">
-          Submit Registration <div class="spinner" id="sup_spinner2"></div>
+        <button type="button" class="btn btn-back" onclick="sup_prevStep(1)">Back</button>
+        <button type="button" class="btn btn-next" onclick="sup_nextStep(2)">
+          Review Details <div class="spinner" id="sup_spinner2"></div>
         </button>
+      </div>
+    </div>
+
+    <!-- Step 3: Review before the account is submitted -->
+    <div id="sup_step3" class="step">
+      <div class="review-box">
+        <h3>Review Your Registration Details</h3>
+        <div id="sup_reviewContent"></div>
+      </div>
+      <div class="nav-buttons">
+        <button type="button" class="btn btn-back" onclick="sup_prevStep(2)">Make Corrections</button>
+        <button type="button" class="btn btn-next btn-submit" onclick="sup_submitForm()">Confirm & Submit <div class="spinner"></div></button>
       </div>
     </div>
   </div>
@@ -292,8 +304,9 @@
 
     function sup_updateProgress(step) {
       const progressBar = document.getElementById('sup_progressBar');
-      if (step === 1) progressBar.style.width = "50%";
-      if (step === 2) progressBar.style.width = "100%";
+      if (step === 1) progressBar.style.width = "33.33%";
+      if (step === 2) progressBar.style.width = "66.66%";
+      if (step === 3) progressBar.style.width = "100%";
     }
 
     function sup_nextStep(step) {
@@ -307,6 +320,7 @@
         document.getElementById("sup_step" + step).classList.remove("active");
         document.getElementById("sup_step" + (step + 1)).classList.add("active");
         sup_updateProgress(step + 1);
+        if (step === 2) sup_buildReview();
       }, 400); 
     }
 
@@ -316,16 +330,20 @@
       sup_updateProgress(step);
     }
 
-    function sup_directSubmit() {
-      if (!sup_validateStep(2)) return;
-      const spinner = document.getElementById('sup_spinner2');
-      if(spinner) spinner.style.display = 'inline-block';
-      setTimeout(() => {
-        document.getElementById('sup_registrationForm').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true}));
-      }, 300);
+    function sup_buildReview() {
+      const fields = [
+        ['sup_full_name', 'Full Name'], ['sup_email', 'Email'], ['sup_phone', 'Phone Number'],
+        ['sup_national_id', 'National ID'], ['sup_job_title', 'Job Title'],
+        ['sup_organization', 'Organization'], ['sup_department', 'Department'],
+        ['sup_postal_address', 'Postal Address'], ['sup_org_email', 'Organization Email'], ['sup_org_phone', 'Organization Phone']
+      ];
+      document.getElementById('sup_reviewContent').innerHTML = '<ul>' + fields.map(([id, label]) => {
+        const value = document.getElementById(id)?.value.trim() || 'Not provided';
+        return `<li><strong>${label}:</strong> ${value}</li>`;
+      }).join('') + '</ul>';
     }
 
     function sup_submitForm() {
-      document.getElementById('sup_registrationForm').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true}));
+      document.getElementById('sup_registrationForm').requestSubmit();
     }
   </script>

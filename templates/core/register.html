@@ -768,7 +768,17 @@
             if (role === 'LECTURER') formId = 'lec_registrationForm';
 
             const form = document.getElementById(formId);
+            // Protect against duplicate requests from a button click plus a
+            // programmatic form submission.
+            if (form.dataset.submitting === 'true') return;
+            form.dataset.submitting = 'true';
             const csrfToken = getCookie('csrftoken');
+            const submitButton = event.submitter || form.querySelector('.btn-submit');
+            if (submitButton) {
+                submitButton.disabled = true;
+                const spinner = submitButton.querySelector('.spinner');
+                if (spinner) spinner.style.display = 'inline-block';
+            }
 
             // Find exactly which button fired this so we can show loading.
             // In these wizards, it's usually inside an overlay or similar.
@@ -799,9 +809,21 @@
                     const errorItems = payload.errors || [];
                     triggerTemporaryNotification("❌ " + errorMessage, "error");
                     showRegistrationErrors(errorMessage, errorItems);
+                    form.dataset.submitting = 'false';
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                        const spinner = submitButton.querySelector('.spinner');
+                        if (spinner) spinner.style.display = 'none';
+                    }
                 })
                 .catch(error => {
                     document.body.style.opacity = '1';
+                    form.dataset.submitting = 'false';
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                        const spinner = submitButton.querySelector('.spinner');
+                        if (spinner) spinner.style.display = 'none';
+                    }
                     triggerTemporaryNotification("❌ Connection error. Please check your network and try again.", "error");
                 });
         }

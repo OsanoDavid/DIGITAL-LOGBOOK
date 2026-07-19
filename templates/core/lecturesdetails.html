@@ -89,8 +89,8 @@
       </div>
 
       <div class="nav-buttons">
-        <button class="btn btn-back" disabled>Back</button>
-        <button class="btn btn-next" onclick="lec_nextStep(1)">
+        <button type="button" class="btn btn-back" disabled>Back</button>
+        <button type="button" class="btn btn-next" onclick="lec_nextStep(1)">
           Next <div class="spinner" id="lec_spinner1"></div>
         </button>
       </div>
@@ -164,8 +164,8 @@
         </div>
       </div>
       <div class="nav-buttons">
-        <button class="btn btn-back" onclick="lec_prevStep(1)">Back</button>
-        <button class="btn btn-next" onclick="lec_nextStep(2)">
+        <button type="button" class="btn btn-back" onclick="lec_prevStep(1)">Back</button>
+        <button type="button" class="btn btn-next" onclick="lec_nextStep(2)">
           Next <div class="spinner" id="lec_spinner2"></div>
         </button>
       </div>
@@ -178,8 +178,8 @@
         <div id="lec_reviewContent"></div>
       </div>
       <div class="nav-buttons">
-        <button class="btn btn-back" onclick="lec_prevStep(2)">Back</button>
-        <button class="btn btn-next btn-submit" onclick="lec_submitForm()">Complete Account Registration</button>
+        <button type="button" class="btn btn-back" onclick="lec_prevStep(2)">Back</button>
+        <button type="button" class="btn btn-next btn-submit" onclick="lec_submitForm()">Complete Account Registration <div class="spinner"></div></button>
       </div>
     </div>
   </div>
@@ -268,6 +268,6 @@
     }
 
     function lec_submitForm() {
-      document.getElementById('lec_registrationForm').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true}));
+      document.getElementById('lec_registrationForm').requestSubmit();
     }
   </script>
