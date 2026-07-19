@@ -34,12 +34,13 @@
         </div>
         <div class="form-group">
           <label for="student_year">Year of Study</label>
-          <input type="number" id="student_year" placeholder="e.g., 3" required>
+          <input type="number" id="student_year" placeholder="e.g., 3" min="1" max="6" required>
         </div>
 
         <div class="form-group" style="grid-column: 1 / -1;">
           <label for="student_organization">Organization Name</label>
-          <select id="student_organization" name="institution_or_company" required onchange="student_handleOrganizationSelect(this.value)">
+          <input type="text" id="student_organization" name="institution_or_company" list="student_organization_options" placeholder="Type to search or enter an organization" autocomplete="organization" required>
+          <datalist id="student_organization_options">
               <option value="ABNO Softwares International — P.O BOX 19892-00100, Nairobi — 020 3573210">
   <option value="AccessKenya Group — Nairobi —">
   <option value="Amref Health Africa — P.O BOX 30125-00100, Nairobi — +254 20 6994000">
@@ -195,8 +196,7 @@
   <option value="WyMore IT Solutions — P.O BOX 3729-00100, Nairobi — 254 716297960">
   <option value="Zitron Labs Computing Group — P.O BOX 2327-00100, Nairobi — 724857835">
   <option value="ZTE Kenya — Nairobi —">
-          </select>
-          <input type="text" id="student_organization_custom" name="institution_or_company_custom" placeholder="Type organization name if not listed" style="display:none; margin-top:10px;" />
+          </datalist>
         </div>
 
         <!-- Fees Clearance Status Dropdown Option -->
@@ -326,26 +326,8 @@
       }
     }
 
-    function student_handleOrganizationSelect(value) {
-      const customInput = document.getElementById('student_organization_custom');
-      if (!customInput) return;
-      if (value === 'OTHER') {
-        customInput.style.display = 'block';
-        customInput.required = true;
-      } else {
-        customInput.style.display = 'none';
-        customInput.required = false;
-        customInput.value = '';
-      }
-    }
-
     function student_prepareOrganizationValue() {
-      const orgSelect = document.getElementById('student_organization');
-      const customInput = document.getElementById('student_organization_custom');
-      if (!orgSelect) return;
-      if (orgSelect.value === 'OTHER' && customInput && customInput.value.trim()) {
-        orgSelect.value = customInput.value.trim();
-      }
+      // The searchable input already submits the selected or typed value.
     }
 
     // Visibility toggle functionality logic
@@ -368,6 +350,15 @@
           return false;
         }
       }
+
+      const yearInput = document.getElementById('student_year');
+      if (yearInput && (Number(yearInput.value) < 1 || Number(yearInput.value) > 6)) {
+        yearInput.setCustomValidity('Year of study must be between 1 and 6.');
+        yearInput.reportValidity();
+        yearInput.focus();
+        return false;
+      }
+      if (yearInput) yearInput.setCustomValidity('');
 
       // Password checks inside step 1 
       if (step === 1) {
