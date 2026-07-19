@@ -365,6 +365,67 @@
                 <div class="stat-value">{{ ready_for_lecturer_count|default:0 }}</div>
                 <div class="stat-label">Supervisor-approved logs ready</div>
             </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ pending_reports|length }}</div>
+                <div class="stat-label">Submitted final reports</div>
+            </div>
+        </div>
+
+        <div class="course-section">
+            <div class="course-header">
+                <i class="fa-solid fa-file-lines" style="color: #0f4c81; font-size: 1.2rem;"></i>
+                <h2 class="course-title">Final Report Review Queue</h2>
+                <span class="course-badge">{{ pending_reports|length }} Pending</span>
+            </div>
+            <div class="table-card">
+                {% if pending_reports %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Course</th>
+                            <th>Company</th>
+                            <th>Status</th>
+                            <th>Comments</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for report in pending_reports %}
+                        <tr>
+                            <td>
+                                <div class="student-name">{{ report.student.get_full_name|default:report.student.username }}</div>
+                                <div class="muted">{{ report.student.username }}</div>
+                                <div class="muted">{{ report.student.email|default:'No email' }}</div>
+                            </td>
+                            <td>{{ report.student.course|default:'Unassigned' }}</td>
+                            <td>{{ report.student.institution_or_company|default:'Not specified' }}</td>
+                            <td>
+                                {% if report.report_status == 'PENDING_REVIEW' %}
+                                    <span class="status-pill status-pending">Pending Review</span>
+                                {% elif report.report_status == 'RETURNED' %}
+                                    <span class="status-pill status-pending">Returned</span>
+                                {% else %}
+                                    <span class="status-pill status-approved">{{ report.report_status|title }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ report.report_review_comment|default:'No review comments yet.' }}</td>
+                            <td class="action-cell">
+                                {% if report.final_report %}
+                                    <a href="{{ report.final_report.url }}" class="action-btn secondary" target="_blank"><i class="fa-solid fa-download"></i> Download</a>
+                                {% else %}
+                                    <span class="muted">No report file</span>
+                                {% endif %}
+                                <a href="{% url 'core:review_final_report' report.id %}" class="action-btn"><i class="fa-solid fa-eye"></i> Review</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state" style="padding: 24px 0;">No submitted final reports are awaiting your review right now.</div>
+                {% endif %}
+            </div>
         </div>
 
         {% regroup students by student.course as course_list %}

@@ -238,8 +238,11 @@ def dashboard_view(request):
         if request.method == 'POST' and 'upload_report' in request.POST:
             report_form = FinalReportForm(request.POST, request.FILES, instance=period)
             if report_form.is_valid():
-                report_form.save()
-                return redirect('dashboard')
+                period = report_form.save()
+                period.report_status = 'PENDING_REVIEW'
+                period.report_review_comment = ''
+                period.save(update_fields=['report_status', 'report_review_comment'])
+                return redirect('core:dashboard')
 
         return render(request, 'core/student_dashboard.html', {
             'period': period,
@@ -320,6 +323,11 @@ def dashboard_view(request):
                 course_options.append((course_value, course_value))
                 seen.add(course_value)
 
+        pending_reports = AttachmentPeriod.objects.filter(
+            lecturer=user,
+            report_status__in=['PENDING_REVIEW', 'RETURNED'],
+        ).select_related('student').order_by('-id')
+
         return render(
             request,
             'core/lecturer_dashboard.html',
@@ -328,6 +336,7 @@ def dashboard_view(request):
                 'ready_for_lecturer_count': ready_for_lecturer_count,
                 'course_options': course_options,
                 'selected_course': selected_course,
+                'pending_reports': pending_reports,
             },
         )
 
@@ -378,10 +387,10 @@ def admin_dashboard_view(request):
         'pending_reviews': WeeklyLog.objects.filter(supervisor_approved=False).count(),
     }
     role_groups = {
-        'students': User.objects.filter(role='STUDENT').order_by('-date_joined')[:8],
-        'supervisors': User.objects.filter(role='SUPERVISOR').order_by('-date_joined')[:8],
-        'lecturers': User.objects.filter(role='LECTURER').order_by('-date_joined')[:8],
-        'admins': User.objects.filter(role='ADMIN').order_by('-date_joined')[:8],
+        'students': User.objects.filter(role='STUDENT').order_by('-date_joined'),
+        'supervisors': User.objects.filter(role='SUPERVISOR').order_by('-date_joined'),
+        'lecturers': User.objects.filter(role='LECTURER').order_by('-date_joined'),
+        'admins': User.objects.filter(role='ADMIN').order_by('-date_joined'),
     }
     notice = None
     if selected_role:
@@ -422,6 +431,54 @@ def admin_create_user_view(request):
         'pending_reviews': WeeklyLog.objects.filter(supervisor_approved=False).count(),
     }, 'users': User.objects.order_by('-date_joined')[:12], 'selected_role': selected_role, 'notice': notice})
 
+
+@login_required
+@require_POST
+def admin_manage_user_view(request, user_id):
+    if request.user.role != 'ADMIN':
+        return HttpResponseForbidden("Only the system administrator can manage user accounts.")
+
+    target_user = get_object_or_404(User, id=user_id)
+    action = request.POST.get('action', '').strip()
+
+    if action == 'delete':
+        if target_user == request.user:
+            return redirect('core:admin_dashboard')
+        target_user.delete()
+        return redirect('core:admin_dashboard')
+
+    if action == 'reset_password':
+        new_password = request.POST.get('new_password', '').strip()
+        if new_password:
+            target_user.set_password(new_password)
+            target_user.save(update_fields=['password'])
+        return redirect('core:admin_dashboard')
+
+    if action == 'edit':
+        full_name = request.POST.get('full_name', '').strip()
+        if full_name:
+            parts = full_name.split()
+            target_user.first_name = parts[0]
+            target_user.last_name = ' '.join(parts[1:]) if len(parts) > 1 else ''
+
+        email = request.POST.get('email', '').strip().lower()
+        if email:
+            target_user.email = email
+
+        role = request.POST.get('role', target_user.role).strip()
+        if role in dict(User.ROLE_CHOICES):
+            target_user.role = role
+
+        new_password = request.POST.get('new_password', '').strip()
+        if new_password:
+            target_user.set_password(new_password)
+
+        target_user.phone_number = request.POST.get('phone_number', '').strip() or None
+        target_user.institution_or_company = request.POST.get('institution_or_company', '').strip() or None
+        target_user.course = request.POST.get('course', '').strip() or None
+        target_user.save()
+
+    return redirect('core:admin_dashboard')
 
 @login_required
 def create_log_view(request, period_id):
@@ -517,6 +574,28 @@ def lecturer_sign_log(request, log_id):
     else:
         form = LecturerSignForm(instance=log)
     return render(request, 'core/review_log.html', {'form': form, 'log': log, 'role': 'Lecturer'})
+
+@login_required
+def review_final_report(request, period_id):
+    period = get_object_or_404(AttachmentPeriod, id=period_id)
+    if request.user.role != 'LECTURER' or period.lecturer_id != request.user.id:
+        return HttpResponseForbidden("Only the assigned lecturer can review final reports.")
+
+    if request.method == 'POST':
+        action = request.POST.get('report_action', '').strip()
+        comment = request.POST.get('report_review_comment', '').strip()
+        if action == 'approve':
+            period.report_status = 'APPROVED'
+        elif action == 'return':
+            period.report_status = 'RETURNED'
+        else:
+            period.report_status = 'PENDING_REVIEW'
+
+        period.report_review_comment = comment
+        period.save(update_fields=['report_status', 'report_review_comment'])
+        return redirect('core:dashboard')
+
+    return render(request, 'core/review_final_report.html', {'period': period})
 
 @login_required
 def final_grading_view(request, period_id):
