@@ -8,6 +8,11 @@ import os
 from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
 
+# Render-compatible filesystem fallback for SQLite persistence
+DATA_DIR = os.environ.get('SQLITE_DB_PATH')
+if DATA_DIR:
+    os.makedirs(os.path.dirname(DATA_DIR), exist_ok=True)
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
