@@ -6,10 +6,6 @@ services:
     buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate --noinput"
     startCommand: "gunicorn sist_project.wsgi:application"
     envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: icta-attachees-db
-          property: connectionString
       - key: SECRET_KEY
         generateValue: true
       - key: DJANGO_SETTINGS_MODULE
@@ -18,9 +14,5 @@ services:
         value: 3.13.0
       - key: WEB_CONCURRENCY
         value: 2
-
-databases:
-  - name: icta-attachees-db
-    plan: free
-    databaseName: digital_logbook
-    user: digital_logbook
+      - key: SQLITE_DB_PATH
+        value: /var/data/db.sqlite3
