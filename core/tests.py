@@ -13,6 +13,9 @@ from .views import _ensure_period_assignments
 
 
 class DatabaseSettingsTests(TestCase):
+    def test_dj_database_url_dependency_is_available(self):
+        self.assertTrue(importlib.util.find_spec('dj_database_url'))
+
     def test_falls_back_to_sqlite_when_database_url_is_missing_in_debug_mode(self):
         with patch.dict(os.environ, {'DEBUG': 'True'}, clear=False):
             os.environ.pop('DATABASE_URL', None)
