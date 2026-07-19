@@ -43,6 +43,20 @@ class DatabaseSettingsTests(TestCase):
             self.assertEqual(reloaded_module.DATABASES['default']['ENGINE'], 'django.db.backends.sqlite3')
             self.assertEqual(reloaded_module.DATABASES['default']['NAME'], '/tmp/custom-db.sqlite3')
 
+    def test_render_falls_back_to_sqlite_for_a_legacy_database_name(self):
+        with patch.dict(os.environ, {
+            'DEBUG': 'False',
+            'RENDER': 'true',
+            'DATABASE_URL': 'dhangongo',
+            'SQLITE_DB_PATH': '/tmp/render-db.sqlite3',
+        }, clear=False):
+            os.environ.pop('USE_SQLITE', None)
+            settings_module = importlib.import_module('sist_project.settings')
+            reloaded_module = importlib.reload(settings_module)
+
+            self.assertEqual(reloaded_module.DATABASES['default']['ENGINE'], 'django.db.backends.sqlite3')
+            self.assertEqual(reloaded_module.DATABASES['default']['NAME'], '/tmp/render-db.sqlite3')
+
 
 class MediaUploadSettingsTests(TestCase):
     def test_profile_photo_field_uses_plain_file_storage(self):
