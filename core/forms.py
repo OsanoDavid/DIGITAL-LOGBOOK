@@ -176,7 +176,7 @@ class ProfileUpdateForm(forms.ModelForm):
         required=False,
         help_text='Choose a default color for your profile avatar'
     )
-    profile_photo = forms.ImageField(
+    profile_photo = forms.FileField(
         widget=forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
         label='Profile Picture',
         required=False,

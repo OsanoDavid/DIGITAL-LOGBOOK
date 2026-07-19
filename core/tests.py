@@ -7,7 +7,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 
-from .forms import SISTRegistrationForm
+from .forms import ProfileUpdateForm, SISTRegistrationForm
 from .models import User, AttachmentPeriod, WeeklyLog
 from .views import _ensure_period_assignments
 
@@ -39,6 +39,14 @@ class DatabaseSettingsTests(TestCase):
 
             self.assertEqual(reloaded_module.DATABASES['default']['ENGINE'], 'django.db.backends.sqlite3')
             self.assertEqual(reloaded_module.DATABASES['default']['NAME'], '/tmp/custom-db.sqlite3')
+
+
+class MediaUploadSettingsTests(TestCase):
+    def test_profile_photo_field_uses_plain_file_storage(self):
+        field = User._meta.get_field('profile_photo')
+
+        self.assertEqual(field.get_internal_type(), 'FileField')
+        self.assertEqual(ProfileUpdateForm.base_fields['profile_photo'].__class__.__name__, 'FileField')
 
 
 class RegistrationFlowTests(TestCase):

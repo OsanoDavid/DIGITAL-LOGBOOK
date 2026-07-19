@@ -24,7 +24,7 @@ class User(AbstractUser):
     institution_or_company = models.CharField(max_length=255, blank=True, null=True, default="Kisii University (SIST)")
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     course = models.CharField(max_length=120, blank=True, null=True)
-    profile_photo = models.ImageField(upload_to='profile_photos/', blank=True, null=True)
+    profile_photo = models.FileField(upload_to='profile_photos/', blank=True, null=True)
     
     # ADD THIS LINE HERE:
     avatar_color = models.CharField(max_length=7, default='0284c7')
