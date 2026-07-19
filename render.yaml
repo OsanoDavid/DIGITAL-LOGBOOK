@@ -3,8 +3,8 @@ services:
     name: digital-logbook
     env: python
     plan: free
-    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate --noinput"
-    startCommand: "gunicorn sist_project.wsgi:application"
+    buildCommand: "bash build.sh"
+    startCommand: "gunicorn --bind 0.0.0.0:$PORT sist_project.wsgi:application"
     envVars:
       - key: SECRET_KEY
         generateValue: true
