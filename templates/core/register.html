@@ -176,6 +176,20 @@
             .nav-links { width: 100%; margin-top: 12px; }
         }
 
+        /* Keep desktop links as text, and use a calm side drawer on mobile. */
+        .nav-links a.active { background: transparent !important; box-shadow: none !important; border-radius: 0 !important; padding: 0 !important; }
+        @media (max-width: 800px) {
+            .mobile-nav-toggle { width: 60px; height: 48px; border-radius: 14px; background: #ffffff; color: #0f4c81; }
+            .mobile-nav-toggle.open { transform: none; background: #0f4c81; color: #ffffff; }
+            .mobile-nav-menu { display: flex; flex-direction: column; top: 0; right: 0; width: min(360px, 88vw); max-height: 100vh; height: 100vh; padding: 30px 28px; box-sizing: border-box; border: 0; border-radius: 0; background: rgba(255,255,255,.99); box-shadow: -18px 0 48px rgba(15,76,129,.16); overflow-y: auto; opacity: 0; visibility: hidden; transform: translateX(32px); transition: opacity .3s ease, transform .3s cubic-bezier(.22,1,.36,1), visibility .3s; }
+            .mobile-nav-menu.show { display: flex; opacity: 1; visibility: visible; transform: translateX(0); }
+            .mobile-nav-menu .mobile-menu-brand { display: flex; align-items: center; gap: 10px; margin: 0 0 26px; padding: 0 0 20px; border-bottom: 1px solid #e6edf5; color: #0f4c81; font-size: .78rem; font-weight: 800; letter-spacing: .08em; }
+            .mobile-nav-menu .mobile-menu-brand img { width: 46px; height: 46px; object-fit: contain; border-radius: 8px; }
+            .mobile-nav-menu a { padding: 15px 0; border: 0; background: transparent; color: #172033; font-size: 1.1rem; font-weight: 700; }
+            .mobile-nav-menu a:hover, .mobile-nav-menu a.active { background: transparent; color: #0f4c81; }
+            .mobile-nav-menu a.btn-nav { margin-top: auto; padding: 14px 18px; border-radius: 12px; color: #ffffff; text-align: center; background: linear-gradient(135deg, #0f4c81, #0096ff); box-shadow: 0 10px 20px rgba(15,76,129,.2); }
+        }
+
         /* Profile Role Selector Cards */
         .profile-card-btn {
             display: flex;
@@ -473,8 +487,6 @@
 
 <body>
 
-    <div id="portal-toast" class="toast-notification"></div>
-
     <nav id="home">
         <div class="nav-logo-area">
             <img src="{% static 'images/logo.jpeg' %}" alt="Kisii University Logo">
@@ -492,6 +504,7 @@
             <a href="{% url 'core:login' %}" class="btn-nav">Sign In Terminal</a>
         </div>
         <div class="mobile-nav-menu" id="mobileNavMenu">
+            <div class="mobile-menu-brand"><img src="{% static 'images/logo.jpeg' %}" alt="">KISII LOGBOOK</div>
             <a href="{% url 'core:login' %}">Home</a>
             <a href="#" class="active">Register for Logbook</a>
             <a href="{% url 'core:login' %}#services">Services</a>
@@ -813,6 +826,15 @@
             if (role === 'LECTURER') formId = 'lec_registrationForm';
 
             const form = document.getElementById(formId);
+            // Clear any stale registration errors before attempting a new submit.
+            const errorPanel = document.getElementById('registrationErrorPanel');
+            const errorList = document.getElementById('registrationErrorList');
+            if (errorPanel) {
+                errorPanel.style.display = 'none';
+            }
+            if (errorList) {
+                errorList.innerHTML = '';
+            }
             // Protect against duplicate requests from a button click plus a
             // programmatic form submission.
             if (form.dataset.submitting === 'true') return;
@@ -825,10 +847,7 @@
                 if (spinner) spinner.style.display = 'inline-block';
             }
 
-            // Find exactly which button fired this so we can show loading.
-            // In these wizards, it's usually inside an overlay or similar.
-            // Let's just do a generic loading state for the whole body for simplicity.
-            document.body.style.opacity = '0.7';
+            // Keep the form visible while its button spinner communicates progress.
 
             fetch(form.action || window.location.href, {
                 method: 'POST',
@@ -840,13 +859,18 @@
                 },
             })
                 .then(async response => {
-                    document.body.style.opacity = '1';
                     const payload = await response.json().catch(() => ({}));
                     if (response.ok) {
+                        if (errorPanel) {
+                            errorPanel.style.display = 'none';
+                        }
                         triggerTemporaryNotification("🎉 Registration successful! Redirecting to login...", "success");
-                        setTimeout(() => {
-                            window.location.href = "{% url 'core:login' %}?registered=true";
-                        }, 1500);
+                        const destination = "{% url 'core:login' %}?registered=true";
+                        if (window.beginSmoothNavigation) {
+                            window.beginSmoothNavigation(destination);
+                        } else {
+                            window.location.href = destination;
+                        }
                         return;
                     }
 
@@ -862,7 +886,6 @@
                     }
                 })
                 .catch(error => {
-                    document.body.style.opacity = '1';
                     form.dataset.submitting = 'false';
                     if (submitButton) {
                         submitButton.disabled = false;
@@ -891,11 +914,15 @@
         }
 
         function triggerTemporaryNotification(message, flagType = "success") {
-            const toast = document.getElementById('portal-toast');
+            let toast = document.getElementById('portal-toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'portal-toast';
+                document.body.appendChild(toast);
+            }
             toast.textContent = message;
             toast.className = "toast-notification " + (flagType === "success" ? "toast-success" : "toast-error");
-            toast.style.top = "30px";
-            setTimeout(() => { toast.style.top = "-100px"; }, 5000);
+            showSmoothToast(toast);
         }
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -934,6 +961,7 @@
         function toggleContrast() { document.body.classList.toggle('dark-contrast'); }
     </script>
     {% include 'core/accessibility_snippet.html' %}
+    {% include 'core/ui_transitions.html' %}
 </body>
 
 </html>

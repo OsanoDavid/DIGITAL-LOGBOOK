@@ -189,6 +189,54 @@ class RegistrationFlowTests(TestCase):
         self.assertIn('institution_or_company', form.errors)
         self.assertIn('Company or organization', str(form.errors))
 
+    def test_supervisor_registration_uses_its_staff_id_and_allows_shared_company(self):
+        User.objects.create_user(
+            username='SUP-001',
+            email='existing.supervisor@example.com',
+            phone_number='+254700000010',
+            password='SecurePass123!',
+            role='SUPERVISOR',
+            institution_or_company='Shared Company',
+        )
+
+        form = SISTRegistrationForm(data={
+            'username': 'SUP-002',
+            'full_name': 'New Supervisor',
+            'email': 'new.supervisor@example.com',
+            'role': 'SUPERVISOR',
+            'phone_number': '+254700000011',
+            'institution_or_company': 'Shared Company',
+            'password': 'SecurePass123!',
+            'confirm_password': 'SecurePass123!',
+        })
+
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual(form.save().username, 'SUP-002')
+
+    def test_registration_rejects_only_a_duplicate_phone_when_other_details_match(self):
+        User.objects.create_user(
+            username='LEC-001',
+            email='existing.lecturer@example.com',
+            phone_number='+254 700 000 012',
+            password='SecurePass123!',
+            role='LECTURER',
+            course='Computer Science',
+        )
+
+        form = SISTRegistrationForm(data={
+            'username': 'LEC-002',
+            'full_name': 'New Lecturer',
+            'email': 'new.lecturer@example.com',
+            'role': 'LECTURER',
+            'phone_number': '+254700000012',
+            'course': 'Computer Science',
+            'password': 'SecurePass123!',
+            'confirm_password': 'SecurePass123!',
+        })
+
+        self.assertFalse(form.is_valid())
+        self.assertIn('phone_number', form.errors)
+
     def test_period_assignment_requires_matching_supervisor_company(self):
         student = User.objects.create_user(
             username='STU200',

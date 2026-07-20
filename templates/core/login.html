@@ -94,11 +94,23 @@
             .nav-logo-area { flex-wrap: wrap; justify-content: space-between; }
             .nav-links { width: 100%; margin-top: 12px; }
         }
+
+        /* Keep desktop links as text, and use a calm side drawer on mobile. */
+        .nav-links a.active { background: transparent !important; box-shadow: none !important; border-radius: 0 !important; padding: 0 !important; }
+        @media (max-width: 800px) {
+            .mobile-nav-toggle { width: 60px; height: 48px; border-radius: 14px; background: #ffffff; color: #0f4c81; }
+            .mobile-nav-toggle.open { transform: none; background: #0f4c81; color: #ffffff; }
+            .mobile-nav-menu { display: flex; flex-direction: column; top: 0; right: 0; width: min(360px, 88vw); max-height: 100vh; height: 100vh; padding: 30px 28px; box-sizing: border-box; border: 0; border-radius: 0; background: rgba(255,255,255,.99); box-shadow: -18px 0 48px rgba(15,76,129,.16); overflow-y: auto; opacity: 0; visibility: hidden; transform: translateX(32px); transition: opacity .3s ease, transform .3s cubic-bezier(.22,1,.36,1), visibility .3s; }
+            .mobile-nav-menu.show { display: flex; opacity: 1; visibility: visible; transform: translateX(0); }
+            .mobile-nav-menu .mobile-menu-brand { display: flex; align-items: center; gap: 10px; margin: 0 0 26px; padding: 0 0 20px; border-bottom: 1px solid #e6edf5; color: #0f4c81; font-size: .78rem; font-weight: 800; letter-spacing: .08em; }
+            .mobile-nav-menu .mobile-menu-brand img { width: 46px; height: 46px; object-fit: contain; border-radius: 8px; }
+            .mobile-nav-menu a { padding: 15px 0; border: 0; background: transparent; color: #172033; font-size: 1.1rem; font-weight: 700; }
+            .mobile-nav-menu a:hover, .mobile-nav-menu a.active { background: transparent; color: #0f4c81; }
+            .mobile-nav-menu a.btn-nav { margin-top: auto; padding: 14px 18px; border-radius: 12px; color: #ffffff; text-align: center; background: linear-gradient(135deg, #0f4c81, #0096ff); box-shadow: 0 10px 20px rgba(15,76,129,.2); }
+        }
     </style>
 </head>
 <body>
-
-    <div id="portal-toast" class="toast-notification"></div>
 
     {% include 'core/accessibility_snippet.html' %}
 
@@ -119,6 +131,7 @@
             <a class="btn-nav" onclick="scrollToAndHighlightForm()">Login Portal</a>
         </div>
         <div class="mobile-nav-menu" id="mobileNavMenu">
+            <div class="mobile-menu-brand"><img src="{% static 'images/logo.jpeg' %}" alt="">KISII LOGBOOK</div>
             <a href="#home">Home</a>
             <a href="{% url 'core:register' %}">Register for Logbook</a>
             <a href="#services">Services</a>
@@ -340,7 +353,7 @@
                 if (response.ok && data.status === 'success') {
                     triggerTemporaryNotification("✅ Credentials verified! Redirecting to your dashboard...", "success");
                     setTimeout(() => {
-                        window.location.href = data.redirect_url || "/portal/dashboard/";
+                        window.beginSmoothNavigation(data.redirect_url || "/portal/dashboard/");
                     }, 1500);
                 } else {
                     const serverMsg = data.message || "Invalid Registration Number or Password. Please try again.";
@@ -360,11 +373,15 @@
 
         // Floating Alert Notifications Controller
         function triggerTemporaryNotification(message, flagType = "success") {
-            const toast = document.getElementById('portal-toast');
+            let toast = document.getElementById('portal-toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'portal-toast';
+                document.body.appendChild(toast);
+            }
             toast.textContent = message;
             toast.className = "toast-notification " + (flagType === "success" ? "toast-success" : "toast-error");
-            toast.style.top = "30px";
-            setTimeout(() => { toast.style.top = "-100px"; }, 5000);
+            showSmoothToast(toast);
         }
 
         function scrollToAndHighlightForm() {
@@ -409,5 +426,6 @@
             window.location.replace('about:blank');
         }
     </script>
+    {% include 'core/ui_transitions.html' %}
 </body>
 </html>

@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 from django.urls import reverse
 from django.views.decorators.http import require_GET
+from django.db import IntegrityError
 from django.db.models import Q
 from .models import User, AttachmentPeriod, WeeklyLog
 from .auth_utils import normalize_username
@@ -80,15 +81,21 @@ def register_view(request):
     if request.method == 'POST':
         form = SISTRegistrationForm(request.POST)
         if form.is_valid():
-            # 1. Save the new account data safely into your database
-            user = form.save()
-            
-            # 2. Return clean JSON instead of logging in or doing a Python redirect.
-            # This triggers the frontend JavaScript to show your success message and point to login!
-            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                return JsonResponse({'status': 'success'})
-            return redirect(f"{reverse('core:login')}?registered=true")
-        else:
+            try:
+                # 1. Save the new account data safely into your database
+                user = form.save()
+            except IntegrityError as exc:
+                if 'unique_lower_email' in str(exc):
+                    form.add_error('email', 'An account with this email already exists.')
+                else:
+                    form.add_error(None, 'A database error occurred while creating your account. Please try again.')
+            else:
+                # 2. Return clean JSON instead of logging in or doing a Python redirect.
+                # This triggers the frontend JavaScript to show your success message and point to login!
+                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                    return JsonResponse({'status': 'success'})
+                return redirect(f"{reverse('core:login')}?registered=true")
+        if form.errors:
             # 3. If there are form errors (e.g., matching errors, password rules), return them
             errors = form.errors.get_json_data()
             compressed = []

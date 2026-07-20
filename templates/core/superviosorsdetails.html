@@ -37,10 +37,10 @@
           <input type="text" id="sup_job_title" placeholder="Supervisor Role" required>
         </div>
 
-        <!-- Optional Supervisor Staff ID Code Field -->
+        <!-- Supervisor Staff ID Code Field -->
         <div class="form-group" style="grid-column: 1 / -1;">
-          <label for="supervisor_code">Supervisor Staff ID Code <span style="font-weight: normal; color: #94a3b8;">(Optional)</span></label>
-          <input type="text" id="sup_supervisor_code" placeholder="e.g., SUP-88741">
+          <label for="sup_supervisor_code">Supervisor Staff ID Code</label>
+          <input type="text" id="sup_supervisor_code" name="username" placeholder="e.g., SUP-88741" required>
         </div>
 
         <!-- Create Password Field with functional Visibility Eye Icon -->
@@ -333,7 +333,7 @@
     function sup_buildReview() {
       const fields = [
         ['sup_full_name', 'Full Name'], ['sup_email', 'Email'], ['sup_phone', 'Phone Number'],
-        ['sup_national_id', 'National ID'], ['sup_job_title', 'Job Title'],
+        ['sup_national_id', 'National ID'], ['sup_job_title', 'Job Title'], ['sup_supervisor_code', 'Staff ID Code'],
         ['sup_organization', 'Organization'], ['sup_department', 'Department'],
         ['sup_postal_address', 'Postal Address'], ['sup_org_email', 'Organization Email'], ['sup_org_phone', 'Organization Phone']
       ];

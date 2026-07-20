@@ -33,47 +33,36 @@ class SISTRegistrationForm(forms.ModelForm):
 
     def clean_username(self):
         username = (self.cleaned_data.get('username') or '').strip()
-        role = self.data.get('role', 'STUDENT')
-
-        if role in ('SUPERVISOR', 'LECTURER'):
-            provided_username = (self.data.get('username') or '').strip()
-            if provided_username:
-                if User.objects.filter(username__iexact=provided_username).exists():
-                    raise forms.ValidationError('An account with this username already exists.')
-                return provided_username
-
-            email = self.data.get('email', '').strip().lower()
-            if not email:
-                raise forms.ValidationError('Email is required.')
-            if User.objects.filter(username__iexact=email).exists():
-                raise forms.ValidationError('An account with this email already exists.')
-            return email
-
         normalized = normalize_username(username)
         if not normalized:
-            raise forms.ValidationError('A registration number is required.')
+            raise forms.ValidationError('A Registration Number / Staff ID is required.')
 
         normalized_lookup = normalized.lower()
         for existing in User.objects.values_list('username', flat=True):
             if existing and normalize_username(existing).lower() == normalized_lookup:
-                raise forms.ValidationError('A user with that registration number already exists.')
+                raise forms.ValidationError('A user with that Registration Number / Staff ID already exists.')
         return normalized
 
     def clean_email(self):
         email = (self.cleaned_data.get('email') or '').strip().lower()
-        role = self.data.get('role', 'STUDENT')
         if not email:
             raise forms.ValidationError('Email is required.')
 
-        if role in ('SUPERVISOR', 'LECTURER'):
-            if User.objects.filter(username__iexact=email).exists():
-                raise forms.ValidationError('An account with this email already exists.')
-        else:
-            if User.objects.filter(email__iexact=email).exists():
-                raise forms.ValidationError('An account with this email already exists.')
-            if User.objects.filter(username__iexact=email).exists():
-                raise forms.ValidationError('An account with this email already exists.')
+        if User.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError('An account with this email already exists.')
         return email
+
+    def clean_phone_number(self):
+        phone_number = (self.cleaned_data.get('phone_number') or '').strip()
+        normalized_phone = ''.join(char for char in phone_number if char.isdigit())
+        if not normalized_phone:
+            raise forms.ValidationError('A phone number is required.')
+
+        for existing_phone in User.objects.exclude(phone_number__isnull=True).exclude(phone_number='').values_list('phone_number', flat=True):
+            existing_normalized = ''.join(char for char in existing_phone if char.isdigit())
+            if existing_normalized == normalized_phone:
+                raise forms.ValidationError('An account with this phone number already exists.')
+        return phone_number
 
     def clean(self):
         cleaned_data = super().clean()
@@ -82,17 +71,6 @@ class SISTRegistrationForm(forms.ModelForm):
         role = cleaned_data.get('role')
         institution_or_company = (cleaned_data.get('institution_or_company') or '').strip()
         course = cleaned_data.get('course')
-
-        if role in ('SUPERVISOR', 'LECTURER'):
-            email = (cleaned_data.get('email') or '').strip().lower()
-            if not email:
-                raise forms.ValidationError({'email': 'Email address is required.'})
-
-            username_value = (cleaned_data.get('username') or '').strip()
-            if username_value:
-                cleaned_data['username'] = username_value
-            else:
-                cleaned_data['username'] = email
 
         if password and confirm_password and password != confirm_password:
             raise forms.ValidationError({'confirm_password': 'Passwords do not match.'})
