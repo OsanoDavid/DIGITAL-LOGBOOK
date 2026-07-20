@@ -7,9 +7,17 @@
     window.showSmoothToast = (toast, timeout = 4200) => {
         if (!toast) return;
         window.clearTimeout(toast._hideTimer);
+        window.clearTimeout(toast._removeTimer);
         toast.classList.remove('is-hiding');
+        toast.style.display = '';
         requestAnimationFrame(() => toast.classList.add('is-visible'));
-        toast._hideTimer = window.setTimeout(() => { toast.classList.add('is-hiding'); toast.classList.remove('is-visible'); }, timeout);
+        toast._hideTimer = window.setTimeout(() => {
+            toast.classList.add('is-hiding');
+            toast.classList.remove('is-visible');
+            toast._removeTimer = window.setTimeout(() => {
+                toast.remove();
+            }, 400);
+        }, timeout);
     };
     document.addEventListener('DOMContentLoaded', () => {
         document.body.classList.add('page-ready');
