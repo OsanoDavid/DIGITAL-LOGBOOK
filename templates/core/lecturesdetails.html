@@ -33,7 +33,7 @@
         <!-- System Workspace Profile Assignment Role (Full Width Select) -->
         <div class="form-group full-width">
           <label for="lec_workspace_role">System Workspace Profile Assignment Role</label>
-          <select id="lec_workspace_role" required>
+          <select id="lec_workspace_role" name="workspace_role" required>
             <option value="Internal Academic University Assessor" selected>Internal Academic University Assessor</option>
             <option value="External University Representative">External University Representative</option>
             <option value="Department Administrator">Department Administrator</option>
@@ -42,13 +42,13 @@
 
         <div class="form-group">
           <label for="lec_national_id">National ID Number</label>
-          <input type="text" id="lec_national_id" placeholder="Enter ID Number" required>
+          <input type="text" id="lec_national_id" name="national_id" placeholder="Enter ID Number" required>
         </div>
         
         <!-- Academic Specialization Menu Dropdown -->
         <div class="form-group">
           <label for="lec_specialization">Academic Specialization</label>
-          <select id="lec_specialization" required>
+          <select id="lec_specialization" name="specialization" required>
             <option value="" disabled selected hidden>Select academic specialization</option>
             <option value="Computer Science">Computer Science</option>
             <option value="Applied Computer Science">Applied Computer Science</option>
@@ -120,7 +120,7 @@
         </div>
         <div class="form-group">
           <label for="lec_faculty">Faculty / School</label>
-          <select id="lec_faculty" required>
+          <select id="lec_faculty" name="faculty" required>
             <option value="" disabled selected>Select Faculty</option>
             <option value="School of Information Sciences & Technology">School of Information Sciences &amp; Technology (SIST)</option>
             <option value="Faculty of Computing">Faculty of Computing</option>
@@ -134,7 +134,7 @@
         </div>
         <div class="form-group">
           <label for="lec_department">Department</label>
-          <select id="lec_department" required>
+          <select id="lec_department" name="department" required>
             <option value="" disabled selected>Select Department</option>
             <option value="Computing Sciences">Computing Sciences</option>
             <option value="Information Systems & Technology">Information Systems &amp; Technology</option>
@@ -160,7 +160,7 @@
         </div>
         <div class="form-group">
           <label for="lec_uni_email">Official University Email Address</label>
-          <input type="email" id="lec_uni_email" placeholder="lecturer@university.ac.ke" required>
+          <input type="email" id="lec_uni_email" name="university_email" placeholder="lecturer@university.ac.ke" required>
         </div>
       </div>
       <div class="nav-buttons">

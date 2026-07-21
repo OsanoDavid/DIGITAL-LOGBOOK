@@ -34,7 +34,7 @@
         </div>
         <div class="form-group">
           <label for="student_year">Year of Study</label>
-          <input type="number" id="student_year" placeholder="e.g., 3" min="1" max="6" required>
+          <input type="number" id="student_year" name="year_of_study" placeholder="e.g., 3" min="1" max="6" required>
         </div>
 
         <div class="form-group" style="grid-column: 1 / -1;">
@@ -202,7 +202,7 @@
         <!-- Fees Clearance Status Dropdown Option -->
         <div class="form-group" style="grid-column: 1 / -1;">
           <label for="student_fees_status">Fees Clearance Status</label>
-          <select id="student_fees_status" onchange="student_evaluateFeesClearance()" required>
+          <select id="student_fees_status" name="fees_cleared" onchange="student_evaluateFeesClearance()" required>
             <option value="" selected>-- Select Status --</option>
             <option value="cleared">Yes, I have fully cleared fees</option>
             <option value="balance">No, I have outstanding balance</option>
@@ -242,17 +242,17 @@
       <div class="form-grid">
         <div class="form-group">
           <label for="student_university">University Name</label>
-          <input type="text" id="student_university" placeholder="Enter University" required>
+          <input type="text" id="student_university" name="university" placeholder="Enter University" required>
         </div>
         <div class="form-group">
           <label for="student_faculty">Faculty</label>
-          <input type="text" id="student_faculty" placeholder="Enter Faculty" required>
+          <input type="text" id="student_faculty" name="faculty" placeholder="Enter Faculty" required>
         </div>
         
         <!-- Department Dropdown Configuration -->
         <div class="form-group">
           <label for="student_department">Department</label>
-          <select id="student_department" required>
+          <select id="student_department" name="department" required>
             <option value="" disabled selected>Select your Department</option>
             <option value="Computing Sciences">Computing Sciences</option>
             <option value="Information Systems & Technology">Information Systems & Technology</option>
@@ -276,11 +276,11 @@
 
         <div class="form-group">
           <label for="student_unit_name">Unit Name</label>
-          <input type="text" id="student_unit_name" placeholder="Enter Unit Name" required>
+          <input type="text" id="student_unit_name" name="unit_name" placeholder="Enter Unit Name" required>
         </div>
         <div class="form-group">
           <label for="student_unit_code">Unit Code</label>
-          <input type="text" id="student_unit_code" placeholder="Enter Unit Code" required>
+          <input type="text" id="student_unit_code" name="unit_code" placeholder="Enter Unit Code" required>
         </div>
       </div>
       <div class="nav-buttons">
