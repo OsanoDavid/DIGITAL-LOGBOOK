@@ -132,8 +132,7 @@ if SQLITE_DB_PATH or USE_SQLITE:
     else:
         _ensure_parent_directory(candidate)
         if os.path.isdir(parent) and os.access(parent, os.W_OK):
-            if not IS_RENDER or not candidate.startswith('/data') or os.path.ismount(parent):
-                use_candidate = True
+            use_candidate = True
 
     if use_candidate:
         sqlite_path = candidate
@@ -141,7 +140,7 @@ if SQLITE_DB_PATH or USE_SQLITE:
         sqlite_path = str(BASE_DIR / 'db.sqlite3')
     else:
         raise ImproperlyConfigured(
-            f"The configured sqlite path '{candidate}' is not writable or is not mounted. "
+            f"The configured sqlite path '{candidate}' is not writable. "
             "Production must use a persistent sqlite mount or a valid DATABASE_URL."
         )
 
