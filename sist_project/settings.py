@@ -13,7 +13,16 @@ from django.core.exceptions import ImproperlyConfigured
 def _ensure_parent_directory(path):
     parent = os.path.dirname(path)
     if parent and parent not in {'', '/'}:
-        os.makedirs(parent, exist_ok=True)
+        try:
+            os.makedirs(parent, exist_ok=True)
+        except PermissionError:
+            # Render build containers may not have write access to persistent disk mount paths like /data.
+            pass
+        except OSError as exc:
+            if exc.errno in {13, 30}:  # EACCES or EROFS
+                pass
+            else:
+                raise
 
 
 DATA_DIR = os.environ.get('SQLITE_DB_PATH')
