@@ -120,11 +120,22 @@ if DATABASE_URL and not USE_SQLITE:
         }
 
 if SQLITE_DB_PATH or USE_SQLITE:
-    # /var/data belongs to Render's persistent-disk mount and isn't available
-    # while a build is running. Ignore the retained legacy value in this one
-    # compatibility case so migrations can run in the build workspace.
-    sqlite_path = str(BASE_DIR / 'db.sqlite3') if LEGACY_RENDER_DATABASE_NAME else (SQLITE_DB_PATH or str(BASE_DIR / 'db.sqlite3'))
-    _ensure_parent_directory(sqlite_path)
+    # Prefer the explicitly-configured SQLITE_DB_PATH (used at runtime on Render),
+    # but avoid using a mount path during build when the persistent disk may not
+    # be present or writable. If the configured parent directory is missing or
+    # not writable at import time, fall back to a local DB in BASE_DIR so build
+    # commands (collectstatic/migrate) don't fail with a read-only mount error.
+    candidate = str(BASE_DIR / 'db.sqlite3') if LEGACY_RENDER_DATABASE_NAME else (SQLITE_DB_PATH or str(BASE_DIR / 'db.sqlite3'))
+    parent = os.path.dirname(candidate)
+    use_candidate = False
+    if parent in ('', '/'):
+        use_candidate = True
+    else:
+        # Only use the configured path if the parent directory exists and is writable
+        if os.path.isdir(parent) and os.access(parent, os.W_OK):
+            use_candidate = True
+
+    sqlite_path = candidate if use_candidate else str(BASE_DIR / 'db.sqlite3')
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
