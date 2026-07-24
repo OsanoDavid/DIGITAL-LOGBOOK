@@ -139,10 +139,17 @@ if SQLITE_DB_PATH or USE_SQLITE:
     elif DEBUG:
         sqlite_path = str(BASE_DIR / 'db.sqlite3')
     else:
-        raise ImproperlyConfigured(
-            f"The configured sqlite path '{candidate}' is not writable. "
-            "Production must use a persistent sqlite mount or a valid DATABASE_URL."
+        # During Render build containers the persistent mount at /data may
+        # not be writable yet. Falling back to a local DB here prevents the
+        # build step (collectstatic/migrate) from failing — the runtime
+        # process will still prefer the persistent mount when available.
+        import warnings
+        warnings.warn(
+            f"Falling back to local sqlite DB because '{candidate}' is not writable. "
+            "Ensure the persistent mount is configured on the host for production.",
+            RuntimeWarning,
         )
+        sqlite_path = str(BASE_DIR / 'db.sqlite3')
 
     DATABASES = {
         'default': {
