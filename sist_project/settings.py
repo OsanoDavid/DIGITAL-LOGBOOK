@@ -19,15 +19,10 @@ def _ensure_parent_directory(path):
             # Render build containers may not have write access to persistent disk mount paths like /data.
             pass
         except OSError as exc:
-            if exc.errno in {13, 30}:  # EACCES or EROFS
+            if exc.errno in {1, 13, 30}:  # EPERM, EACCES or EROFS
                 pass
             else:
                 raise
-
-
-DATA_DIR = os.environ.get('SQLITE_DB_PATH')
-if DATA_DIR:
-    _ensure_parent_directory(DATA_DIR)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
