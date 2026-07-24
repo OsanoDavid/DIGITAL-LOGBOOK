@@ -144,6 +144,17 @@ class RegistrationFlowTests(TestCase):
         self.assertEqual(user.course, 'Applied Computer Science')
         self.assertTrue(authenticate(username='IN14/00000/22', password='securepass123'))
 
+    def test_registration_number_login_is_case_insensitive_and_normalized(self):
+        User.objects.create_user(
+            username='IN14-00000-22',
+            email='jane.lower@example.com',
+            password='securepass123',
+            role='STUDENT',
+            first_name='Jane',
+            last_name='Doe',
+        )
+        self.assertTrue(authenticate(username='in14/00000/22', password='securepass123'))
+
     def test_student_registration_rejects_duplicate_registration_number_and_email(self):
         User.objects.create_user(
             username='IN14/00000/22',

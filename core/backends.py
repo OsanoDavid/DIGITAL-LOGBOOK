@@ -35,8 +35,8 @@ class RegistrationNumberAuthBackend(ModelBackend):
 
         for candidate in candidates:
             try:
-                user = user_model._default_manager.get(username=candidate)
-            except user_model.DoesNotExist:
+                user = user_model._default_manager.get(username__iexact=candidate)
+            except (user_model.DoesNotExist, user_model.MultipleObjectsReturned):
                 continue
             if user.check_password(password) and self.user_can_authenticate(user):
                 return user

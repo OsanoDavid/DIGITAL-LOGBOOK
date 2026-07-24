@@ -3,7 +3,7 @@ def normalize_username(value):
     if not value:
         return value
     normalized = []
-    for char in value:
+    for char in value.lower():
         if char.isalnum() or char in {'-', '_'}:
             normalized.append(char)
         else:

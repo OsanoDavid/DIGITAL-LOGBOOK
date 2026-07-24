@@ -120,22 +120,31 @@ if DATABASE_URL and not USE_SQLITE:
         }
 
 if SQLITE_DB_PATH or USE_SQLITE:
-    # Prefer the explicitly-configured SQLITE_DB_PATH (used at runtime on Render),
-    # but avoid using a mount path during build when the persistent disk may not
-    # be present or writable. If the configured parent directory is missing or
-    # not writable at import time, fall back to a local DB in BASE_DIR so build
-    # commands (collectstatic/migrate) don't fail with a read-only mount error.
+    # Prefer the explicitly-configured SQLITE_DB_PATH (used at runtime on Render).
+    # If the configured parent directory can be created and is writable, use it.
+    # In debug mode, fallback to BASE_DIR/db.sqlite3 if necessary. In production,
+    # do not silently switch to an ephemeral local database.
     candidate = str(BASE_DIR / 'db.sqlite3') if LEGACY_RENDER_DATABASE_NAME else (SQLITE_DB_PATH or str(BASE_DIR / 'db.sqlite3'))
     parent = os.path.dirname(candidate)
     use_candidate = False
     if parent in ('', '/'):
         use_candidate = True
     else:
-        # Only use the configured path if the parent directory exists and is writable
+        _ensure_parent_directory(candidate)
         if os.path.isdir(parent) and os.access(parent, os.W_OK):
-            use_candidate = True
+            if not IS_RENDER or not candidate.startswith('/data') or os.path.ismount(parent):
+                use_candidate = True
 
-    sqlite_path = candidate if use_candidate else str(BASE_DIR / 'db.sqlite3')
+    if use_candidate:
+        sqlite_path = candidate
+    elif DEBUG:
+        sqlite_path = str(BASE_DIR / 'db.sqlite3')
+    else:
+        raise ImproperlyConfigured(
+            f"The configured sqlite path '{candidate}' is not writable or is not mounted. "
+            "Production must use a persistent sqlite mount or a valid DATABASE_URL."
+        )
+
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
