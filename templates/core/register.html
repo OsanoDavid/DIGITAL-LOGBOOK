@@ -543,7 +543,7 @@
                     </div>
 
                     <div id="registrationErrorPanel" class="fee-alert-box" {% if errors %}style="display: block;"{% endif %}>
-                        <span id="registrationErrorMessage">{% if errors %}Please correct the highlighted fields:{% endif %}</span>
+                        <span id="registrationErrorMessage">{% if error_summary %}{{ error_summary }}{% elif errors %}Please correct the highlighted fields:{% endif %}</span>
                         <ul id="registrationErrorList" style="margin: 8px 0 0 0; padding-left: 20px; font-size: 0.85rem; font-weight: normal;">
                             {% if errors %}
                                 {% for err in errors %}
@@ -670,7 +670,7 @@
 
             // Trigger temporary notification if errors were passed from standard form submission
             {% if errors %}
-            triggerTemporaryNotification("❌ Please correct the registration errors displayed in the form.", "error");
+            triggerTemporaryNotification("❌ {{ error_summary|default:'Please correct the registration errors displayed in the form.'|escapejs }}", "error");
             // If there were errors on POST, show the form directly
             document.getElementById('profile-selector-section').style.display = 'none';
             document.getElementById('registrationForm').style.display = 'block';

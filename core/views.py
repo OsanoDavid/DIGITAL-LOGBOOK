@@ -116,7 +116,11 @@ def register_view(request):
             summary = first_message or 'Please correct the highlighted fields.'
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 return JsonResponse({'status': 'error', 'message': summary, 'errors': compressed}, status=400)
-            return render(request, 'core/register.html', {'form': form, 'errors': compressed})
+            return render(request, 'core/register.html', {
+                'form': form,
+                'errors': compressed,
+                'error_summary': summary,
+            })
             
     else:
         form = SISTRegistrationForm()
