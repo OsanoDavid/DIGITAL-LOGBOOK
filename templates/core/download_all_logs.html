@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete 12-Week Log - {{ period.student.get_full_name|default:'Student' }}</title>
+    <link rel="stylesheet" href="/static/css/sist1_style.css">
+    <style>
+        .download-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .download-header h1 { margin: 0; font-size: 1.4rem; }
+        .download-header .download-actions { display: flex; gap: 12px; }
+        .log-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; margin-bottom: 16px; }
+        .log-card h2 { margin-top: 0; }
+        .log-meta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+        .log-meta div { color: #475569; font-size: 0.95rem; }
+        .log-field { margin: 10px 0; }
+        .log-field strong { display: block; margin-bottom: 6px; color: #0f172a; }
+        .log-field p { margin: 0; white-space: pre-wrap; color: #334155; }
+        .notice { margin-bottom: 24px; padding: 16px; background: #eff6ff; border-left: 4px solid #2563eb; border-radius: 10px; color: #1d4ed8; }
+        @media print { .download-header, .download-actions { display: none !important; } }
+    </style>
+</head>
+<body>
+    <div class="main-container" style="max-width: 1100px; margin: 32px auto;">
+        <div class="download-header">
+            <div>
+                <h1>Complete 12-Week Log</h1>
+                <p style="margin: 6px 0 0 0; color: #475569;">{{ period.student.get_full_name|default:'Student' }} | {{ period.student.course|default:'Course not assigned' }}</p>
+            </div>
+            <div class="download-actions">
+                <button class="btn btn-blue" onclick="window.print()">🖨️ Print / Save as PDF</button>
+                <a href="{% url 'core:dashboard' %}" class="btn btn-outline">← Back to Dashboard</a>
+            </div>
+        </div>
+
+        <div class="notice">
+            This page includes all completed weekly logs from Week 1 through Week 12. Use your browser’s print dialog to save a PDF or print a physical copy.
+        </div>
+
+        {% for log in logs %}
+            <section class="log-card">
+                <h2>Week {{ log.week_number }}</h2>
+                <div class="log-meta">
+                    <div><strong>Status:</strong> {% if log.supervisor_approved %}Approved{% else %}Draft{% endif %}</div>
+                    <div><strong>Supervisor remark:</strong> {{ log.supervisor_comment|default:'No evaluations added' }}</div>
+                    <div><strong>Lecturer signature:</strong> {{ log.lecturer_comment|default:'No academic signature' }}</div>
+                    <div><strong>Activity entered:</strong> {% if log.monday_activity or log.tuesday_activity or log.wednesday_activity or log.thursday_activity or log.friday_activity %}Yes{% else %}No{% endif %}</div>
+                </div>
+
+                <div class="log-field">
+                    <strong>Monday</strong>
+                    <p>{{ log.monday_activity|default:'No activity recorded' }}</p>
+                </div>
+                <div class="log-field">
+                    <strong>Tuesday</strong>
+                    <p>{{ log.tuesday_activity|default:'No activity recorded' }}</p>
+                </div>
+                <div class="log-field">
+                    <strong>Wednesday</strong>
+                    <p>{{ log.wednesday_activity|default:'No activity recorded' }}</p>
+                </div>
+                <div class="log-field">
+                    <strong>Thursday</strong>
+                    <p>{{ log.thursday_activity|default:'No activity recorded' }}</p>
+                </div>
+                <div class="log-field">
+                    <strong>Friday</strong>
+                    <p>{{ log.friday_activity|default:'No activity recorded' }}</p>
+                </div>
+            </section>
+        {% endfor %}
+    </div>
+</body>
+</html>

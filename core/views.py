@@ -2,7 +2,7 @@ import re
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseForbidden
 from django.urls import reverse
 from django.views.decorators.http import require_GET
 from django.db import IntegrityError
@@ -260,6 +260,7 @@ def dashboard_view(request):
             'log_rows': log_rows,
             'can_add_log': can_add_log,
             'report_form': report_form,
+            'can_download_full_log': len(log_rows) >= 12,
         })
         
     elif user.role == 'SUPERVISOR':
@@ -350,6 +351,20 @@ def dashboard_view(request):
                 'pending_reports': pending_reports,
             },
         )
+
+
+@login_required
+@require_GET
+def download_all_logs_view(request, period_id):
+    period = get_object_or_404(AttachmentPeriod, id=period_id, student=request.user)
+    logs = list(period.weekly_logs.order_by('week_number'))
+    if len(logs) < 12:
+        return HttpResponseForbidden("Full log download is available after 12 weeks of records.")
+
+    return render(request, 'core/download_all_logs.html', {
+        'period': period,
+        'logs': logs,
+    })
 
 
 def admin_login_view(request):

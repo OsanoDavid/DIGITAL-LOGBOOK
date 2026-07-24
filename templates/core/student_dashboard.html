@@ -126,6 +126,14 @@
                 {% endif %}
             {% endif %}
             
+            {% if can_download_full_log %}
+                <div style="margin-bottom: 16px; display: flex; justify-content: flex-end;">
+                    <a href="{% url 'core:download_all_logs' period.id %}" class="btn btn-blue" style="padding: 12px 18px;">
+                        📥 Download complete 12-week log
+                    </a>
+                </div>
+            {% endif %}
+            
             <div class="pipeline-table-wrapper">
                 <table>
                     <thead>
