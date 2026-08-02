@@ -82,6 +82,77 @@ class RegistrationFlowTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Admin Control Center')
 
+    def test_attachment_admin_dashboard_is_available_for_attachment_admin_users(self):
+        admin_user = User.objects.create_user(
+            username='ATTADMIN01',
+            password='Pass1234!',
+            role='ATTACHMENT_ADMIN',
+            first_name='Attachment',
+            last_name='Administrator',
+        )
+
+        self.client.force_login(admin_user)
+        response = self.client.get(reverse('core:admin_dashboard'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Attachment Administrator')
+
+    def test_attachment_admin_cannot_create_system_admin_accounts(self):
+        attachment_admin = User.objects.create_user(
+            username='ATTADMIN02',
+            password='Pass1234!',
+            role='ATTACHMENT_ADMIN',
+            first_name='Attachment',
+            last_name='Officer',
+        )
+
+        self.client.force_login(attachment_admin)
+        response = self.client.post(reverse('core:admin_create_user'), {
+            'full_name': 'System Admin',
+            'username': 'SYSADM999',
+            'email': 'sysadm@example.com',
+            'role': 'ADMIN',
+            'phone_number': '+254700000199',
+            'institution_or_company': 'Kisii University',
+            'course': 'Computer Science',
+            'password': 'SecurePass123!',
+            'confirm_password': 'SecurePass123!',
+        })
+
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(User.objects.filter(username='SYSADM999').exists())
+
+    def test_attachment_admin_cannot_promote_an_existing_user_to_system_admin(self):
+        attachment_admin = User.objects.create_user(
+            username='ATTADMIN03',
+            password='Pass1234!',
+            role='ATTACHMENT_ADMIN',
+            first_name='Attachment',
+            last_name='Officer',
+        )
+        student = User.objects.create_user(
+            username='STU800',
+            password='Pass1234!',
+            role='STUDENT',
+            first_name='Test',
+            last_name='Student',
+        )
+
+        self.client.force_login(attachment_admin)
+        response = self.client.post(reverse('core:admin_manage_user', args=[student.id]), {
+            'action': 'edit',
+            'full_name': 'Test Student',
+            'email': 'student@example.com',
+            'phone_number': '+254700000200',
+            'institution_or_company': 'Kisii University',
+            'course': 'Computer Science',
+            'role': 'ADMIN',
+        })
+
+        self.assertEqual(response.status_code, 403)
+        student.refresh_from_db()
+        self.assertEqual(student.role, 'STUDENT')
+
     def test_admin_dashboard_can_preselect_role_for_quick_create(self):
         admin_user = User.objects.create_user(
             username='ADMIN02',
@@ -121,6 +192,25 @@ class RegistrationFlowTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertTrue(User.objects.filter(username='LEC999').exists())
+
+    def test_registration_view_blocks_new_signups_when_system_registration_is_locked(self):
+        from .models import SystemSettings
+
+        SystemSettings.objects.update_or_create(defaults={'registration_enabled': False}, id=1)
+
+        response = self.client.post(reverse('core:register'), {
+            'username': 'IN14/00001/22',
+            'full_name': 'Jane Doe',
+            'email': 'jane2@example.com',
+            'role': 'STUDENT',
+            'phone_number': '+254700000001',
+            'institution_or_company': 'ICT Authority',
+            'password': 'securepass123',
+            'confirm_password': 'securepass123',
+        })
+
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(User.objects.filter(username='IN14/00001/22').exists())
 
     def test_registration_form_accepts_template_field_names(self):
         form = SISTRegistrationForm(

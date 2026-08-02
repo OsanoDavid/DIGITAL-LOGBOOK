@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Week {{ log.week_number }} - {{ log.profile.student.get_full_name|default:'Student' }}</title>
+    <link rel="stylesheet" href="/static/css/sist1_style.css">
+    <style>
+        .container { max-width: 1100px; margin: 32px auto; }
+        .meta { display:flex; justify-content:space-between; gap:20px; margin-bottom:24px; }
+        table { width:100%; border-collapse: collapse; }
+        th, td { padding:12px 14px; border-bottom: 1px solid #e6eef7; }
+        th { background: #f8fafc; text-align:left; }
+        @media print { .download-actions { display:none !important; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="download-actions" style="display:flex; justify-content:flex-end; gap:12px; margin-bottom:10px;">
+            <button class="btn btn-blue" onclick="window.print()">🖨️ Print / Save as PDF</button>
+            <a href="{% url 'core:dashboard' %}" class="btn btn-outline">← Back to Dashboard</a>
+        </div>
+
+        <h1>Week {{ log.week_number }} — Weekly Log Details</h1>
+
+        <div class="meta">
+            <div>
+                <p><strong>Status:</strong> {% if log.supervisor_approved %}Approved{% else %}Draft{% endif %}</p>
+                <p><strong>Lecturer signature:</strong> {{ log.lecturer_comment|default:'No academic signature' }}</p>
+            </div>
+            <div>
+                <p><strong>Supervisor remark:</strong> {{ log.supervisor_comment|default:'No evaluations added' }}</p>
+                <p><strong>Activity captured:</strong> {% if log.monday_activity or log.tuesday_activity or log.wednesday_activity or log.thursday_activity or log.friday_activity %}Yes{% else %}No{% endif %}</p>
+            </div>
+        </div>
+
+        <h3>Daily Work Summary</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Day</th>
+                    <th>Activity</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>Monday</td><td style="white-space:pre-wrap">{{ log.monday_activity|default:'No activity recorded' }}</td></tr>
+                <tr><td>Tuesday</td><td style="white-space:pre-wrap">{{ log.tuesday_activity|default:'No activity recorded' }}</td></tr>
+                <tr><td>Wednesday</td><td style="white-space:pre-wrap">{{ log.wednesday_activity|default:'No activity recorded' }}</td></tr>
+                <tr><td>Thursday</td><td style="white-space:pre-wrap">{{ log.thursday_activity|default:'No activity recorded' }}</td></tr>
+                <tr><td>Friday</td><td style="white-space:pre-wrap">{{ log.friday_activity|default:'No activity recorded' }}</td></tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

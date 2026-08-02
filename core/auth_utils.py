@@ -3,9 +3,13 @@ def normalize_username(value):
     if not value:
         return value
     normalized = []
-    for char in value.lower():
+    for char in value:
         if char.isalnum() or char in {'-', '_'}:
             normalized.append(char)
         else:
             normalized.append('-')
     return ''.join(normalized).strip('-')
+
+
+def normalize_username_lookup(value):
+    return normalize_username(value).lower()

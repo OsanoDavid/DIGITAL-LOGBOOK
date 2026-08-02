@@ -17,6 +17,7 @@ urlpatterns = [
     # Route for adding a new log mapped to the student's current period
     path('log/create/<int:period_id>/', views.create_log_view, name='create_log'),
     path('log/download-all/<int:period_id>/', views.download_all_logs_view, name='download_all_logs'),
+    path('log/download/<int:log_id>/', views.download_week_log_view, name='download_log'),
     # highlight-end
     
     path('profile/update-meta/', views.update_profile_meta, name='update_profile_meta'),

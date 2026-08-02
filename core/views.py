@@ -7,7 +7,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_GET
 from django.db import IntegrityError
 from django.db.models import Q
-from .models import User, AttachmentPeriod, WeeklyLog
+from .models import User, AttachmentPeriod, WeeklyLog, SystemSettings
 from .auth_utils import normalize_username
 from .forms import SISTRegistrationForm, SISTLoginForm, LogEntryForm, SupervisorCommentForm, LecturerSignForm, FinalReportForm, FinalSupervisorGradingForm, FinalLecturerGradingForm
 from django.views.decorators.http import require_POST
@@ -78,6 +78,13 @@ def login_view(request):
     return render(request, 'core/login.html')
 
 def register_view(request):
+    system_settings = SystemSettings.get_settings()
+    if not system_settings.registration_enabled:
+        message = system_settings.registration_closed_message
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'status': 'error', 'message': message}, status=403)
+        return HttpResponseForbidden(message)
+
     if request.method == 'POST':
         form = SISTRegistrationForm(request.POST)
         if form.is_valid():
@@ -212,7 +219,7 @@ def _ensure_period_assignments(period):
 @login_required
 def dashboard_view(request):
     user = request.user
-    if user.role == 'ADMIN':
+    if User.is_admin_console_user(user.role):
         return redirect('core:admin_dashboard')
 
     if user.role == 'STUDENT':
@@ -361,15 +368,29 @@ def download_all_logs_view(request, period_id):
     if len(logs) < 12:
         return HttpResponseForbidden("Full log download is available after 12 weeks of records.")
 
-    return render(request, 'core/download_all_logs.html', {
+    response = render(request, 'core/download_all_logs.html', {
         'period': period,
         'logs': logs,
     })
+    response['Content-Disposition'] = 'attachment; filename="complete-12-week-log.html"'
+    return response
+
+
+@login_required
+@require_GET
+def download_week_log_view(request, log_id):
+    # Allow the student who owns the log to download a single week's log as an attachment
+    log = get_object_or_404(WeeklyLog, id=log_id, profile__student=request.user)
+    response = render(request, 'core/download_week_log.html', {
+        'log': log,
+    })
+    response['Content-Disposition'] = f'attachment; filename="week-{log.week_number}-log.html"'
+    return response
 
 
 def admin_login_view(request):
     if request.user.is_authenticated:
-        if request.user.role == 'ADMIN':
+        if User.is_admin_console_user(request.user.role):
             return redirect('core:admin_dashboard')
         logout(request)
 
@@ -377,12 +398,12 @@ def admin_login_view(request):
         username = request.POST.get('username', '').strip()
         password = request.POST.get('password', '')
         user = authenticate(request, username=username, password=password)
-        if user is not None and user.role == 'ADMIN':
+        if user is not None and User.is_admin_console_user(user.role):
             login(request, user)
             return redirect('core:admin_dashboard')
 
         return render(request, 'core/admin_login.html', {
-            'error': 'Only system administrators can access this portal.'
+            'error': 'Only system or attachment administrators can access this portal.'
         })
 
     return render(request, 'core/admin_login.html')
@@ -390,14 +411,27 @@ def admin_login_view(request):
 
 @login_required
 def admin_dashboard_view(request):
-    if request.user.role != 'ADMIN':
-        return HttpResponseForbidden("Only the system administrator can access this control center.")
+    if not User.is_admin_console_user(request.user.role):
+        return HttpResponseForbidden("Only system or attachment administrators can access this control center.")
 
+    system_settings = SystemSettings.get_settings()
     selected_role = request.GET.get('role', '')
     role_choices = dict(User.ROLE_CHOICES)
     initial_data = {'role': selected_role} if selected_role in role_choices else {}
     form = SISTRegistrationForm(initial=initial_data)
     if request.method == 'POST':
+        action = request.POST.get('action', '').strip()
+        if action == 'toggle_registration':
+            if request.user.role != 'ADMIN':
+                return HttpResponseForbidden("Only the system administrator can open or lock registration for the whole platform.")
+            system_settings.registration_enabled = not system_settings.registration_enabled
+            system_settings.save(update_fields=['registration_enabled'])
+            return redirect('core:admin_dashboard')
+
+        selected_role_from_form = request.POST.get('role', '')
+        if not User.can_create_role(request.user.role, selected_role_from_form):
+            return HttpResponseForbidden("Attachment administrators can only manage attachment operation users, not full system-admin accounts.")
+
         form = SISTRegistrationForm(request.POST)
         if form.is_valid():
             form.save()
@@ -409,6 +443,7 @@ def admin_dashboard_view(request):
         'supervisors': User.objects.filter(role='SUPERVISOR').count(),
         'lecturers': User.objects.filter(role='LECTURER').count(),
         'admins': User.objects.filter(role='ADMIN').count(),
+        'attachment_admins': User.objects.filter(role='ATTACHMENT_ADMIN').count(),
         'active_periods': AttachmentPeriod.objects.count(),
         'pending_reviews': WeeklyLog.objects.filter(supervisor_approved=False).count(),
     }
@@ -417,27 +452,35 @@ def admin_dashboard_view(request):
         'supervisors': User.objects.filter(role='SUPERVISOR').order_by('-date_joined'),
         'lecturers': User.objects.filter(role='LECTURER').order_by('-date_joined'),
         'admins': User.objects.filter(role='ADMIN').order_by('-date_joined'),
+        'attachment_admins': User.objects.filter(role='ATTACHMENT_ADMIN').order_by('-date_joined'),
     }
     notice = None
     if selected_role:
         notice = f"Create a new {role_choices.get(selected_role, selected_role).lower()} account from the form below."
 
-    return render(request, 'core/admin_dashboard.html', {
+    template_name = 'core/attachment_admin_dashboard.html' if request.user.role == 'ATTACHMENT_ADMIN' else 'core/admin_dashboard.html'
+
+    return render(request, template_name, {
         'form': form,
         'stats': stats,
         'role_groups': role_groups,
         'selected_role': selected_role,
         'notice': notice,
+        'system_settings': system_settings,
     })
 
 
 @login_required
 def admin_create_user_view(request):
-    if request.user.role != 'ADMIN':
-        return HttpResponseForbidden("Only the system administrator can create users.")
+    if not User.is_admin_console_user(request.user.role):
+        return HttpResponseForbidden("Only system or attachment administrators can create users.")
 
     if request.method != 'POST':
         return redirect('core:admin_dashboard')
+
+    selected_role = request.POST.get('role', '')
+    if not User.can_create_role(request.user.role, selected_role):
+        return HttpResponseForbidden("Attachment administrators can only manage attachment operation users, not full system-admin accounts.")
 
     form = SISTRegistrationForm(request.POST)
     if form.is_valid():
@@ -447,25 +490,31 @@ def admin_create_user_view(request):
     selected_role = request.POST.get('role', '')
     role_choices = dict(User.ROLE_CHOICES)
     notice = f"Please correct the highlighted fields for the {role_choices.get(selected_role, selected_role).lower()} account."
-    return render(request, 'core/admin_dashboard.html', {'form': form, 'stats': {
+    template_name = 'core/attachment_admin_dashboard.html' if request.user.role == 'ATTACHMENT_ADMIN' else 'core/admin_dashboard.html'
+
+    return render(request, template_name, {'form': form, 'stats': {
         'total_users': User.objects.count(),
         'students': User.objects.filter(role='STUDENT').count(),
         'supervisors': User.objects.filter(role='SUPERVISOR').count(),
         'lecturers': User.objects.filter(role='LECTURER').count(),
         'admins': User.objects.filter(role='ADMIN').count(),
+        'attachment_admins': User.objects.filter(role='ATTACHMENT_ADMIN').count(),
         'active_periods': AttachmentPeriod.objects.count(),
         'pending_reviews': WeeklyLog.objects.filter(supervisor_approved=False).count(),
-    }, 'users': User.objects.order_by('-date_joined')[:12], 'selected_role': selected_role, 'notice': notice})
+    }, 'users': User.objects.order_by('-date_joined')[:12], 'selected_role': selected_role, 'notice': notice, 'system_settings': SystemSettings.get_settings()})
 
 
 @login_required
 @require_POST
 def admin_manage_user_view(request, user_id):
-    if request.user.role != 'ADMIN':
-        return HttpResponseForbidden("Only the system administrator can manage user accounts.")
+    if not User.is_admin_console_user(request.user.role):
+        return HttpResponseForbidden("Only system or attachment administrators can manage user accounts.")
 
     target_user = get_object_or_404(User, id=user_id)
     action = request.POST.get('action', '').strip()
+
+    if request.user.role == 'ATTACHMENT_ADMIN' and target_user.role == 'ADMIN':
+        return HttpResponseForbidden("Attachment administrators cannot access or alter system-admin accounts.")
 
     if action == 'delete':
         if target_user == request.user:
@@ -481,6 +530,10 @@ def admin_manage_user_view(request, user_id):
         return redirect('core:admin_dashboard')
 
     if action == 'edit':
+        requested_role = request.POST.get('role', target_user.role).strip()
+        if request.user.role == 'ATTACHMENT_ADMIN' and not User.can_create_role(request.user.role, requested_role):
+            return HttpResponseForbidden("Attachment administrators can only manage attachment operation users, not full system-admin accounts.")
+
         full_name = request.POST.get('full_name', '').strip()
         if full_name:
             parts = full_name.split()
@@ -491,7 +544,7 @@ def admin_manage_user_view(request, user_id):
         if email:
             target_user.email = email
 
-        role = request.POST.get('role', target_user.role).strip()
+        role = requested_role
         if role in dict(User.ROLE_CHOICES):
             target_user.role = role
 

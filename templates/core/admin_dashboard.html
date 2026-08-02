@@ -9,41 +9,43 @@
     <style>
         /* Modern System Dashboard Styling */
         body { 
-            background: #f8fafc; 
+            background: linear-gradient(135deg, #f8fbff 0%, #fef7ed 100%);
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             margin: 0;
             padding: 0;
+            color: #0f172a;
         }
         
         .admin-shell { 
             width: 100%;
             max-width: 1600px; 
             margin: 0 auto; 
-            padding: 40px 30px;
+            padding: 36px 24px 48px;
             box-sizing: border-box;
         }
         
         .admin-panel { 
             display: grid; 
             grid-template-columns: 320px 1fr; 
-            gap: 35px; 
+            gap: 28px; 
             align-items: start;
         }
 
-        /* --- VIBRANT MULTICOLOR SIDEBAR --- */
+        /* --- SIST-BRANDED SIDEBAR --- */
         .sidebar { 
-            background: #0f172a; 
+            background: linear-gradient(180deg, #0f4c81 0%, #1e3a8a 100%);
             color: #ffffff; 
             border-radius: 24px; 
-            padding: 35px 24px; 
-            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15); 
+            padding: 30px 22px;
+            box-shadow: 0 20px 40px rgba(15, 76, 129, 0.16);
             display: flex;
             flex-direction: column;
-            min-height: 750px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            min-height: 760px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
             position: sticky;
             top: 40px;
             box-sizing: border-box;
+            overflow: hidden;
         }
         
         .sidebar h2 { 
@@ -56,7 +58,7 @@
         }
         
         .sidebar p { 
-            color: #94a3b8 !important; 
+            color: #dbeafe !important; 
             font-size: 0.9rem; 
             line-height: 1.5; 
             font-weight: 400;
@@ -99,13 +101,13 @@
             transform: translateX(4px);
         }
 
-        /* Multicolor Active Navigation Tabs */
-        .sidebar-nav a[data-target="overview"].active { background: linear-gradient(135deg, #2563eb, #1d4ed8) !important; color: #ffffff !important; box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3) !important; }
-        .sidebar-nav a[data-target="create-user-section"].active { background: linear-gradient(135deg, #7c3aed, #6d28d9) !important; color: #ffffff !important; box-shadow: 0 10px 20px rgba(124, 58, 237, 0.3) !important; }
+        /* SIST Brand Active Navigation Tabs */
+        .sidebar-nav a[data-target="overview"].active { background: linear-gradient(135deg, #f4a261, #fb923c) !important; color: #ffffff !important; box-shadow: 0 10px 20px rgba(244, 162, 97, 0.3) !important; }
+        .sidebar-nav a[data-target="create-user-section"].active { background: linear-gradient(135deg, #0f4c81, #2563eb) !important; color: #ffffff !important; box-shadow: 0 10px 20px rgba(15, 76, 129, 0.3) !important; }
         .sidebar-nav a[data-target="students"].active { background: linear-gradient(135deg, #10b981, #059669) !important; color: #ffffff !important; box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3) !important; }
-        .sidebar-nav a[data-target="supervisors"].active { background: linear-gradient(135deg, #6366f1, #4f46e5) !important; color: #ffffff !important; box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3) !important; }
+        .sidebar-nav a[data-target="supervisors"].active { background: linear-gradient(135deg, #0f4c81, #1d4ed8) !important; color: #ffffff !important; box-shadow: 0 10px 20px rgba(15, 76, 129, 0.3) !important; }
         .sidebar-nav a[data-target="lecturers"].active { background: linear-gradient(135deg, #f59e0b, #d97706) !important; color: #ffffff !important; box-shadow: 0 10px 20px rgba(245, 158, 11, 0.3) !important; }
-        .sidebar-nav a[data-target="admins"].active { background: linear-gradient(135deg, #06b6d4, #0891b2) !important; color: #ffffff !important; box-shadow: 0 10px 20px rgba(6, 182, 212, 0.3) !important; }
+        .sidebar-nav a[data-target="admins"].active { background: linear-gradient(135deg, #38bdf8, #0ea5e9) !important; color: #ffffff !important; box-shadow: 0 10px 20px rgba(56, 189, 248, 0.3) !important; }
         
         /* --- CONTENT AREA & WIDE VIEWS --- */
         .content-area { 
@@ -114,6 +116,29 @@
             gap: 30px; 
             position: relative;
             width: 100%;
+        }
+
+        .admin-hero {
+            background: linear-gradient(135deg, #0f4c81 0%, #1e3a8a 100%);
+            color: #ffffff;
+            border-radius: 24px;
+            padding: 28px 30px;
+            box-shadow: 0 16px 32px rgba(15, 76, 129, 0.16);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .admin-hero h1 {
+            margin: 0 0 8px;
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .admin-hero p {
+            margin: 0;
+            color: #dbeafe;
+            font-size: 1rem;
+            font-weight: 500;
         }
 
         .dashboard-section {
@@ -495,25 +520,38 @@
         .form-panel .form-control:focus { border-color: #6366f1; background: #ffffff; outline: none; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15); }
         
         .btn-portal { 
-            padding: 16px; font-size: 1.05rem; font-weight: 700; border-radius: 14px; color: white; border: none; cursor: pointer; background: #0f172a; box-shadow: 0 8px 20px rgba(15, 23, 42, 0.15); transition: all 0.2s ease; margin-top: 10px;
+            padding: 16px; font-size: 1.05rem; font-weight: 700; border-radius: 14px; color: white; border: none; cursor: pointer; background: linear-gradient(135deg, #0f4c81, #38bdf8); box-shadow: 0 8px 20px rgba(15, 76, 129, 0.18); transition: all 0.2s ease; margin-top: 10px;
         }
-        .btn-portal:hover { background: #1e293b; transform: translateY(-2px); }
+        .btn-portal:hover { background: linear-gradient(135deg, #1e3a8a, #0ea5e9); transform: translateY(-2px); }
 
         /* --- STAT CARDS --- */
         .stats-grid { 
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; 
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; 
         }
         .stat-card { 
-            background: white; border-radius: 20px; padding: 26px; box-shadow: 0 10px 25px rgba(15, 23, 42, 0.02); border-top: 4px solid #3b82f6; border-left: 1px solid #edf2f7; border-right: 1px solid #edf2f7; border-bottom: 1px solid #edf2f7;
+            background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 12px 28px rgba(15, 76, 129, 0.08);
+            border-top: 4px solid #0f4c81;
+            border-left: 1px solid #e8eef7;
+            border-right: 1px solid #e8eef7;
+            border-bottom: 1px solid #e8eef7;
         }
         .stat-card strong { display: block; font-size: 2.2rem; color: #0f172a; font-weight: 800; margin-bottom: 4px; }
-        .stat-card span { color: #64748b; font-size: 0.95rem; font-weight: 600; }
+        .stat-card span { color: #64748b; font-size: 0.95rem; font-weight: 700; }
         
         /* --- COMPONENT PANELS --- */
         .panel { 
-            background: white; border-radius: 24px; padding: 35px; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.02); border: 1px solid #e2e8f0; width: 100%; box-sizing: border-box;
+            background: linear-gradient(180deg, #ffffff 0%, #fdfefe 100%);
+            border-radius: 24px;
+            padding: 32px;
+            box-shadow: 0 14px 34px rgba(15, 76, 129, 0.07);
+            border: 1px solid #dbe5f0;
+            width: 100%;
+            box-sizing: border-box;
         }
-        .panel h3 { margin-top: 0; color: #0f172a; font-size: 1.6rem; font-weight: 800; margin-bottom: 25px; }
+        .panel h3 { margin-top: 0; color: #0f172a; font-size: 1.5rem; font-weight: 800; margin-bottom: 20px; }
         
         /* --- EXPANDED VERTICAL USER LISTS --- */
         .role-section-list { 
@@ -709,6 +747,24 @@
                         <div class="stat-card" style="border-top-color: #6366f1;"><strong>{{ stats.supervisors }}</strong><span>Supervisors</span></div>
                         <div class="stat-card" style="border-top-color: #f59e0b;"><strong>{{ stats.lecturers }}</strong><span>Lecturers</span></div>
                         <div class="stat-card" style="border-top-color: #06b6d4;"><strong>{{ stats.admins }}</strong><span>Admins</span></div>
+                        <div class="stat-card" style="border-top-color: #ec4899;"><strong>{{ stats.attachment_admins }}</strong><span>Attachment Admins</span></div>
+                    </div>
+                    <div class="panel">
+                        <h3>Registration Control</h3>
+                        <p style="margin: 0 0 16px; color: #475569;">
+                            {% if system_settings.registration_enabled %}
+                                Registration is currently open for new account signups.
+                            {% else %}
+                                Registration is currently closed and new users cannot self-register.
+                            {% endif %}
+                        </p>
+                        <form method="post" action="{% url 'core:admin_dashboard' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="toggle_registration">
+                            <button type="submit" class="btn-portal" style="width:auto; margin-top:0;">
+                                {% if system_settings.registration_enabled %}Lock registration{% else %}Open registration{% endif %}
+                            </button>
+                        </form>
                     </div>
                 </div>
 
@@ -749,6 +805,10 @@
                                 <button type="button" class="course-selection-card master-option" onclick="selectAdminCreateProfile('ADMIN')">
                                     <h4>🛡️ System Administrator</h4>
                                     <p>Create a new superuser or staff admin</p>
+                                </button>
+                                <button type="button" class="course-selection-card" onclick="selectAdminCreateProfile('ATTACHMENT_ADMIN')">
+                                    <h4>📦 Attachment Administrator</h4>
+                                    <p>Create the attachment control officer who manages users, roles, and access</p>
                                 </button>
                             </div>
                         </div>
@@ -813,6 +873,41 @@
                                         <input type="password" name="confirm_password" class="form-control" required>
                                     </div>
                                     <button type="submit" class="btn-portal" style="grid-column: 1 / -1;">Save Administrator Record</button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div id="admin_attachment_admin_wizard" style="display:none;">
+                            <button type="button" class="btn-back" onclick="returnToAdminProfileSelector()" style="margin-bottom:15px; padding: 10px 20px;">← Back to Roles</button>
+                            <form method="post" action="{% url 'core:admin_create_user' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="role" value="ATTACHMENT_ADMIN">
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label for="id_full_name_attachment_admin">Full Name</label>
+                                        <input type="text" name="full_name" class="form-control" required placeholder="e.g. Mary Attachment Officer">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="id_username_attachment_admin">Username</label>
+                                        <input type="text" name="username" class="form-control" required placeholder="e.g. attachment_admin_01">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="id_email_attachment_admin">Email Address</label>
+                                        <input type="email" name="email" class="form-control" required placeholder="e.g. attachment-admin@example.com">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="id_phone_number_attachment_admin">Phone Number</label>
+                                        <input type="text" name="phone_number" class="form-control" placeholder="e.g. 0712345678">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="id_password_attachment_admin">Account Password</label>
+                                        <input type="password" name="password" class="form-control" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="id_confirm_password_attachment_admin">Confirm Password</label>
+                                        <input type="password" name="confirm_password" class="form-control" required>
+                                    </div>
+                                    <button type="submit" class="btn-portal" style="grid-column: 1 / -1;">Save Attachment Administrator Record</button>
                                 </div>
                             </form>
                         </div>
@@ -1014,6 +1109,43 @@
                     </div>
                 </div>
 
+                <!-- ATTACHMENT ADMINS SECTION -->
+                <div id="attachment-admins" class="dashboard-section">
+                    <div class="panel">
+                        <h3>Attachment Administrators</h3>
+                        <div class="role-section-list">
+                            {% for user in role_groups.attachment_admins %}
+                            <div id="user-row-{{ user.id }}" class="user-list-row" data-user-id="{{ user.id }}" data-username="{{ user.username }}" data-full-name="{{ user.get_full_name|default:user.username }}" data-email="{{ user.email|default:'' }}" data-phone="{{ user.phone_number|default:'' }}" data-company="{{ user.institution_or_company|default:'' }}" data-course="{{ user.course|default:'' }}" data-role="{{ user.role }}" data-joined="{{ user.date_joined|date:'d M Y' }}">
+                                <div class="row-number">{{ forloop.counter }}</div>
+                                <div>
+                                    <h4>{{ user.get_full_name|default:user.username }}</h4>
+                                    <p class="sub-info">{{ user.username }} • {{ user.get_role_display }}</p>
+                                    <p class="sub-info">Joined {{ user.date_joined|date:"d M Y" }}</p>
+                                </div>
+                                <div class="detail-column">
+                                    <div class="detail-row"><span class="detail-label">Email:</span><span class="detail-value">{{ user.email|default:'Not set' }}</span></div>
+                                    <div class="detail-row"><span class="detail-label">Phone:</span><span class="detail-value">{{ user.phone_number|default:'Not set' }}</span></div>
+                                    <div class="detail-row"><span class="detail-label">Office:</span><span class="detail-value">{{ user.institution_or_company|default:'N/A' }}</span></div>
+                                    <div class="detail-row"><span class="detail-label">Role:</span><span class="detail-value">Attachment Control</span></div>
+                                </div>
+                                <div class="user-actions">
+                                    <button type="button" class="user-action-btn edit-btn" onclick="openUserDetails('{{ user.id }}')">Details</button>
+                                    <form method="post" action="{% url 'core:admin_manage_user' user.id %}" style="display:inline;" onsubmit="return confirm('Remove this user permanently?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete">
+                                        <button type="submit" class="user-action-btn delete">Delete</button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="user-list-row empty-notice-row" style="grid-template-columns:1fr; text-align:center;">
+                                <p>No attachment administrators have been created yet.</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
@@ -1067,6 +1199,7 @@
                             <option value="SUPERVISOR">Industry Supervisor</option>
                             <option value="LECTURER">Lecturer</option>
                             <option value="ADMIN">Admin</option>
+                            <option value="ATTACHMENT_ADMIN">Attachment Administrator</option>
                         </select>
                     </div>
                     <div class="form-group full-width">

@@ -21,6 +21,10 @@ from core import views # Imports views directly for the landing page hook
 urlpatterns = [
     # /admin/ now redirects to the custom admin login page (portal/admins/)
     path('admin/', views.admin_login_view, name='custom_admin'),
+
+    # Root-facing attachment admin aliases for direct console access
+    path('admins/', views.admin_login_view, name='admin_login_root'),
+    path('admins/dashboard/', views.admin_dashboard_view, name='admin_dashboard_root'),
     
     # 1. Maps the blank root URL directly to your landing login portal page
     path('', views.login_view, name='login'), 

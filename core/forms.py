@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
-from .auth_utils import normalize_username
+from .auth_utils import normalize_username_lookup, normalize_username
 from .models import User, WeeklyLog, AttachmentPeriod
 
 COURSE_CHOICES = [
@@ -37,9 +37,9 @@ class SISTRegistrationForm(forms.ModelForm):
         if not normalized:
             raise forms.ValidationError('A Registration Number / Staff ID is required.')
 
-        normalized_lookup = normalized.lower()
+        normalized_lookup = normalize_username_lookup(username)
         for existing in User.objects.values_list('username', flat=True):
-            if existing and normalize_username(existing).lower() == normalized_lookup:
+            if existing and normalize_username_lookup(existing) == normalized_lookup:
                 raise forms.ValidationError('A user with that Registration Number / Staff ID already exists.')
         return normalized
 
