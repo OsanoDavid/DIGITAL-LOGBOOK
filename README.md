@@ -20,3 +20,24 @@ PUBLIC_SITE_URL=https://kisii-university-digital-logbook.onrender.com
 ```
 
 After deployment, supervisor invitations are sent from `DEFAULT_FROM_EMAIL` and include a one-time password-setup link.
+
+## Quick: Seed Attachment Administrator (fast)
+
+If you want a ready `ATTACHMENT_ADMIN` account quickly, add these environment secrets to your Render service and redeploy:
+
+```
+ATTACHMENT_ADMIN_USERNAME=attachmentadmin
+ATTACHMENT_ADMIN_EMAIL=attachmentadmin@example.com
+ATTACHMENT_ADMIN_PASSWORD=Attachment@2026
+```
+
+After deploy, run migrations (if not automatic) and verify the user exists:
+
+```bash
+python manage.py migrate --noinput
+python manage.py collectstatic --noinput
+python manage.py shell -c "from core.models import User; print(User.objects.filter(username='attachmentadmin').exists())"
+```
+
+Login with `attachmentadmin` / `Attachment@2026` at your admin-login URL. Do NOT commit or share these credentials; use Render Secrets for production.
+
