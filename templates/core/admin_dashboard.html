@@ -108,6 +108,7 @@
         .sidebar-nav a[data-target="supervisors"].active { background: linear-gradient(135deg, #0f4c81, #1d4ed8) !important; color: #ffffff !important; box-shadow: 0 10px 20px rgba(15, 76, 129, 0.3) !important; }
         .sidebar-nav a[data-target="lecturers"].active { background: linear-gradient(135deg, #f59e0b, #d97706) !important; color: #ffffff !important; box-shadow: 0 10px 20px rgba(245, 158, 11, 0.3) !important; }
         .sidebar-nav a[data-target="admins"].active { background: linear-gradient(135deg, #38bdf8, #0ea5e9) !important; color: #ffffff !important; box-shadow: 0 10px 20px rgba(56, 189, 248, 0.3) !important; }
+        .sidebar-nav a[data-target="attachment-admins"].active { background: linear-gradient(135deg, #ec4899, #fb7185) !important; color: #ffffff !important; box-shadow: 0 10px 20px rgba(236, 72, 153, 0.22) !important; }
         
         /* --- CONTENT AREA & WIDE VIEWS --- */
         .content-area { 
@@ -693,6 +694,7 @@
                 <option value="supervisors">Supervisors</option>
                 <option value="lecturers">Lecturers</option>
                 <option value="admins">Admins</option>
+                <option value="attachment-admins">Attachment Admins</option>
                 <option value="logout">Logout</option>
             </select>
             <a class="mobile-logout-link" href="{% url 'core:logout' %}">Logout</a>
@@ -723,6 +725,10 @@
                     <a data-target="admins" class="nav-item">
                         <span style="display:inline-block; width:8px; height:8px; background:#06b6d4; border-radius:50%;"></span>
                         Admins
+                    </a>
+                    <a data-target="attachment-admins" class="nav-item">
+                        <span style="display:inline-block; width:8px; height:8px; background:#ec4899; border-radius:50%;"></span>
+                        Attachment Admins
                     </a>
                 </nav>
                 <a class="logout-link" href="{% url 'core:logout' %}">Logout</a>
