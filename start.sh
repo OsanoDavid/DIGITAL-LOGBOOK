@@ -10,6 +10,23 @@ if [ "${RUN_MIGRATIONS:-1}" = "1" ]; then
   python manage.py migrate --noinput
 else
   echo "RUN_MIGRATIONS != 1, skipping migrations"
+  # Safety: if the database has no applied migrations, abort to avoid running
+  # an app against an empty DB unintentionally. This prevents accidental
+  # deployments that skip migrations on a fresh database.
+  APPLIED_COUNT=$(python - <<PY
+from django.db.migrations.recorder import MigrationRecorder
+try:
+    print(MigrationRecorder.Migration.objects.count())
+except Exception:
+    print(0)
+PY
+)
+  if [ "${APPLIED_COUNT}" = "0" ]; then
+    echo "ERROR: No migrations are recorded in the database and RUN_MIGRATIONS=0." >&2
+    echo "This looks like a fresh or uninitialized database. Aborting start to avoid data loss." >&2
+    echo "If you really intend to skip migrations, set RUN_MIGRATIONS=1 or initialize the DB first." >&2
+    exit 1
+  fi
 fi
 
 # Start the application

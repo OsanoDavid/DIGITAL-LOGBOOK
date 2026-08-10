@@ -37,6 +37,8 @@ After deploy, run migrations (if not automatic) and verify the user exists:
 python manage.py migrate --noinput
 
 To skip running migrations during deployment (useful when you don't want pushes to modify the production database), set the environment variable `RUN_MIGRATIONS=0` in your deployment environment. Example (Render): set `RUN_MIGRATIONS` to `0` in your service's Environment > ENV VARS settings. The `render.yaml` and `start.sh` scripts respect this variable.
+
+Safety note: the startup script now checks whether any migrations have already been applied. If `RUN_MIGRATIONS=0` and the database contains no applied migrations, the service will abort startup to avoid running the app against an uninitialized DB. To intentionally skip migrations on a fresh DB, either set `RUN_MIGRATIONS=1` or initialize the database first (run `python manage.py migrate`).
 python manage.py collectstatic --noinput
 python manage.py shell -c "from core.models import User; print(User.objects.filter(username='attachmentadmin').exists())"
 ```
