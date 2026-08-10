@@ -22,7 +22,9 @@
     /* COMPACT MULTICOLOR HEADER WITH BLURRED LOGO WATERMARK */
     .dashboard-header-compact {
       position: relative;
-      overflow: hidden;
+      /* Keep dropdown menus visible when they extend below the header. */
+      overflow: visible;
+      z-index: 10;
       background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
       color: #ffffff;
       display: flex;
@@ -122,6 +124,7 @@
       gap: 10px;
       white-space: nowrap;
       z-index: 2;
+      position: relative;
     }
 
     /* Status Badge */
@@ -158,6 +161,94 @@
       transition: all 0.2s ease;
       box-shadow: 0 2px 6px rgba(0,0,0,0.2);
     }
+
+    .notification-wrapper {
+      display: inline-block;
+      position: relative;
+      margin-right: 8px;
+      z-index: 20;
+    }
+
+    .notification-toggle {
+      min-width: 82px;
+      min-height: 40px;
+      justify-content: center;
+      border: 1px solid #e6eef6;
+      background: #ffffff;
+      color: #0f172a;
+      cursor: pointer;
+    }
+
+    .notification-count {
+      min-width: 24px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: #ff3b30;
+      color: #ffffff;
+      font-weight: 700;
+      line-height: 1.25;
+      text-align: center;
+    }
+
+    .notification-menu {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      width: min(440px, calc(100vw - 32px));
+      max-height: min(420px, calc(100vh - 120px));
+      overflow: hidden;
+      background: #ffffff;
+      border: 1px solid #e6eef6;
+      border-radius: 10px;
+      box-shadow: 0 12px 28px rgba(2, 6, 23, 0.2);
+      color: #0f172a;
+      z-index: 1000;
+    }
+
+    .notification-menu-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 1rem;
+    }
+
+    .notification-list {
+      max-height: 320px;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .notification-item {
+      display: block;
+      padding: 14px 16px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .notification-item:last-child { border-bottom: 0; }
+
+    .notification-message {
+      display: block;
+      color: #0f172a;
+      font-size: 0.92rem;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+      text-decoration: none;
+    }
+
+    .notification-message:hover { color: #0369a1; }
+
+    .notification-time {
+      display: block;
+      margin-top: 6px;
+      color: #94a3b8;
+      font-size: 0.78rem;
+    }
+
+    .notification-action {
+      margin-top: 10px;
+    }
+
+    .notification-empty { padding: 18px 16px; color: #64748b; }
 
     .admin-settings-btn {
       background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
@@ -343,6 +434,7 @@
       .header-controls-inline {
         width: 100%;
         justify-content: flex-start;
+        flex-wrap: wrap;
       }
     }
     /* Ensure outer container doesn't clip child elements */
@@ -409,16 +501,47 @@
   font-size: 0.75rem;
 }
 
-.action-text {
-  font-size: 0.875rem;
-  font-weight: 600;
+.alert-message {
+  padding: 16px 18px;
+  border-radius: 14px;
+  margin-bottom: 20px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.alert-success {
+  background-color: #dcfce7;
+  border: 1px solid #86efac;
+  color: #166534;
+}
+
+.alert-error {
+  background-color: #fee2e2;
+  border: 1px solid #fca5a5;
+  color: #991b1b;
+}
+
+.alert-info {
+  background-color: #dbeafe;
+  border: 1px solid #93c5fd;
+  color: #1d4ed8;
+}
+
+.alert-message {
+  transition: opacity 0.4s ease, max-height 0.4s ease, margin 0.4s ease, padding 0.4s ease;
+}
+
+.alert-message.hide-alert {
+  opacity: 0;
+  max-height: 0;
+  margin: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  overflow: hidden;
 }
   </style>
-
-  <link rel="stylesheet" href="{% static 'css/attachment_admin_dashboard.css' %}">
 </head>
 <body>
-
   <!-- Dark Backdrop Overlay -->
   <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
 
@@ -517,6 +640,44 @@
   <a class="btn-multicolor admin-settings-btn" href="{% url 'core:admin_dashboard' %}">
     <span>⚙️</span> Admin Settings
   </a>
+  <!-- Notification bell for admin in-app notifications -->
+  <div class="notification-wrapper">
+    <button id="notifToggle" type="button" onclick="toggleNotificationMenu(event)" class="btn-multicolor notification-toggle" aria-expanded="false" aria-controls="notifMenu" title="View notifications">
+      🔔
+      {% if admin_notifications and admin_notifications|length > 0 %}
+        <span class="notification-count">{{ admin_notifications|length }}</span>
+      {% endif %}
+    </button>
+    <div id="notifMenu" class="notification-menu" role="menu" aria-label="Notifications">
+      <div class="notification-menu-header"><strong>Notifications</strong></div>
+      <div class="notification-list">
+        {% if admin_notifications and admin_notifications|length > 0 %}
+          {% for n in admin_notifications %}
+            <div class="notification-item">
+              <div>
+                {% if n.action_url %}
+                  <a href="{{ n.action_url }}" class="notification-message">{{ n.message }}</a>
+                {% else %}
+                  <div class="notification-message">{{ n.message }}</div>
+                {% endif %}
+                <time class="notification-time">{{ n.created_at }}</time>
+              </div>
+              <div class="notification-action">
+                <form method="post" action="{% url 'core:mark_admin_notification_read' n.id %}">{% csrf_token %}<button class="table-action" type="submit">Mark read</button></form>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="notification-empty">No new notifications.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% if pending_supervisor_count and pending_supervisor_count > 0 %}
+  <a class="btn-multicolor notify-btn" href="{% url 'core:admin_dashboard' %}?role=SUPERVISOR" style="margin-right:8px;">
+    Pending Requests <span style="background:#ff3b30; color:#fff; padding:2px 8px; border-radius:12px; margin-left:8px; font-weight:700;">{{ pending_supervisor_count }}</span>
+  </a>
+  {% endif %}
   <a class="btn-multicolor logout-btn" href="{% url 'core:logout' %}">
     <span>🚪</span> Logout
   </a>
@@ -525,6 +686,14 @@
 
     <!-- Main Workspace Area -->
     <main class="main-workspace">
+
+      {% if messages %}
+      <div class="dashboard-alerts">
+        {% for message in messages %}
+          <div class="alert-message alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
 
       <!-- 1. DASHBOARD OVERVIEW -->
       <section class="view-panel active-panel" id="dashboard-overview">
@@ -613,6 +782,11 @@
                   <td>{{ user.course|default:'Not set' }}</td>
                   <td>
                     <button type="button" class="table-action" onclick="openAttachmentUserDetails('{{ user.id }}')">Edit</button>
+                    <form method="post" action="{% url 'core:admin_manage_user' user.id %}" style="display:inline;">
+                      {% csrf_token %}
+                      <input type="hidden" name="action" value="resend_invite">
+                      <button type="submit" class="table-action">Resend Invite</button>
+                    </form>
                     <form method="post" action="{% url 'core:admin_manage_user' user.id %}" style="display:inline;" onsubmit="return confirm('Delete this student account?');">
                       {% csrf_token %}
                       <input type="hidden" name="action" value="delete">
@@ -642,6 +816,42 @@
               <button type="button" class="btn back-btn" onclick="showPanel('dashboard-overview')">← Back to Overview</button>
             </div>
           </div>
+
+          {% if pending_supervisor_requests %}
+          <div class="card" style="margin-bottom: 20px; background: #f8fafc; border: 1px solid #cbd5e1;">
+            <h3 style="margin-bottom: 12px;">Pending Supervisor Registration Requests</h3>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr><th>Student</th><th>Supervisor Name</th><th>Email</th><th>Organisation</th><th>Action</th></tr>
+                </thead>
+                <tbody>
+                  {% for period in pending_supervisor_requests %}
+                  <tr id="pending-period-{{ period.id }}" data-period-id="{{ period.id }}" data-student="{{ period.student.get_full_name|default:period.student.username }}" data-supervisor="{{ period.field_supervisor_name }}" data-email="{{ period.field_supervisor_email }}" data-phone="{{ period.field_supervisor_phone|default:'' }}" data-organisation="{{ period.field_supervisor_organization|default:period.student.institution_or_company }}"{% if period.existing_supervisor %} style="background: #fef2f2;"{% endif %}>
+                    <td>{{ period.student.get_full_name|default:period.student.username }}</td>
+                    <td>{{ period.field_supervisor_name }}</td>
+                    <td>{{ period.field_supervisor_email }}</td>
+                    <td>{{ period.field_supervisor_organization|default:period.student.institution_or_company }}</td>
+                    <td>
+                      {% if period.existing_supervisor %}
+                        <div style="margin-bottom: 6px; color: #991b1b; font-weight: 700;">Existing supervisor account detected.</div>
+                      {% endif %}
+                      <button type="button" class="table-action" onclick="openSupervisorRequestReview('{{ period.id }}')">{% if period.existing_supervisor %}Review & Send Link{% else %}Review & Send Link{% endif %}</button>
+                      <form method="post" action="{% url 'core:admin_create_supervisor_from_request' %}" style="display:inline; margin:0;" onsubmit="return confirm('Remove this pending supervisor request?');">
+                        {% csrf_token %}
+                        <input type="hidden" name="period_id" value="{{ period.id }}">
+                        <input type="hidden" name="action" value="delete_request">
+                        <button type="submit" class="table-action danger">Delete Request</button>
+                      </form>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          {% endif %}
+
           <div class="table-responsive">
             <table class="data-table">
               <thead>
@@ -655,6 +865,11 @@
                   <td>{{ user.institution_or_company|default:'Not set' }}</td>
                   <td>
                     <button type="button" class="table-action" onclick="openAttachmentUserDetails('{{ user.id }}')">Edit</button>
+                    <form method="post" action="{% url 'core:admin_manage_user' user.id %}" style="display:inline;">
+                      {% csrf_token %}
+                      <input type="hidden" name="action" value="resend_invite">
+                      <button type="submit" class="table-action">Resend Invite</button>
+                    </form>
                     <form method="post" action="{% url 'core:admin_manage_user' user.id %}" style="display:inline;" onsubmit="return confirm('Delete this supervisor account?');">
                       {% csrf_token %}
                       <input type="hidden" name="action" value="delete">
@@ -697,6 +912,11 @@
                   <td>{{ user.institution_or_company|default:'Not set' }}</td>
                   <td>
                     <button type="button" class="table-action" onclick="openAttachmentUserDetails('{{ user.id }}')">Edit</button>
+                    <form method="post" action="{% url 'core:admin_manage_user' user.id %}" style="display:inline;">
+                      {% csrf_token %}
+                      <input type="hidden" name="action" value="resend_invite">
+                      <button type="submit" class="table-action">Resend Invite</button>
+                    </form>
                     <form method="post" action="{% url 'core:admin_manage_user' user.id %}" style="display:inline;" onsubmit="return confirm('Delete this lecturer account?');">
                       {% csrf_token %}
                       <input type="hidden" name="action" value="delete">
@@ -718,6 +938,7 @@
         <div class="panel-box">
           <div class="panel-header">
             <h2>Create New User Account</h2>
+            <p class="subheading-dark" style="margin: 4px 0 0 0;">The attachment administrator creates student, supervisor, and lecturer accounts here and sends an email invite link automatically.</p>
             <button type="button" class="btn back-btn" onclick="showPanel('dashboard-overview')">← Back to Overview</button>
           </div>
 
@@ -830,6 +1051,35 @@
     </div>
   </div>
 
+  <!-- Review a student's submitted supervisor request before sending an invitation. -->
+  <div class="overlay" id="supervisorRequestOverlay" style="display:none;">
+    <div class="overlay-card" style="width:min(680px, 100%);">
+      <div class="overlay-top">
+        <div>
+          <h3 style="margin:0;">Review Supervisor Request</h3>
+          <p style="color:#64748b; margin:4px 0 0;">Confirm these student-submitted details before sending the invitation.</p>
+        </div>
+        <button type="button" class="overlay-close" onclick="closeSupervisorRequestReview()" aria-label="Close">×</button>
+      </div>
+      <dl style="display:grid; grid-template-columns:150px 1fr; gap:10px 16px; margin:20px 0;">
+        <dt style="font-weight:700; color:#475569;">Student</dt><dd id="reviewStudent" style="margin:0;"></dd>
+        <dt style="font-weight:700; color:#475569;">Supervisor</dt><dd id="reviewSupervisor" style="margin:0;"></dd>
+        <dt style="font-weight:700; color:#475569;">Email</dt><dd id="reviewEmail" style="margin:0;"></dd>
+        <dt style="font-weight:700; color:#475569;">Phone</dt><dd id="reviewPhone" style="margin:0;"></dd>
+        <dt style="font-weight:700; color:#475569;">Organisation</dt><dd id="reviewOrganisation" style="margin:0;"></dd>
+      </dl>
+      <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:12px 14px; color:#1e3a5f; line-height:1.5;">
+        The supervisor will receive a Kisii University invitation and a secure one-time link to create their own password.
+      </div>
+      <form method="post" action="{% url 'core:admin_create_supervisor_from_request' %}" style="margin-top:20px; display:flex; gap:12px;">
+        {% csrf_token %}
+        <input type="hidden" name="period_id" id="reviewPeriodId">
+        <button type="submit" class="btn primary">Confirm & Send Invitation</button>
+        <button type="button" class="btn logout-btn" style="border:none; cursor:pointer;" onclick="closeSupervisorRequestReview()">Cancel</button>
+      </form>
+    </div>
+  </div>
+
   <!-- JavaScript for Navigation & Chart.js Rendering -->
   <script>
     const attachmentManageUserUrlTemplate = "{% url 'core:admin_manage_user' 0 %}";
@@ -873,6 +1123,23 @@
       window.scrollTo({ top: 0, behavior: 'instant' });
     }
 
+    function activateRequestedPanel() {
+      const params = new URLSearchParams(window.location.search);
+      const panel = params.get('panel');
+      const periodId = params.get('period_id');
+      if (panel) {
+        showPanel(panel);
+      }
+      if (periodId) {
+        const row = document.getElementById(`pending-period-${periodId}`);
+        if (row) {
+          row.style.boxShadow = '0 0 0 2px rgba(34, 197, 94, 0.45)';
+          row.style.background = '#ecfdf5';
+          row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+    }
+
     function openCreateForRole(role) {
       showPanel('create-user-panel');
       const select = document.getElementById('create_role_select');
@@ -910,8 +1177,52 @@
       document.getElementById('attachmentUserOverlay').style.display = 'none';
     }
 
+    function openSupervisorRequestReview(periodId) {
+      const row = document.getElementById(`pending-period-${periodId}`);
+      const overlay = document.getElementById('supervisorRequestOverlay');
+      if (!row || !overlay) return;
+
+      document.getElementById('reviewPeriodId').value = periodId;
+      document.getElementById('reviewStudent').textContent = row.dataset.student || 'Not provided';
+      document.getElementById('reviewSupervisor').textContent = row.dataset.supervisor || 'Not provided';
+      document.getElementById('reviewEmail').textContent = row.dataset.email || 'Not provided';
+      document.getElementById('reviewPhone').textContent = row.dataset.phone || 'Not provided';
+      document.getElementById('reviewOrganisation').textContent = row.dataset.organisation || 'Not provided';
+      overlay.style.display = 'flex';
+    }
+
+    function closeSupervisorRequestReview() {
+      document.getElementById('supervisorRequestOverlay').style.display = 'none';
+    }
+
+    function toggleNotificationMenu(event) {
+      const menu = document.getElementById('notifMenu');
+      if (!menu) return;
+      event.stopPropagation();
+      const isOpen = menu.style.display === 'block';
+      menu.style.display = isOpen ? 'none' : 'block';
+      event.currentTarget.setAttribute('aria-expanded', String(!isOpen));
+    }
+
+    function closeNotificationMenu() {
+      const menu = document.getElementById('notifMenu');
+      if (menu) menu.style.display = 'none';
+      const toggle = document.getElementById('notifToggle');
+      if (toggle) toggle.setAttribute('aria-expanded', 'false');
+    }
+
+    document.addEventListener('click', function (event) {
+      const menu = document.getElementById('notifMenu');
+      const toggle = document.getElementById('notifToggle');
+      if (!menu || !toggle) return;
+      if (!toggle.contains(event.target) && !menu.contains(event.target)) {
+        closeNotificationMenu();
+      }
+    });
+
     /* INITIALIZE VIBRANT CHARTS */
     document.addEventListener("DOMContentLoaded", function () {
+      activateRequestedPanel();
       const studentCount = parseInt("{{ stats.students|default:0 }}") || 0;
       const supervisorCount = parseInt("{{ stats.supervisors|default:0 }}") || 0;
       const lecturerCount = parseInt("{{ stats.lecturers|default:0 }}") || 0;
@@ -1029,6 +1340,16 @@
         window.addEventListener('scroll', function () { 
           dropdownMenu.style.display = 'none'; 
         }, true);
+      }
+
+      const alertElements = document.querySelectorAll('.alert-message');
+      if (alertElements.length > 0) {
+        setTimeout(() => {
+          alertElements.forEach(alert => {
+            alert.classList.add('hide-alert');
+            setTimeout(() => alert.remove(), 450);
+          });
+        }, 5000);
       }
     });
   </script>

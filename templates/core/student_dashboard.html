@@ -11,6 +11,20 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/sist1_style.css">
+    <style>
+        .message-banner { display: flex; align-items: center; gap: 12px; border-radius: 18px; padding: 16px 20px; margin-bottom: 24px; font-weight: 600; }
+        .message-banner.success { background: #ecfdf5; border: 1px solid #a7f3d0; color: #166534; }
+        .message-banner.warning { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+        .message-banner.error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+        .status-pill { display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; padding: 7px 14px; font-size: 0.87rem; font-weight: 700; margin-top: 12px; }
+        .status-pill.pending { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+        .status-pill.active { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+        .status-pill.created { background: #dbeafe; color: #1d4ed8; border: 1px solid #93c5fd; }
+        .request-card { display: grid; gap: 18px; }
+        .request-card .info-strip { background: rgba(59, 130, 246, 0.06); border: 1px solid rgba(59, 130, 246, 0.16); color: #0f172a; padding: 14px 16px; border-radius: 14px; }
+        .request-card .detail-grid { display: grid; gap: 10px; }
+        .btn-disabled { opacity: 0.7; cursor: not-allowed; }
+    </style>
 </head>
 <body>
 
@@ -43,7 +57,16 @@
     </header>
 
     <div class="main-container">
-        
+        {% if messages %}
+            <div id="messageBannerContainer" style="margin-bottom:24px;">
+                {% for message in messages %}
+                    <div class="message-banner {% if message.tags == 'success' %}success{% elif message.tags == 'warning' %}warning{% elif message.tags == 'error' or message.tags == 'danger' %}error{% else %}success{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
         <div class="grid-2">
             <div class="card card-profile-accent">
                 <h3>Attachment Profile</h3>
@@ -54,7 +77,84 @@
                     <div class="info-strip"><strong>KU Lecturer:</strong> {{ period.lecturer.get_full_name|default:"Awaiting Departmental Assignment" }}</div>
                 </div>
             </div>
-            <div class="card card-grading-accent">
+
+            <div class="card" style="border-top: 5px solid #22c55e;">
+                <h3>Register Supervisor</h3>
+                <p style="margin: 0 0 16px 0; color: #475569; font-size: 0.95rem;">Send your field supervisor details to the attachment administrator. They will create the supervisor account, then link it to your attachment profile.</p>
+
+                <div class="request-card">
+                    {% if period.supervisor %}
+                        <div style="border-radius: 16px; background: #eff6ff; border: 1px solid #bfdbfe; padding: 18px;">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+                                <div>
+                                    <p style="margin:0; font-size:1rem; font-weight:700; color:#1e3a8a;">Supervisor account linked successfully</p>
+                                    <p style="margin:10px 0 0 0; color:#475569; line-height:1.6;">Your supervisor account is now active. If changes are needed, the attachment administrator can reopen the request for editing.</p>
+                                </div>
+                                <span class="status-pill active">Active</span>
+                            </div>
+                        </div>
+                    {% elif period.field_supervisor_email or period.field_supervisor_name %}
+                        <div style="border-radius: 16px; background: #f8fafc; border: 1px solid #cfe1ff; padding: 18px;">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+                                <div>
+                                    <p style="margin:0; font-size:1rem; font-weight:700; color:#0f172a;">Supervisor request submitted</p>
+                                    <p style="margin:10px 0 0 0; color:#475569; line-height:1.6;">Your request has been sent to the attachment administrator. You will be notified once the supervisor account is created.</p>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end;">
+                                    <span class="status-pill pending">Pending admin review</span>
+                                    <button id="supervisorToggleButton" type="button" class="btn btn-sky btn-sm" onclick="toggleSupervisorForm()" data-closed-text="✎ Edit Request" data-open-text="✕ Hide details" style="white-space: nowrap; min-width: 148px;">✎ Edit Request</button>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div style="border-radius: 16px; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 18px;">
+                            <p style="margin:0; font-size:1rem; font-weight:700; color:#064e3b;">Ready to register your supervisor</p>
+                            <p style="margin:10px 0 0 0; color:#475569; line-height:1.6;">Fill in the details and submit the form so the attachment administrator can create the supervisor account for you.</p>
+                            <button id="supervisorToggleButton" type="button" class="btn btn-sky btn-sm" onclick="toggleSupervisorForm()" data-closed-text="+ Register Supervisor" data-open-text="✕ Hide Form" style="margin-top:14px; min-width:190px;">+ Register Supervisor</button>
+                        </div>
+                    {% endif %}
+
+                    <div id="supervisorDetailsSection" style="display: grid; gap:10px; overflow:hidden; max-height:0; opacity:0; transition:max-height 0.32s ease, opacity 0.32s ease; padding: 0 18px; border-radius: 16px; background: #ffffff; border: 1px solid #e2e8f0; margin-top: 16px;">
+                        {% if period.field_supervisor_email or period.field_supervisor_name %}
+                            <div class="detail-grid" style="display:grid; gap: 12px;">
+                                <div class="info-strip"><strong>Name:</strong> {{ period.field_supervisor_name|default:'Not provided' }}</div>
+                                <div class="info-strip"><strong>Email:</strong> {{ period.field_supervisor_email|default:'Not provided' }}</div>
+                                <div class="info-strip"><strong>Phone:</strong> {{ period.field_supervisor_phone|default:'Not provided' }}</div>
+                                <div class="info-strip"><strong>Staff ID:</strong> {{ period.field_supervisor_id|default:'Not provided' }}</div>
+                                <div class="info-strip"><strong>Gender:</strong> {{ period.field_supervisor_gender|default:'Not provided' }}</div>
+                                <div class="info-strip"><strong>Organization:</strong> {{ period.field_supervisor_organization|default:'Not provided' }}</div>
+                            </div>
+                            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e2e8f0; padding-bottom: 18px;">
+                                <p style="margin:0 0 12px 0; color:#475569; font-size:0.95rem;">Update the request details below and resubmit when ready.</p>
+                        {% else %}
+                            <div style="padding-top: 18px; padding-bottom: 18px; display:grid; gap: 12px;">
+                        {% endif %}
+                                <form id="supervisorRegistrationForm" method="POST" action="{% url 'core:dashboard' %}" style="display: grid; gap: 12px;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="supervisor_update_form" value="1">
+                                    <label style="display:flex; flex-direction:column; gap:6px;"><strong>Supervisor Name</strong><input type="text" name="field_supervisor_name" value="{{ period.field_supervisor_name|default:'' }}" placeholder="Full name of your field supervisor" required style="padding: 12px; border-radius: 10px; border: 1px solid #cbd5e1;"></label>
+                                    <label style="display:flex; flex-direction:column; gap:6px;"><strong>Gender</strong><select name="field_supervisor_gender" style="padding: 12px; border-radius: 10px; border: 1px solid #cbd5e1;">
+                                        <option value="" {% if not period.field_supervisor_gender %}selected{% endif %}>Select gender</option>
+                                        <option value="Male" {% if period.field_supervisor_gender == 'Male' %}selected{% endif %}>Male</option>
+                                        <option value="Female" {% if period.field_supervisor_gender == 'Female' %}selected{% endif %}>Female</option>
+                                        <option value="Other" {% if period.field_supervisor_gender == 'Other' %}selected{% endif %}>Other</option>
+                                    </select></label>
+                                    <label style="display:flex; flex-direction:column; gap:6px;"><strong>Phone Number</strong><input type="text" name="field_supervisor_phone" value="{{ period.field_supervisor_phone|default:'' }}" placeholder="Supervisor phone number" required style="padding: 12px; border-radius: 10px; border: 1px solid #cbd5e1;"></label>
+                                    <label style="display:flex; flex-direction:column; gap:6px;"><strong>Staff / ID Number</strong><input type="text" name="field_supervisor_id" value="{{ period.field_supervisor_id|default:'' }}" placeholder="Supervisor staff or ID number" style="padding: 12px; border-radius: 10px; border: 1px solid #cbd5e1;"></label>
+                                    <label style="display:flex; flex-direction:column; gap:6px;"><strong>Organization</strong><input type="text" name="field_supervisor_organization" value="{{ period.field_supervisor_organization|default:'' }}" placeholder="Supervisor organization or company" required style="padding: 12px; border-radius: 10px; border: 1px solid #cbd5e1;"></label>
+                                    <label style="display:flex; flex-direction:column; gap:6px;"><strong>Email Address</strong><input type="email" name="field_supervisor_email" value="{{ period.field_supervisor_email|default:'' }}" placeholder="supervisor@example.com" required style="padding: 12px; border-radius: 10px; border: 1px solid #cbd5e1;"></label>
+                                    <button type="submit" class="btn btn-blue" style="padding: 12px 18px; width: fit-content;">Submit Supervisor Request</button>
+                                </form>
+                        {% if period.field_supervisor_email or period.field_supervisor_name %}
+                            </div>
+                        {% else %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+        <div class="card card-grading-accent">
                 <h3>Final Grading Results</h3>
                 {% if period.lecturer_signed %}
                     <p style="font-size:24px; margin: 14px 0 10px 0; font-weight: 800;">Final Grade: <strong style="color:var(--kisii-blue);">{{ period.lecturer_grade }}</strong> ({{ period.lecturer_marks }}%)</p>
@@ -454,6 +554,34 @@
                 if(chevron) chevron.style.transform = "rotate(0deg)";
             }
         }
+
+        function toggleSupervisorForm() {
+            const section = document.getElementById('supervisorDetailsSection');
+            const button = document.getElementById('supervisorToggleButton');
+            if (!section || !button) return;
+            const isOpen = section.style.maxHeight && section.style.maxHeight !== '0px';
+            if (isOpen) {
+                section.style.maxHeight = '0';
+                section.style.opacity = '0';
+                button.textContent = button.dataset.closedText;
+            } else {
+                section.style.maxHeight = section.scrollHeight + 24 + 'px';
+                section.style.opacity = '1';
+                button.textContent = button.dataset.openText;
+                setTimeout(() => section.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const flashContainer = document.getElementById('messageBannerContainer');
+            if (flashContainer) {
+                setTimeout(() => {
+                    flashContainer.style.transition = 'opacity 0.4s ease';
+                    flashContainer.style.opacity = '0';
+                    setTimeout(() => { flashContainer.style.display = 'none'; }, 400);
+                }, 6000);
+            }
+        });
     </script>
 {% include 'core/ui_transitions.html' %}
 </body>

@@ -572,22 +572,6 @@
                                 </div>
                                 <span class="profile-arrow">→</span>
                             </button>
-                            <button type="button" class="profile-card-btn" onclick="selectWorkspaceProfile('SUPERVISOR', this)">
-                                <span class="profile-icon">🏢</span>
-                                <div>
-                                    <strong>External Industry Field Supervisor</strong>
-                                    <small>Register as an industry / company supervisor</small>
-                                </div>
-                                <span class="profile-arrow">→</span>
-                            </button>
-                            <button type="button" class="profile-card-btn" onclick="selectWorkspaceProfile('LECTURER', this)">
-                                <span class="profile-icon">📚</span>
-                                <div>
-                                    <strong>Internal Academic University Assessor</strong>
-                                    <small>Register as a university academic lecturer</small>
-                                </div>
-                                <span class="profile-arrow">→</span>
-                            </button>
                         </div>
                     </div>
                     <!-- === END PROFILE S                    <!-- Dynamic Wizard Wrappers -->
@@ -597,24 +581,6 @@
                             {% csrf_token %}
                             <input type="hidden" name="role" value="STUDENT">
                             {% include 'core/studentdetails.html' %}
-                        </form>
-                    </div>
-
-                    <div id="sup_wizard_wrapper" style="display:none;">
-                        <button type="button" class="btn-back" onclick="returnToProfileSelector()" style="margin-bottom:15px; padding: 10px 20px;">← Back to Roles</button>
-                        <form method="POST" id="sup_registrationForm" onsubmit="handleFormSubmissionSystem(event, 'SUPERVISOR')">
-                            {% csrf_token %}
-                            <input type="hidden" name="role" value="SUPERVISOR">
-                            {% include 'core/superviosorsdetails.html' %}
-                        </form>
-                    </div>
-
-                    <div id="lec_wizard_wrapper" style="display:none;">
-                        <button type="button" class="btn-back" onclick="returnToProfileSelector()" style="margin-bottom:15px; padding: 10px 20px;">← Back to Roles</button>
-                        <form method="POST" id="lec_registrationForm" onsubmit="handleFormSubmissionSystem(event, 'LECTURER')">
-                            {% csrf_token %}
-                            <input type="hidden" name="role" value="LECTURER">
-                            {% include 'core/lecturesdetails.html' %}
                         </form>
                     </div>
 
@@ -683,8 +649,6 @@
             const overlay = document.getElementById('calmTransitionOverlay');
             const chooser = document.getElementById('profile-selector-section');
             const studentWrapper = document.getElementById('student_wizard_wrapper');
-            const supervisorWrapper = document.getElementById('sup_wizard_wrapper');
-            const lecturerWrapper = document.getElementById('lec_wizard_wrapper');
             const profileButtons = document.querySelectorAll('.profile-card-btn');
 
             profileButtons.forEach(btn => btn.disabled = true);
@@ -696,13 +660,9 @@
                 overlay.style.display = 'none';
                 chooser.style.display = 'none';
                 studentWrapper.style.display = 'none';
-                supervisorWrapper.style.display = 'none';
-                lecturerWrapper.style.display = 'none';
 
                 let revealWrapper = null;
                 if (role === 'STUDENT') revealWrapper = studentWrapper;
-                else if (role === 'SUPERVISOR') revealWrapper = supervisorWrapper;
-                else if (role === 'LECTURER') revealWrapper = lecturerWrapper;
 
                 if (revealWrapper) {
                     revealWrapper.style.display = 'block';
@@ -719,8 +679,6 @@
 
         function returnToProfileSelector() {
             document.getElementById('student_wizard_wrapper').style.display = 'none';
-            document.getElementById('sup_wizard_wrapper').style.display = 'none';
-            document.getElementById('lec_wizard_wrapper').style.display = 'none';
             document.getElementById('profile-selector-section').style.display = 'block';
             document.getElementById('fee-blocker-message').style.display = 'none';
             document.getElementById('registrationErrorPanel').style.display = 'none';

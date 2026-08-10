@@ -3,8 +3,9 @@ import os
 from unittest.mock import patch
 
 from django.contrib.auth import authenticate
+from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from .forms import ProfileUpdateForm, SISTRegistrationForm
@@ -168,6 +169,7 @@ class RegistrationFlowTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context['selected_role'], 'LECTURER')
 
+    @override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
     def test_admin_can_create_a_new_user_account(self):
         admin_user = User.objects.create_user(
             username='ADMIN02',
@@ -192,6 +194,9 @@ class RegistrationFlowTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertTrue(User.objects.filter(username='LEC999').exists())
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn('Account Invitation', mail.outbox[0].subject)
+        self.assertIn('grace@example.com', mail.outbox[0].to)
 
     def test_registration_view_blocks_new_signups_when_system_registration_is_locked(self):
         from .models import SystemSettings
@@ -338,6 +343,32 @@ class RegistrationFlowTests(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn('phone_number', form.errors)
 
+    def test_registration_view_rejects_duplicate_registration_details(self):
+        User.objects.create_user(
+            username='IN14/00000/22',
+            email='duplicate@example.com',
+            password='SecurePass123!',
+            role='STUDENT',
+            first_name='Existing',
+            last_name='Student',
+        )
+
+        response = self.client.post(reverse('core:register'), {
+            'username': 'IN14/00000/22',
+            'full_name': 'New Student',
+            'email': 'duplicate@example.com',
+            'role': 'STUDENT',
+            'phone_number': '+254700000001',
+            'institution_or_company': 'Kisii County Referral Hospital',
+            'password': 'SecurePass123!',
+            'confirm_password': 'SecurePass123!',
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'A user with that Registration Number / Staff ID already exists in the database.')
+        self.assertContains(response, 'An account with this email already exists in the database.')
+        self.assertEqual(User.objects.filter(username='IN14/00000/22').count(), 1)
+
     def test_period_assignment_requires_matching_supervisor_company(self):
         student = User.objects.create_user(
             username='STU200',
@@ -481,6 +512,7 @@ class RegistrationFlowTests(TestCase):
             role='STUDENT',
             first_name='Old',
             last_name='Student',
+            email='student205@example.com',
         )
 
         self.client.force_login(admin_user)
@@ -491,3 +523,31 @@ class RegistrationFlowTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertTrue(authenticate(username='STU205', password='NewPass123!'))
+
+    @override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
+    def test_admin_can_resend_an_invitation_email(self):
+        admin_user = User.objects.create_user(
+            username='ADMIN04',
+            password='Pass1234!',
+            role='ADMIN',
+            first_name='System',
+            last_name='Administrator',
+        )
+        target_user = User.objects.create_user(
+            username='STU206',
+            password='OldPass123!',
+            role='STUDENT',
+            first_name='New',
+            last_name='Student',
+            email='student206@example.com',
+        )
+
+        self.client.force_login(admin_user)
+        response = self.client.post(reverse('core:admin_manage_user', args=[target_user.id]), {
+            'action': 'resend_invite',
+        })
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn('Account Invitation', mail.outbox[0].subject)
+        self.assertEqual(mail.outbox[0].to, ['student206@example.com'])

@@ -1,9 +1,15 @@
 import re
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.tokens import default_token_generator
+from django.conf import settings
+from django.core.mail import send_mail
 from django.http import HttpResponse, HttpResponseForbidden
 from django.urls import reverse
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 from django.views.decorators.http import require_GET
 from django.db import IntegrityError
 from django.db.models import Q
@@ -88,20 +94,74 @@ def register_view(request):
     if request.method == 'POST':
         form = SISTRegistrationForm(request.POST)
         if form.is_valid():
+            # Only allow STUDENT registrations
+            role = form.cleaned_data.get('role')
+            if role != 'STUDENT':
+                error_msg = 'Only students can self-register. Supervisors and lecturers must be registered by the attachment administrator.'
+                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                    return JsonResponse({'status': 'error', 'message': error_msg}, status=403)
+                return render(request, 'core/register.html', {
+                    'form': form,
+                    'error_summary': error_msg,
+                })
+            
             try:
                 # 1. Save the new account data safely into your database
                 user = form.save()
-            except IntegrityError as exc:
-                if 'unique_lower_email' in str(exc):
-                    form.add_error('email', 'An account with this email already exists.')
-                else:
-                    form.add_error(None, 'A database error occurred while creating your account. Please try again.')
-            else:
-                # 2. Return clean JSON instead of logging in or doing a Python redirect.
-                # This triggers the frontend JavaScript to show your success message and point to login!
+                # 2. If successful, return success
                 if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                     return JsonResponse({'status': 'success'})
                 return redirect(f"{reverse('core:login')}?registered=true")
+            except IntegrityError as exc:
+                exc_str = str(exc).lower()
+                if 'unique_lower_email' in exc_str or ('email' in exc_str and 'unique' in exc_str):
+                    form.add_error('email', 'An account with this email already exists in the database.')
+                elif 'username' in exc_str or 'registration number' in exc_str:
+                    form.add_error('username', 'A user with that Registration Number / Staff ID already exists in the database.')
+                elif 'phone' in exc_str or 'phone_number' in exc_str:
+                    form.add_error('phone_number', 'An account with this phone number already exists in the database.')
+                else:
+                    # Double-check the database if the exception payload is generic.
+                    username = form.cleaned_data.get('username')
+                    email = form.cleaned_data.get('email')
+                    phone_number = form.cleaned_data.get('phone_number')
+                    normalized_phone = ''.join(char for char in (phone_number or '').strip() if char.isdigit())
+                    if username and User.objects.filter(username__iexact=username).exists():
+                        form.add_error('username', 'A user with that Registration Number / Staff ID already exists in the database.')
+                    if email and User.objects.filter(email__iexact=email).exists():
+                        form.add_error('email', 'An account with this email already exists in the database.')
+                    if normalized_phone:
+                        for existing_phone in User.objects.exclude(phone_number__isnull=True).exclude(phone_number='').values_list('phone_number', flat=True):
+                            existing_normalized = ''.join(char for char in existing_phone if char.isdigit())
+                            if existing_normalized == normalized_phone:
+                                form.add_error('phone_number', 'An account with this phone number already exists in the database.')
+                                break
+                    if not form.errors:
+                        form.add_error(None, 'A database error occurred while creating your account. Please try again.')
+
+                # Re-render the form with errors
+                errors = form.errors.get_json_data()
+                compressed = []
+                first_message = None
+                for field, entries in errors.items():
+                    for entry in entries:
+                        raw_msg = entry.get('message', 'Invalid input')
+                        if field == '__all__':
+                            friendly = raw_msg
+                        else:
+                            friendly = f"{field.replace('_', ' ').title()}: {raw_msg}"
+                        compressed.append(friendly)
+                        if not first_message:
+                            first_message = friendly
+
+                summary = first_message or 'Please try again with different details.'
+                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                    return JsonResponse({'status': 'error', 'message': summary, 'errors': compressed}, status=400)
+                return render(request, 'core/register.html', {
+                    'form': form,
+                    'errors': compressed,
+                    'error_summary': summary,
+                })
         if form.errors:
             # 3. If there are form errors (e.g., matching errors, password rules), return them
             errors = form.errors.get_json_data()
@@ -216,6 +276,71 @@ def _ensure_period_assignments(period):
     return period
 
 
+def _send_new_account_email(request, user, password=None):
+    public_site_url = getattr(settings, 'PUBLIC_SITE_URL', request.build_absolute_uri('/')).rstrip('/')
+    login_url = f"{public_site_url}{reverse('core:login')}"
+    subject = 'Kisii University Digital Logbook — Account Invitation'
+    uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+    token = default_token_generator.make_token(user)
+    password_reset_confirm_url = f"{public_site_url}{reverse('core:password_reset_confirm', kwargs={'uidb64': uidb64, 'token': token})}"
+
+    if user.role == 'SUPERVISOR':
+        message = '\n'.join([
+            'Dear Supervisor,',
+            '',
+            "Welcome to Kisii University's Digital Logbook system.",
+            f'Please join using the link below and set your password: {login_url}',
+            '',
+            'Set your password securely using this one-time link:',
+            password_reset_confirm_url,
+            '',
+            'This platform will help you review student entries and provide feedback easily.',
+            '',
+            'Best regards,',
+            'Attachment Office',
+            'Kisii University',
+        ])
+        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'no-reply@kisiiuniversity.ac.ke')
+        send_mail(subject, message, from_email, [user.email], fail_silently=False)
+        return True
+
+    lines = [
+        f"Hello {user.get_full_name() or user.username},",
+        '',
+        'This email confirms that the attachment administration team has created your Kisii University Digital Logbook account.',
+        f'Login URL: {login_url}',
+        f'Username: {user.username}',
+    ]
+    if password:
+        lines.extend([
+            f'Temporary password: {password}',
+            '',
+            'Use this temporary password to sign in, then change it from the login page or via the password reset link below.',
+        ])
+    else:
+        lines.extend([
+            '',
+            'To set your password, please use the link below:',
+        ])
+
+    lines.extend([
+        '',
+        f'Password reset link: {password_reset_confirm_url}',
+        '',
+        'If the link does not work, visit the login page and use the Forgot Password option.',
+        '',
+        'If you did not expect this email, please contact your attachment administrator immediately.',
+        '',
+        'Thank you,',
+        'Kisii University Digital Logbook Team',
+    ])
+
+    message = '\n'.join(lines)
+    from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'no-reply@kisiiuniversity.ac.ke')
+    send_mail(subject, message, from_email, [user.email], fail_silently=False)
+    return True
+
+
 @login_required
 def dashboard_view(request):
     user = request.user
@@ -224,6 +349,76 @@ def dashboard_view(request):
 
     if user.role == 'STUDENT':
         period, _ = AttachmentPeriod.objects.get_or_create(student=user, defaults={'start_date': '2026-01-01'})
+
+        if request.method == 'POST' and request.POST.get('supervisor_update_form') == '1':
+            period.field_supervisor_name = request.POST.get('field_supervisor_name', '').strip() or None
+            period.field_supervisor_email = request.POST.get('field_supervisor_email', '').strip().lower() or None
+            period.field_supervisor_phone = request.POST.get('field_supervisor_phone', '').strip() or None
+            period.field_supervisor_id = request.POST.get('field_supervisor_id', '').strip() or None
+            period.field_supervisor_gender = request.POST.get('field_supervisor_gender', '').strip() or None
+            period.field_supervisor_organization = request.POST.get('field_supervisor_organization', '').strip() or None
+            period.save(update_fields=[
+                'field_supervisor_name',
+                'field_supervisor_email',
+                'field_supervisor_phone',
+                'field_supervisor_id',
+                'field_supervisor_gender',
+                'field_supervisor_organization',
+            ])
+            notification_status = None
+            try:
+                admin_emails = list(User.objects.filter(role='ATTACHMENT_ADMIN').values_list('email', flat=True))
+                admin_emails = [e for e in admin_emails if e]
+                if admin_emails:
+                    subject = 'Supervisor Registration Request — Action Required'
+                    admin_dashboard_url = request.build_absolute_uri(reverse('core:admin_dashboard'))
+                    admin_request_url = f"{admin_dashboard_url}?panel=supervisors-panel&period_id={period.id}"
+                    body_lines = [
+                        f"Student: {period.student.get_full_name() or period.student.username}",
+                        f"Supervisor Name: {period.field_supervisor_name or 'Not provided'}",
+                        f"Supervisor Email: {period.field_supervisor_email or 'Not provided'}",
+                        f"Phone: {period.field_supervisor_phone or 'Not provided'}",
+                        f"Organization: {period.field_supervisor_organization or period.student.institution_or_company or 'Not provided'}",
+                        '',
+                        f"To review and create this supervisor account, open the admin dashboard: {admin_request_url}",
+                    ]
+                    # attempt to send email and create persistent notifications for admins
+                    try:
+                        send_mail(subject, '\n'.join(body_lines), getattr(settings, 'DEFAULT_FROM_EMAIL', 'no-reply@kisiiuniversity.ac.ke'), admin_emails, fail_silently=False)
+                        notification_status = 'sent'
+                        from .models import AdminNotification
+                        for admin_email in admin_emails:
+                            admin_user = User.objects.filter(email__iexact=admin_email).first()
+                            if admin_user:
+                                AdminNotification.objects.create(
+                                    recipient=admin_user,
+                                    message=f"New supervisor request from {period.student.get_full_name() or period.student.username}: {period.field_supervisor_name or 'N/A'} ({period.field_supervisor_email or 'N/A'})",
+                                    related_period=period,
+                                    action_url=admin_request_url,
+                                )
+                    except Exception as exc:
+                        notification_status = 'failed'
+                        from .models import AdminNotification
+                        for admin_email in admin_emails:
+                            admin_user = User.objects.filter(email__iexact=admin_email).first()
+                            if admin_user:
+                                AdminNotification.objects.create(
+                                    recipient=admin_user,
+                                    message=f"Supervisor request submitted but notification email failed to send: {str(exc)[:200]}",
+                                    related_period=period,
+                                    action_url=admin_request_url,
+                                )
+            except Exception:
+                notification_status = 'failed'
+
+            if notification_status == 'sent':
+                messages.success(request, 'Supervisor registration request saved and admin notified successfully.')
+            elif notification_status == 'failed':
+                messages.warning(request, 'Supervisor request saved, but notification email could not be sent. The attachment administrator will still be notified in the system.')
+            else:
+                messages.success(request, 'Supervisor registration request saved. The attachment administrator will review it shortly.')
+            return redirect('core:dashboard')
+
         _ensure_period_assignments(period)
 
         logs = list(period.weekly_logs.order_by('week_number'))
@@ -460,14 +655,138 @@ def admin_dashboard_view(request):
 
     template_name = 'core/attachment_admin_dashboard.html' if request.user.role == 'ATTACHMENT_ADMIN' else 'core/admin_dashboard.html'
 
+    pending_requests = []
+    for period in AttachmentPeriod.objects.filter(supervisor__isnull=True, field_supervisor_email__isnull=False).select_related('student').order_by('-id'):
+        period.existing_supervisor = None
+        if period.field_supervisor_email:
+            period.existing_supervisor = User.objects.filter(email__iexact=period.field_supervisor_email, role='SUPERVISOR').first()
+        pending_requests.append(period)
+    pending_count = len(pending_requests)
+    requested_panel = request.GET.get('panel', '')
+    highlight_period_id = request.GET.get('period_id', '')
+
+    # fetch unread notifications for the current admin user
+    admin_notifications = []
+    if request.user.is_authenticated and User.is_admin_console_user(request.user.role):
+        try:
+            from .models import AdminNotification
+            admin_notifications = list(AdminNotification.objects.filter(recipient=request.user, read=False).order_by('-created_at')[:20])
+        except Exception:
+            admin_notifications = []
+
     return render(request, template_name, {
         'form': form,
         'stats': stats,
         'role_groups': role_groups,
+        'pending_supervisor_requests': pending_requests,
+        'pending_supervisor_count': pending_count,
+        'admin_notifications': admin_notifications,
         'selected_role': selected_role,
+        'requested_panel': requested_panel,
+        'highlight_period_id': highlight_period_id,
         'notice': notice,
         'system_settings': system_settings,
     })
+
+
+@login_required
+@require_POST
+def admin_create_supervisor_from_request_view(request):
+    if not User.is_admin_console_user(request.user.role):
+        return HttpResponseForbidden("Only system or attachment administrators can manage supervisor requests.")
+
+    period_id = request.POST.get('period_id')
+    period = get_object_or_404(AttachmentPeriod, id=period_id)
+    action = request.POST.get('action', 'create').strip()
+    if action == 'delete_request':
+        period.field_supervisor_name = None
+        period.field_supervisor_email = None
+        period.field_supervisor_phone = None
+        period.field_supervisor_id = None
+        period.field_supervisor_gender = None
+        period.field_supervisor_organization = None
+        period.save(update_fields=[
+            'field_supervisor_name',
+            'field_supervisor_email',
+            'field_supervisor_phone',
+            'field_supervisor_id',
+            'field_supervisor_gender',
+            'field_supervisor_organization',
+        ])
+        messages.success(request, 'Pending supervisor request deleted. The student may submit a new request when ready.')
+        return redirect(f"{reverse('core:admin_dashboard')}?panel=supervisors-panel")
+
+    if period.supervisor_id:
+        messages.error(request, 'This supervisor has already been assigned to a student.')
+        return redirect('core:admin_dashboard')
+
+    if not period.field_supervisor_email or not period.field_supervisor_name:
+        messages.error(request, 'Supervisor request is missing required details. Please ask the student to complete the form.')
+        return redirect('core:admin_dashboard')
+
+    existing_user = User.objects.filter(email__iexact=period.field_supervisor_email).first()
+    if existing_user and existing_user.role != 'SUPERVISOR':
+        messages.error(request, 'Cannot create supervisor account because the email is already used by another role.')
+        return redirect('core:admin_dashboard')
+
+    if existing_user:
+        supervisor_user = existing_user
+        if not period.supervisor_id:
+            period.supervisor = supervisor_user
+            period.save(update_fields=['supervisor'])
+        try:
+            _send_new_account_email(request, supervisor_user)
+            messages.success(request, f'Existing supervisor account detected, linked to the student, and a login link was sent to {supervisor_user.email}.')
+        except Exception:
+            messages.warning(request, f'Existing supervisor account linked, but the login email could not be sent to {supervisor_user.email}.')
+        return redirect('core:admin_dashboard')
+
+    base_username = normalize_username(period.field_supervisor_id or period.field_supervisor_email.split('@')[0] or period.field_supervisor_name)
+    if not base_username:
+        base_username = 'supervisor'
+    username = base_username
+    suffix = 1
+    while User.objects.filter(username=username).exists():
+        username = f"{base_username}{suffix}"
+        suffix += 1
+
+    name_parts = period.field_supervisor_name.strip().split()
+    first_name = name_parts[0] if name_parts else ''
+    last_name = ' '.join(name_parts[1:]) if len(name_parts) > 1 else ''
+
+    supervisor_user = User(
+        username=username,
+        email=period.field_supervisor_email,
+        role='SUPERVISOR',
+        institution_or_company=period.field_supervisor_organization or period.student.institution_or_company,
+        phone_number=period.field_supervisor_phone,
+        first_name=first_name,
+        last_name=last_name,
+    )
+    # The supervisor sets their own password from the one-time email link.
+    supervisor_user.set_unusable_password()
+    supervisor_user.save()
+    try:
+        _send_new_account_email(request, supervisor_user)
+    except Exception:
+        messages.warning(request, f'Supervisor account created, but the invitation email could not be sent to {supervisor_user.email}.')
+
+    period.supervisor = supervisor_user
+    period.save(update_fields=['supervisor'])
+    messages.success(request, f'Supervisor account created and linked for {period.student.get_full_name() or period.student.username}.')
+    return redirect('core:admin_dashboard')
+
+
+@login_required
+@require_POST
+def mark_admin_notification_read(request, notif_id):
+    from .models import AdminNotification
+    notif = get_object_or_404(AdminNotification, id=notif_id)
+    if notif.recipient_id != request.user.id:
+        return HttpResponseForbidden('Not allowed')
+    notif.read = True
+    notif.save(update_fields=['read'])
+    return redirect(request.META.get('HTTP_REFERER', reverse('core:admin_dashboard')))
 
 
 @login_required
@@ -484,7 +803,33 @@ def admin_create_user_view(request):
 
     form = SISTRegistrationForm(request.POST)
     if form.is_valid():
-        form.save()
+        created_user = form.save()
+        try:
+            _send_new_account_email(request, created_user, form.cleaned_data.get('password'))
+            messages.success(request, f"{dict(User.ROLE_CHOICES).get(selected_role, selected_role).title()} account created and invitation email sent to {created_user.email}.")
+        except Exception as exc:
+            messages.error(request, 'Account created, but the invitation email could not be sent. Please resend invite after correcting the email address.')
+            role_choices = dict(User.ROLE_CHOICES)
+            notice = f"Please correct the highlighted fields for the {role_choices.get(selected_role, selected_role).lower()} account."
+            stats = {
+                'total_users': User.objects.count(),
+                'students': User.objects.filter(role='STUDENT').count(),
+                'supervisors': User.objects.filter(role='SUPERVISOR').count(),
+                'lecturers': User.objects.filter(role='LECTURER').count(),
+                'admins': User.objects.filter(role='ADMIN').count(),
+                'attachment_admins': User.objects.filter(role='ATTACHMENT_ADMIN').count(),
+                'active_periods': AttachmentPeriod.objects.count(),
+                'pending_reviews': WeeklyLog.objects.filter(supervisor_approved=False).count(),
+            }
+            template_name = 'core/attachment_admin_dashboard.html' if request.user.role == 'ATTACHMENT_ADMIN' else 'core/admin_dashboard.html'
+            return render(request, template_name, {
+                'form': form,
+                'stats': stats,
+                'selected_role': selected_role,
+                'notice': notice,
+                'system_settings': SystemSettings.get_settings(),
+                'error': f'Account created, but the invitation email could not be sent: {exc}',
+            })
         return redirect('core:admin_dashboard')
 
     selected_role = request.POST.get('role', '')
@@ -520,6 +865,17 @@ def admin_manage_user_view(request, user_id):
         if target_user == request.user:
             return redirect('core:admin_dashboard')
         target_user.delete()
+        return redirect('core:admin_dashboard')
+
+    if action == 'resend_invite':
+        if not target_user.email:
+            messages.error(request, 'Cannot resend invite: the user does not have an email address set.')
+            return redirect('core:admin_dashboard')
+        try:
+            _send_new_account_email(request, target_user)
+            messages.success(request, f'Invitation email resent to {target_user.email}.')
+        except Exception:
+            messages.error(request, 'Unable to resend invitation email. Please verify the user email address and try again.')
         return redirect('core:admin_dashboard')
 
     if action == 'reset_password':

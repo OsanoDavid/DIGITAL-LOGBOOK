@@ -36,20 +36,24 @@ class SISTRegistrationForm(forms.ModelForm):
         normalized = normalize_username(username)
         if not normalized:
             raise forms.ValidationError('A Registration Number / Staff ID is required.')
-
+        
+        # Check if username already exists in database, using normalized comparison
         normalized_lookup = normalize_username_lookup(username)
-        for existing in User.objects.values_list('username', flat=True):
-            if existing and normalize_username_lookup(existing) == normalized_lookup:
-                raise forms.ValidationError('A user with that Registration Number / Staff ID already exists.')
+        for existing_username in User.objects.exclude(username__isnull=True).exclude(username='').values_list('username', flat=True):
+            if normalize_username_lookup(existing_username) == normalized_lookup:
+                raise forms.ValidationError('A user with that Registration Number / Staff ID already exists in the database.')
+
         return normalized
 
     def clean_email(self):
         email = (self.cleaned_data.get('email') or '').strip().lower()
         if not email:
             raise forms.ValidationError('Email is required.')
-
+        
+        # Check if email already exists in database
         if User.objects.filter(email__iexact=email).exists():
-            raise forms.ValidationError('An account with this email already exists.')
+            raise forms.ValidationError('An account with this email already exists in the database.')
+        
         return email
 
     def clean_phone_number(self):
@@ -57,15 +61,19 @@ class SISTRegistrationForm(forms.ModelForm):
         normalized_phone = ''.join(char for char in phone_number if char.isdigit())
         if not normalized_phone:
             raise forms.ValidationError('A phone number is required.')
-
+        
+        # Check if phone number already exists in database
         for existing_phone in User.objects.exclude(phone_number__isnull=True).exclude(phone_number='').values_list('phone_number', flat=True):
             existing_normalized = ''.join(char for char in existing_phone if char.isdigit())
             if existing_normalized == normalized_phone:
-                raise forms.ValidationError('An account with this phone number already exists.')
+                raise forms.ValidationError('An account with this phone number already exists in the database.')
+        
         return phone_number
 
     def clean(self):
+        # Call parent clean to validate other fields
         cleaned_data = super().clean()
+        
         password = cleaned_data.get('password')
         confirm_password = cleaned_data.get('confirm_password')
         role = cleaned_data.get('role')

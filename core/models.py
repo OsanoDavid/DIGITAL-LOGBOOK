@@ -17,6 +17,26 @@ def _safe_upload_path(subdir, instance, filename):
     return f"{subdir}/{username}_{timestamp}_{safe_name}{ext}"
 
 
+def _sist_reports_upload_path(instance, filename):
+    return _safe_upload_path('sist_reports', instance, filename)
+
+
+def _sist_reports_week7_upload_path(instance, filename):
+    return _safe_upload_path('sist_reports/week7', instance, filename)
+
+
+def _sist_reports_week7_returned_upload_path(instance, filename):
+    return _safe_upload_path('sist_reports/week7_returned', instance, filename)
+
+
+def _sist_reports_week12_upload_path(instance, filename):
+    return _safe_upload_path('sist_reports/week12', instance, filename)
+
+
+def _sist_reports_week12_returned_upload_path(instance, filename):
+    return _safe_upload_path('sist_reports/week12_returned', instance, filename)
+
+
 class User(AbstractUser):
     ROLE_CHOICES = (
         ('STUDENT', 'Student'),
@@ -107,11 +127,17 @@ class AttachmentPeriod(models.Model):
     student = models.OneToOneField(User, on_delete=models.CASCADE, related_name='attachment_profile')
     supervisor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='supervised_students')
     lecturer = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_students')
+    field_supervisor_name = models.CharField(max_length=255, blank=True, null=True)
+    field_supervisor_email = models.EmailField(blank=True, null=True)
+    field_supervisor_phone = models.CharField(max_length=20, blank=True, null=True)
+    field_supervisor_id = models.CharField(max_length=50, blank=True, null=True)
+    field_supervisor_gender = models.CharField(max_length=20, blank=True, null=True)
+    field_supervisor_organization = models.CharField(max_length=255, blank=True, null=True)
     start_date = models.DateField()
     total_weeks = models.IntegerField(default=14, validators=[MinValueValidator(12), MaxValueValidator(16)])
     
     # Final Capstone Uploads & Grading Chain
-    final_report = models.FileField(upload_to=lambda instance, filename: _safe_upload_path('sist_reports', instance, filename), max_length=255, blank=True, null=True)
+    final_report = models.FileField(upload_to=_sist_reports_upload_path, max_length=255, blank=True, null=True)
     report_status = models.CharField(max_length=24, default='NOT_SUBMITTED')
     report_review_comment = models.TextField(blank=True, null=True)
     supervisor_marks = models.FloatField(null=True, blank=True)
@@ -134,13 +160,28 @@ class AttachmentPeriod(models.Model):
     industry_supervisor_final_comment = models.TextField(blank=True, null=True)
 
     # Lecturer Document Upload for Grading
-    week_7_grading_doc = models.FileField(upload_to=lambda instance, filename: _safe_upload_path('sist_reports/week7', instance, filename), max_length=255, blank=True, null=True)
+    week_7_grading_doc = models.FileField(upload_to=_sist_reports_week7_upload_path, max_length=255, blank=True, null=True)
     week_7_supervisor_marks = models.FloatField(null=True, blank=True)
-    week_7_returned_doc = models.FileField(upload_to=lambda instance, filename: _safe_upload_path('sist_reports/week7_returned', instance, filename), max_length=255, blank=True, null=True)
+    week_7_returned_doc = models.FileField(upload_to=_sist_reports_week7_returned_upload_path, max_length=255, blank=True, null=True)
 
-    week_12_grading_doc = models.FileField(upload_to=lambda instance, filename: _safe_upload_path('sist_reports/week12', instance, filename), max_length=255, blank=True, null=True)
+    week_12_grading_doc = models.FileField(upload_to=_sist_reports_week12_upload_path, max_length=255, blank=True, null=True)
     week_12_supervisor_marks = models.FloatField(null=True, blank=True)
-    week_12_returned_doc = models.FileField(upload_to=lambda instance, filename: _safe_upload_path('sist_reports/week12_returned', instance, filename), max_length=255, blank=True, null=True)
+    week_12_returned_doc = models.FileField(upload_to=_sist_reports_week12_returned_upload_path, max_length=255, blank=True, null=True)
+
+
+class AdminNotification(models.Model):
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='admin_notifications')
+    message = models.TextField()
+    related_period = models.ForeignKey(AttachmentPeriod, on_delete=models.CASCADE, null=True, blank=True)
+    action_url = models.CharField(max_length=512, blank=True, null=True)
+    read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Notification to {self.recipient.get_full_name() or self.recipient.username}: {self.message[:50]}"
 
     def __str__(self):
         return f"SIST Logbook Profile - {self.student.username}"
