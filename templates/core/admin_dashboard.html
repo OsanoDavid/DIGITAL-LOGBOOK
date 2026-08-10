@@ -1435,6 +1435,8 @@
                 document.getElementById('admin_lec_wizard').style.display = 'block';
             } else if (role === 'ADMIN') {
                 document.getElementById('admin_admin_wizard').style.display = 'block';
+            } else if (role === 'ATTACHMENT_ADMIN') {
+                document.getElementById('admin_attachment_admin_wizard').style.display = 'block';
             }
         }
 
@@ -1443,6 +1445,7 @@
             document.getElementById('admin_sup_wizard').style.display = 'none';
             document.getElementById('admin_lec_wizard').style.display = 'none';
             document.getElementById('admin_admin_wizard').style.display = 'none';
+            document.getElementById('admin_attachment_admin_wizard').style.display = 'none';
             document.getElementById('admin-profile-selector').style.display = 'block';
         }
 
