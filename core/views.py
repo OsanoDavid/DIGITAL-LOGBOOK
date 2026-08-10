@@ -802,35 +802,61 @@ def admin_create_user_view(request):
         return HttpResponseForbidden("Attachment administrators can only manage attachment operation users, not full system-admin accounts.")
 
     form = SISTRegistrationForm(request.POST)
-    if form.is_valid():
-        created_user = form.save()
-        try:
-            _send_new_account_email(request, created_user, form.cleaned_data.get('password'))
-            messages.success(request, f"{dict(User.ROLE_CHOICES).get(selected_role, selected_role).title()} account created and invitation email sent to {created_user.email}.")
-        except Exception as exc:
-            messages.error(request, 'Account created, but the invitation email could not be sent. Please resend invite after correcting the email address.')
-            role_choices = dict(User.ROLE_CHOICES)
-            notice = f"Please correct the highlighted fields for the {role_choices.get(selected_role, selected_role).lower()} account."
-            stats = {
-                'total_users': User.objects.count(),
-                'students': User.objects.filter(role='STUDENT').count(),
-                'supervisors': User.objects.filter(role='SUPERVISOR').count(),
-                'lecturers': User.objects.filter(role='LECTURER').count(),
-                'admins': User.objects.filter(role='ADMIN').count(),
-                'attachment_admins': User.objects.filter(role='ATTACHMENT_ADMIN').count(),
-                'active_periods': AttachmentPeriod.objects.count(),
-                'pending_reviews': WeeklyLog.objects.filter(supervisor_approved=False).count(),
-            }
-            template_name = 'core/attachment_admin_dashboard.html' if request.user.role == 'ATTACHMENT_ADMIN' else 'core/admin_dashboard.html'
-            return render(request, template_name, {
-                'form': form,
-                'stats': stats,
-                'selected_role': selected_role,
-                'notice': notice,
-                'system_settings': SystemSettings.get_settings(),
-                'error': f'Account created, but the invitation email could not be sent: {exc}',
-            })
-        return redirect('core:admin_dashboard')
+    try:
+        if form.is_valid():
+            created_user = form.save()
+            try:
+                _send_new_account_email(request, created_user, form.cleaned_data.get('password'))
+                messages.success(request, f"{dict(User.ROLE_CHOICES).get(selected_role, selected_role).title()} account created and invitation email sent to {created_user.email}.")
+            except Exception as exc:
+                # Email sending failed — still render success for creation but show error about email
+                messages.error(request, 'Account created, but the invitation email could not be sent. Please resend invite after correcting the email address.')
+                role_choices = dict(User.ROLE_CHOICES)
+                notice = f"Please correct the highlighted fields for the {role_choices.get(selected_role, selected_role).lower()} account."
+                stats = {
+                    'total_users': User.objects.count(),
+                    'students': User.objects.filter(role='STUDENT').count(),
+                    'supervisors': User.objects.filter(role='SUPERVISOR').count(),
+                    'lecturers': User.objects.filter(role='LECTURER').count(),
+                    'admins': User.objects.filter(role='ADMIN').count(),
+                    'attachment_admins': User.objects.filter(role='ATTACHMENT_ADMIN').count(),
+                    'active_periods': AttachmentPeriod.objects.count(),
+                    'pending_reviews': WeeklyLog.objects.filter(supervisor_approved=False).count(),
+                }
+                template_name = 'core/attachment_admin_dashboard.html' if request.user.role == 'ATTACHMENT_ADMIN' else 'core/admin_dashboard.html'
+                return render(request, template_name, {
+                    'form': form,
+                    'stats': stats,
+                    'selected_role': selected_role,
+                    'notice': notice,
+                    'system_settings': SystemSettings.get_settings(),
+                    'error': f'Account created, but the invitation email could not be sent: {exc}',
+                })
+            return redirect('core:admin_dashboard')
+    except Exception as exc:
+        # Unexpected error during creation — render admin dashboard with error message instead of raising 500
+        import traceback
+        tb = traceback.format_exc()
+        stats = {
+            'total_users': User.objects.count(),
+            'students': User.objects.filter(role='STUDENT').count(),
+            'supervisors': User.objects.filter(role='SUPERVISOR').count(),
+            'lecturers': User.objects.filter(role='LECTURER').count(),
+            'admins': User.objects.filter(role='ADMIN').count(),
+            'attachment_admins': User.objects.filter(role='ATTACHMENT_ADMIN').count(),
+            'active_periods': AttachmentPeriod.objects.count(),
+            'pending_reviews': WeeklyLog.objects.filter(supervisor_approved=False).count(),
+        }
+        template_name = 'core/attachment_admin_dashboard.html' if request.user.role == 'ATTACHMENT_ADMIN' else 'core/admin_dashboard.html'
+        return render(request, template_name, {
+            'form': form,
+            'stats': stats,
+            'selected_role': selected_role,
+            'notice': 'An unexpected error occurred while creating the account.',
+            'system_settings': SystemSettings.get_settings(),
+            'error': f'Failed to create account: {exc}',
+            'traceback': tb,
+        })
 
     selected_role = request.POST.get('role', '')
     role_choices = dict(User.ROLE_CHOICES)
