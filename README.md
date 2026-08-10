@@ -35,6 +35,8 @@ After deploy, run migrations (if not automatic) and verify the user exists:
 
 ```bash
 python manage.py migrate --noinput
+
+To skip running migrations during deployment (useful when you don't want pushes to modify the production database), set the environment variable `RUN_MIGRATIONS=0` in your deployment environment. Example (Render): set `RUN_MIGRATIONS` to `0` in your service's Environment > ENV VARS settings. The `render.yaml` and `start.sh` scripts respect this variable.
 python manage.py collectstatic --noinput
 python manage.py shell -c "from core.models import User; print(User.objects.filter(username='attachmentadmin').exists())"
 ```

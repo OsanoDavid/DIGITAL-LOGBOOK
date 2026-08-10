@@ -7,7 +7,7 @@ services:
       sizeGb: 1
       mountPath: /data
     buildCommand: "mkdir -p /data && pip install -r requirements.txt && python manage.py collectstatic --noinput"
-    startCommand: "mkdir -p /data && python manage.py migrate --noinput && gunicorn --bind 0.0.0.0:$PORT sist_project.wsgi:application"
+    startCommand: "bash start.sh"
     envVars:
       - key: SECRET_KEY
         generateValue: true
