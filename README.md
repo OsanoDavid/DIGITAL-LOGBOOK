@@ -39,6 +39,18 @@ python manage.py migrate --noinput
 To skip running migrations during deployment (useful when you don't want pushes to modify the production database), set the environment variable `RUN_MIGRATIONS=0` in your deployment environment. Example (Render): set `RUN_MIGRATIONS` to `0` in your service's Environment > ENV VARS settings. The `render.yaml` and `start.sh` scripts respect this variable.
 
 Safety note: the startup script now checks whether any migrations have already been applied. If `RUN_MIGRATIONS=0` and the database contains no applied migrations, the service will abort startup to avoid running the app against an uninitialized DB. To intentionally skip migrations on a fresh DB, either set `RUN_MIGRATIONS=1` or initialize the database first (run `python manage.py migrate`).
+
+Render checklist for persistent DB:
+
+- Ensure your Render service has a persistent disk mount (size >= 1GB) and that `SQLITE_DB_PATH` is set to the mounted file path (e.g. `/data/db.sqlite3`).
+- Set `USE_SQLITE=true` and `SQLITE_DB_PATH=/data/db.sqlite3` in the service ENV VARS if you want SQLite on Render.
+- For typical Postgres on Render, set `DATABASE_URL` and leave `USE_SQLITE` unset or `false`.
+- If your production DB keeps resetting, check that:
+	- The service `startCommand` uses `bash start.sh` (it does in `render.yaml`).
+	- `RUN_MIGRATIONS` is not accidentally set to `0` on first-time deploys.
+	- The persistent disk mount is configured and writable by the service user.
+
+When you redeploy, the `start.sh` script prints the resolved DB path and applied migration count; paste that output here if the problem continues.
 python manage.py collectstatic --noinput
 python manage.py shell -c "from core.models import User; print(User.objects.filter(username='attachmentadmin').exists())"
 ```

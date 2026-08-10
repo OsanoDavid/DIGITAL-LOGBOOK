@@ -13,14 +13,31 @@ else
   # Safety: if the database has no applied migrations, abort to avoid running
   # an app against an empty DB unintentionally. This prevents accidental
   # deployments that skip migrations on a fresh database.
-  APPLIED_COUNT=$(python - <<PY
-from django.db.migrations.recorder import MigrationRecorder
-try:
+    # Print diagnostics: resolved DB path and applied migration count
+    echo "--- DATABASE DIAGNOSTICS ---"
+    python - <<PY
+  import os
+  from django.conf import settings
+  try:
+    db_name = settings.DATABASES['default'].get('NAME')
+  except Exception:
+    db_name = os.environ.get('SQLITE_DB_PATH', 'unknown')
+  print('Resolved DB path:', db_name)
+  try:
+    from django.db.migrations.recorder import MigrationRecorder
+    print('Applied migrations:', MigrationRecorder.Migration.objects.count())
+  except Exception as exc:
+    print('Applied migrations: (unavailable)', exc)
+  PY
+
+    APPLIED_COUNT=$(python - <<PY
+  from django.db.migrations.recorder import MigrationRecorder
+  try:
     print(MigrationRecorder.Migration.objects.count())
-except Exception:
+  except Exception:
     print(0)
-PY
-)
+  PY
+  )
   if [ "${APPLIED_COUNT}" = "0" ]; then
     echo "ERROR: No migrations are recorded in the database and RUN_MIGRATIONS=0." >&2
     echo "This looks like a fresh or uninitialized database. Aborting start to avoid data loss." >&2
