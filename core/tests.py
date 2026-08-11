@@ -36,13 +36,13 @@ class DatabaseSettingsTests(TestCase):
 
             self.assertEqual(reloaded_module.DATABASES['default']['NAME'], '/tmp/custom-db.sqlite3')
 
-    def test_prefers_sqlite_when_use_sqlite_is_enabled_even_if_database_url_exists(self):
+    def test_prefers_postgres_when_a_valid_database_url_exists(self):
         with patch.dict(os.environ, {'DEBUG': 'True', 'USE_SQLITE': 'true', 'SQLITE_DB_PATH': '/tmp/custom-db.sqlite3', 'DATABASE_URL': 'postgres://user:pass@localhost:5432/db'}, clear=False):
             settings_module = importlib.import_module('sist_project.settings')
             reloaded_module = importlib.reload(settings_module)
 
-            self.assertEqual(reloaded_module.DATABASES['default']['ENGINE'], 'django.db.backends.sqlite3')
-            self.assertEqual(reloaded_module.DATABASES['default']['NAME'], '/tmp/custom-db.sqlite3')
+            self.assertEqual(reloaded_module.DATABASES['default']['ENGINE'], 'django.db.backends.postgresql')
+            self.assertEqual(reloaded_module.DATABASES['default']['NAME'], 'db')
 
     def test_render_falls_back_to_sqlite_for_a_legacy_database_name(self):
         with patch.dict(os.environ, {

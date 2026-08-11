@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Create data dir if needed
-mkdir -p /data
-
 # Run migrations only when RUN_MIGRATIONS is set to "1" (default: 1)
 if [ "${RUN_MIGRATIONS:-1}" = "1" ]; then
   echo "Running migrations..."

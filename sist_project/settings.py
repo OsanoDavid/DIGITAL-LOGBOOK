@@ -100,6 +100,12 @@ SQLITE_DB_PATH = os.environ.get('SQLITE_DB_PATH')
 USE_SQLITE = os.environ.get('USE_SQLITE', 'false').lower() in {'1', 'true', 'yes', 'on'}
 IS_RENDER = os.environ.get('RENDER', '').lower() in {'1', 'true', 'yes', 'on'}
 LEGACY_RENDER_DATABASE_NAME = False
+USING_POSTGRES = False
+
+# A real PostgreSQL URL must win over stale SQLite variables left in an
+# existing Render service. This makes the Neon migration safe to deploy.
+if DATABASE_URL and '://' in DATABASE_URL:
+    USE_SQLITE = False
 
 if DATABASE_URL and not USE_SQLITE:
     if '://' not in DATABASE_URL:
@@ -118,8 +124,9 @@ if DATABASE_URL and not USE_SQLITE:
         DATABASES = {
             'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=False)
         }
+        USING_POSTGRES = True
 
-if SQLITE_DB_PATH or USE_SQLITE:
+if (SQLITE_DB_PATH or USE_SQLITE) and not USING_POSTGRES:
     # Prefer the explicitly-configured SQLITE_DB_PATH (used at runtime on Render).
     # If the configured parent directory can be created and is writable, use it.
     # In debug mode, fallback to BASE_DIR/db.sqlite3 if necessary. In production,
@@ -162,7 +169,7 @@ if SQLITE_DB_PATH or USE_SQLITE:
             'NAME': sqlite_path,
         }
     }
-else:
+elif not USING_POSTGRES:
     if DEBUG:
         sqlite_path = str(BASE_DIR / 'db.sqlite3')
         DATABASES = {

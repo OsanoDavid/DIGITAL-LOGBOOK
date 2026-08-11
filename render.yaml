@@ -3,10 +3,7 @@ services:
     name: digital-logbook
     env: python
     plan: free
-    disk:
-      sizeGb: 1
-      mountPath: /data
-    buildCommand: "mkdir -p /data && pip install -r requirements.txt && python manage.py collectstatic --noinput"
+    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput"
     startCommand: "bash start.sh"
     envVars:
       - key: SECRET_KEY
@@ -17,10 +14,9 @@ services:
         value: 3.12.0
       - key: WEB_CONCURRENCY
         value: 2
-      - key: USE_SQLITE
-        value: "true"
-      - key: SQLITE_DB_PATH
-        value: "/data/db.sqlite3"
+      # Add the Neon connection string in the Render dashboard. Never commit it.
+      - key: DATABASE_URL
+        sync: false
       - key: RENDER
         value: "true"
       - key: DEBUG

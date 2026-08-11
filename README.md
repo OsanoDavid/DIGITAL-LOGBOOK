@@ -2,7 +2,7 @@
 
 This project is configured for Render with Python 3.12 and PostgreSQL.
 
-For an existing Render web service, set `DATABASE_URL` to the database's **Internal Database URL** (or use Render's database connection-string environment-variable binding). Do not set it to the database name, such as `dhangongo`.
+For an existing Render web service, set `DATABASE_URL` to the full Neon PostgreSQL connection string. Do not set it to a database name, such as `dhangongo`.
 
 ## Sending invitations from a Kisii University email address
 
@@ -42,13 +42,9 @@ Safety note: the startup script now checks whether any migrations have already b
 
 Render checklist for persistent DB:
 
-- Ensure your Render service has a persistent disk mount (size >= 1GB) and that `SQLITE_DB_PATH` is set to the mounted file path (e.g. `/data/db.sqlite3`).
-- Set `USE_SQLITE=true` and `SQLITE_DB_PATH=/data/db.sqlite3` in the service ENV VARS if you want SQLite on Render.
-- For typical Postgres on Render, set `DATABASE_URL` and leave `USE_SQLITE` unset or `false`.
-- If your production DB keeps resetting, check that:
-	- The service `startCommand` uses `bash start.sh` (it does in `render.yaml`).
-	- `RUN_MIGRATIONS` is not accidentally set to `0` on first-time deploys.
-	- The persistent disk mount is configured and writable by the service user.
+- Render free services do not have a persistent disk; use Neon PostgreSQL rather than SQLite.
+- Set `DATABASE_URL` to the full Neon connection string and remove `USE_SQLITE` and `SQLITE_DB_PATH` from the Render service environment.
+- Keep `RUN_MIGRATIONS=1` for the first deploy so the required tables are created in Neon.
 
 When you redeploy, the `start.sh` script prints the resolved DB path and applied migration count; paste that output here if the problem continues.
 python manage.py collectstatic --noinput
@@ -56,4 +52,3 @@ python manage.py shell -c "from core.models import User; print(User.objects.filt
 ```
 
 Login with `attachmentadmin` / `Attachment@2026` at your admin-login URL. Do NOT commit or share these credentials; use Render Secrets for production.
-
