@@ -367,8 +367,28 @@ def dashboard_view(request):
             ])
             notification_status = None
             try:
-                admin_emails = list(User.objects.filter(role='ATTACHMENT_ADMIN').values_list('email', flat=True))
-                admin_emails = [e for e in admin_emails if e]
+                # In-app alerts must not depend on email being configured or the
+                # mail server being available.
+                from .models import AdminNotification
+                attachment_admins = User.objects.filter(role='ATTACHMENT_ADMIN')
+                admin_dashboard_url = request.build_absolute_uri(reverse('core:admin_dashboard'))
+                admin_request_url = f"{admin_dashboard_url}?panel=supervisors-panel&period_id={period.id}"
+                notification_message = (
+                    f"New supervisor request from {period.student.get_full_name() or period.student.username}: "
+                    f"{period.field_supervisor_name or 'N/A'} ({period.field_supervisor_email or 'N/A'})"
+                )
+                for admin_user in attachment_admins:
+                    if not AdminNotification.objects.filter(
+                        recipient=admin_user, related_period=period, read=False
+                    ).exists():
+                        AdminNotification.objects.create(
+                            recipient=admin_user,
+                            message=notification_message,
+                            related_period=period,
+                            action_url=admin_request_url,
+                        )
+
+                admin_emails = [email for email in attachment_admins.values_list('email', flat=True) if email]
                 if admin_emails:
                     subject = 'Supervisor Registration Request — Action Required'
                     admin_dashboard_url = request.build_absolute_uri(reverse('core:admin_dashboard'))
@@ -386,28 +406,8 @@ def dashboard_view(request):
                     try:
                         send_mail(subject, '\n'.join(body_lines), getattr(settings, 'DEFAULT_FROM_EMAIL', 'no-reply@kisiiuniversity.ac.ke'), admin_emails, fail_silently=False)
                         notification_status = 'sent'
-                        from .models import AdminNotification
-                        for admin_email in admin_emails:
-                            admin_user = User.objects.filter(email__iexact=admin_email).first()
-                            if admin_user:
-                                AdminNotification.objects.create(
-                                    recipient=admin_user,
-                                    message=f"New supervisor request from {period.student.get_full_name() or period.student.username}: {period.field_supervisor_name or 'N/A'} ({period.field_supervisor_email or 'N/A'})",
-                                    related_period=period,
-                                    action_url=admin_request_url,
-                                )
                     except Exception as exc:
                         notification_status = 'failed'
-                        from .models import AdminNotification
-                        for admin_email in admin_emails:
-                            admin_user = User.objects.filter(email__iexact=admin_email).first()
-                            if admin_user:
-                                AdminNotification.objects.create(
-                                    recipient=admin_user,
-                                    message=f"Supervisor request submitted but notification email failed to send: {str(exc)[:200]}",
-                                    related_period=period,
-                                    action_url=admin_request_url,
-                                )
             except Exception:
                 notification_status = 'failed'
 
@@ -713,6 +713,8 @@ def admin_create_supervisor_from_request_view(request):
             'field_supervisor_gender',
             'field_supervisor_organization',
         ])
+        from .models import AdminNotification
+        AdminNotification.objects.filter(related_period=period).update(read=True)
         messages.success(request, 'Pending supervisor request deleted. The student may submit a new request when ready.')
         return redirect(f"{reverse('core:admin_dashboard')}?panel=supervisors-panel")
 
@@ -734,6 +736,8 @@ def admin_create_supervisor_from_request_view(request):
         if not period.supervisor_id:
             period.supervisor = supervisor_user
             period.save(update_fields=['supervisor'])
+        from .models import AdminNotification
+        AdminNotification.objects.filter(related_period=period).update(read=True)
         try:
             _send_new_account_email(request, supervisor_user)
             messages.success(request, f'Existing supervisor account detected, linked to the student, and a login link was sent to {supervisor_user.email}.')
@@ -773,6 +777,8 @@ def admin_create_supervisor_from_request_view(request):
 
     period.supervisor = supervisor_user
     period.save(update_fields=['supervisor'])
+    from .models import AdminNotification
+    AdminNotification.objects.filter(related_period=period).update(read=True)
     messages.success(request, f'Supervisor account created and linked for {period.student.get_full_name() or period.student.username}.')
     return redirect('core:admin_dashboard')
 
@@ -808,9 +814,10 @@ def admin_create_user_view(request):
             try:
                 _send_new_account_email(request, created_user, form.cleaned_data.get('password'))
                 messages.success(request, f"{dict(User.ROLE_CHOICES).get(selected_role, selected_role).title()} account created and invitation email sent to {created_user.email}.")
-            except Exception as exc:
+            except Exception:
                 # Email sending failed — still render success for creation but show error about email
-                messages.error(request, 'Account created, but the invitation email could not be sent. Please resend invite after correcting the email address.')
+                messages.warning(request, 'Account created, but the invitation email could not be sent. You can resend the invitation from the user list.')
+                return redirect('core:admin_dashboard')
                 role_choices = dict(User.ROLE_CHOICES)
                 notice = f"Please correct the highlighted fields for the {role_choices.get(selected_role, selected_role).lower()} account."
                 stats = {

@@ -124,7 +124,8 @@ if SQLITE_DB_PATH or USE_SQLITE:
     # If the configured parent directory can be created and is writable, use it.
     # In debug mode, fallback to BASE_DIR/db.sqlite3 if necessary. In production,
     # do not silently switch to an ephemeral local database.
-    candidate = str(BASE_DIR / 'db.sqlite3') if LEGACY_RENDER_DATABASE_NAME else (SQLITE_DB_PATH or str(BASE_DIR / 'db.sqlite3'))
+    # A legacy DATABASE_URL must never override the configured persistent disk.
+    candidate = SQLITE_DB_PATH or ('/data/db.sqlite3' if IS_RENDER else str(BASE_DIR / 'db.sqlite3'))
     parent = os.path.dirname(candidate)
     use_candidate = False
     if parent in ('', '/'):
@@ -135,6 +136,10 @@ if SQLITE_DB_PATH or USE_SQLITE:
             use_candidate = True
 
     if use_candidate:
+        sqlite_path = candidate
+    elif IS_RENDER:
+        # The persistent disk can be unavailable during the build container.
+        # Keep its path rather than switching to the rebuilt app filesystem.
         sqlite_path = candidate
     elif DEBUG:
         sqlite_path = str(BASE_DIR / 'db.sqlite3')

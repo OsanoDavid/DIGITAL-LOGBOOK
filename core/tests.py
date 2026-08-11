@@ -9,7 +9,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from .forms import ProfileUpdateForm, SISTRegistrationForm
-from .models import User, AttachmentPeriod, WeeklyLog
+from .models import AdminNotification, User, AttachmentPeriod, WeeklyLog
 from .views import _ensure_period_assignments
 
 
@@ -56,7 +56,7 @@ class DatabaseSettingsTests(TestCase):
             reloaded_module = importlib.reload(settings_module)
 
             self.assertEqual(reloaded_module.DATABASES['default']['ENGINE'], 'django.db.backends.sqlite3')
-            self.assertEqual(reloaded_module.DATABASES['default']['NAME'], str(reloaded_module.BASE_DIR / 'db.sqlite3'))
+            self.assertEqual(reloaded_module.DATABASES['default']['NAME'], '/tmp/render-db.sqlite3')
 
 
 class MediaUploadSettingsTests(TestCase):
@@ -197,6 +197,45 @@ class RegistrationFlowTests(TestCase):
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn('Account Invitation', mail.outbox[0].subject)
         self.assertIn('grace@example.com', mail.outbox[0].to)
+
+    @patch('core.views._send_new_account_email', side_effect=RuntimeError('SMTP unavailable'))
+    def test_account_creation_redirects_when_email_delivery_fails(self, _send_email):
+        admin_user = User.objects.create_user(
+            username='ADMIN05', password='Pass1234!', role='ADMIN', first_name='System', last_name='Administrator',
+        )
+        self.client.force_login(admin_user)
+
+        response = self.client.post(reverse('core:admin_create_user'), {
+            'full_name': 'Email Failure Lecturer', 'username': 'LEC998', 'email': 'failure@example.com',
+            'role': 'LECTURER', 'phone_number': '+254700000098', 'course': 'Computer Science',
+            'password': 'SecurePass123!', 'confirm_password': 'SecurePass123!',
+        }, follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertRedirects(response, reverse('core:admin_dashboard'))
+        self.assertTrue(User.objects.filter(username='LEC998').exists())
+        self.assertContains(response, 'Account created, but the invitation email could not be sent.')
+
+    def test_supervisor_request_creates_in_app_notification_without_admin_email(self):
+        attachment_admin = User.objects.create_user(
+            username='ATTADMIN04', password='Pass1234!', role='ATTACHMENT_ADMIN', first_name='Attachment', last_name='Officer',
+        )
+        student = User.objects.create_user(
+            username='STU999', password='Pass1234!', role='STUDENT', first_name='Requesting', last_name='Student',
+            institution_or_company='Kisii University', course='Computer Science',
+        )
+        self.client.force_login(student)
+
+        response = self.client.post(reverse('core:dashboard'), {
+            'supervisor_update_form': '1', 'field_supervisor_name': 'Jane Supervisor',
+            'field_supervisor_email': 'jane.supervisor@example.com', 'field_supervisor_phone': '+254700000097',
+            'field_supervisor_organization': 'Kisii University',
+        })
+
+        self.assertEqual(response.status_code, 302)
+        notification = AdminNotification.objects.get(recipient=attachment_admin)
+        self.assertIn('Jane Supervisor', notification.message)
+        self.assertIn('panel=supervisors-panel', notification.action_url)
 
     def test_registration_view_blocks_new_signups_when_system_registration_is_locked(self):
         from .models import SystemSettings

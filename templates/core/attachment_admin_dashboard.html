@@ -720,7 +720,7 @@
     </div>
   </div>
   {% if pending_supervisor_count and pending_supervisor_count > 0 %}
-  <a class="btn-multicolor notify-btn pending-requests-btn" href="{% url 'core:admin_dashboard' %}?role=SUPERVISOR">
+  <a class="btn-multicolor notify-btn pending-requests-btn" href="{% url 'core:admin_dashboard' %}?panel=supervisors-panel">
     <span class="pending-icon">⚠️</span> Pending Requests
     <span class="pending-count">{{ pending_supervisor_count }}</span>
   </a>
