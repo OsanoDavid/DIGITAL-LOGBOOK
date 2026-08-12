@@ -402,6 +402,12 @@
       justify-content: center;
     }
 
+    .chart-wrapper-body canvas {
+      width: 100% !important;
+      height: 100% !important;
+      display: block;
+    }
+
     /* OFF-CANVAS SIDEBAR DRAWER */
     .sidebar-drawer { position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: #0f172a; color: white; z-index: 1050; transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 4px 0 25px rgba(0, 0, 0, 0.3); display: flex; flex-direction: column; }
     .sidebar-drawer.open { transform: translateX(0); }
@@ -432,6 +438,17 @@
     .card { padding: 18px 22px; border-radius: 12px; color: white; font-weight: 600; font-size: 0.88rem; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); cursor: pointer; transition: transform 0.2s ease; }
     .card:hover { transform: translateY(-3px); }
     .card span { font-size: 1.8rem; font-weight: 800; display: block; margin-top: 4px; }
+    .card.settings-card { color: #0f172a; cursor: default; background: #ffffff; }
+    .card.settings-card * { color: inherit !important; }
+    .card.settings-card input,
+    .card.settings-card select,
+    .card.settings-card textarea,
+    .card.settings-card label { color: #0f172a !important; }
+    .card.settings-card input,
+    .card.settings-card select,
+    .card.settings-card textarea { width: 100%; background: #ffffff; border: 1px solid #cbd5e1; color: #0f172a; padding: 10px; border-radius: 6px; }
+    .card.settings-card select { appearance: none; }
+    .card.settings-card .status-pill { color: inherit !important; }
     .blue { background: linear-gradient(135deg, #0f4c81, #0284c7); }
     .green { background: linear-gradient(135deg, #059669, #10b981); }
     .orange { background: linear-gradient(135deg, #ea580c, #f97316); }
@@ -609,9 +626,9 @@
         <li><a href="#" class="nav-link" id="link-supervisors" onclick="showPanel('supervisors-panel', event)">💼 Manage Supervisors ({{ stats.supervisors }})</a></li>
         <li><a href="#" class="nav-link" id="link-lecturers" onclick="showPanel('lecturers-panel', event)">👨‍🏫 Manage Lecturers ({{ stats.lecturers }})</a></li>
         <li><a href="#" class="nav-link" id="link-create" onclick="showPanel('create-user-panel', event)">➕ Create New User</a></li>
+        <li><a href="#" class="nav-link" id="link-settings" onclick="showPanel('settings-panel', event)">⚙️ System Settings</a></li>
         <li><a href="#" class="nav-link" id="link-reports" onclick="showPanel('reports-panel', event)">📊 Activity Logs & Reports</a></li>
         <li class="separator"></li>
-        <li><a href="{% url 'core:admin_dashboard' %}">⚙️ System Settings</a></li>
       </ul>
     </nav>
   </aside>
@@ -683,7 +700,7 @@
 
   </div>
 
-  <a class="btn-multicolor admin-settings-btn" href="{% url 'core:admin_dashboard' %}">
+  <a class="btn-multicolor admin-settings-btn" href="{% url 'core:admin_dashboard' %}?panel=settings-panel" onclick="showPanel('settings-panel', event)">
     <span>⚙️</span> Admin Settings
   </a>
   <!-- Notification bell for admin in-app notifications -->
@@ -702,13 +719,16 @@
             <div class="notification-item">
               <div>
                 {% if n.action_url %}
-                  <a href="{{ n.action_url }}" class="notification-message">{{ n.message }}</a>
+                  <a href="{{ n.action_url }}" class="notification-message notification-link" data-action-url="{{ n.action_url|escapejs }}">{{ n.message }}</a>
                 {% else %}
                   <div class="notification-message">{{ n.message }}</div>
                 {% endif %}
                 <time class="notification-time">{{ n.created_at }}</time>
               </div>
-              <div class="notification-action">
+              <div class="notification-action" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                {% if n.action_url %}
+                  <button type="button" class="table-action" onclick="handleNotificationClick(event, '{{ n.action_url|escapejs }}')">Open Request</button>
+                {% endif %}
                 <form method="post" action="{% url 'core:mark_admin_notification_read' n.id %}">{% csrf_token %}<button class="table-action" type="submit">Mark read</button></form>
               </div>
             </div>
@@ -770,6 +790,7 @@
             <button type="button" class="action-btn-multicolor btn-action-purple" onclick="showPanel('create-user-panel')">
               <span>➕</span> Create New User
             </button>
+            <div style="width:100%; color:#475569; font-size:0.95rem; margin-top:12px;">Click to open the new user form, choose a role, enter details, then create the account.</div>
           </div>
         </div>
 
@@ -985,7 +1006,8 @@
         <div class="panel-box">
           <div class="panel-header">
             <h2>Create New User Account</h2>
-            <p class="subheading-dark" style="margin: 4px 0 0 0;">The attachment administrator creates student, supervisor, and lecturer accounts here and sends an email invite link automatically.</p>
+            <p class="subheading-dark" style="margin: 4px 0 0 0;">Choose the role, fill in the account details below, then click Save & Create Account to create the user.</p>
+            <p class="subheading-dark" style="margin: 6px 0 0 0; color: #0f172a; font-weight: 600;">Tip: use the Create New User button on the overview to open this form at any time.</p>
             <button type="button" class="btn back-btn" onclick="showPanel('dashboard-overview')">← Back to Overview</button>
           </div>
 
@@ -1016,6 +1038,109 @@
               <button type="button" class="btn logout-btn" style="border:none; cursor:pointer;" onclick="showPanel('dashboard-overview')">Cancel</button>
             </div>
           </form>
+        </div>
+      </section>
+
+      <!-- 6. SYSTEM SETTINGS VIEW -->
+      <section class="view-panel" id="settings-panel" style="display:none;">
+        <div class="panel-box">
+          <div class="panel-header">
+            <div>
+              <h2>System Settings</h2>
+              <p class="subheading-dark">Manage portal access, academic terms, roles, industry placement and system alerts.</p>
+            </div>
+            <button type="button" class="btn back-btn" onclick="showPanel('dashboard-overview')">← Back to Overview</button>
+          </div>
+
+          <div class="card settings-card" style="margin-bottom: 20px; background: #f8fafc; border: 1px solid #cbd5e1; color: #0f172a !important;">
+            <h3 style="margin-bottom: 12px; color: #0f172a !important;">1. System Status & Portal Access Control</h3>
+            <p style="margin: 0 0 12px; line-height: 1.6; color: #475569 !important;">Toggle the logbook registration portal and enable read-only maintenance mode for upgrades or database maintenance.</p>
+            <form method="post" action="{% url 'core:admin_dashboard' %}" style="display:flex; flex-wrap:wrap; gap: 12px; align-items:center; color: #0f172a !important;">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="toggle_registration">
+              <div style="min-width:240px;">
+                <span style="display:block; font-weight:700; margin-bottom:5px;">Current portal status</span>
+                <span class="status-pill {% if system_settings.registration_enabled %}open{% else %}closed{% endif %}">
+                  {% if system_settings.registration_enabled %}OPEN 🔓{% else %}CLOSED 🔒{% endif %}
+                </span>
+              </div>
+              <button type="submit" class="btn primary" style="min-width:180px;" {% if request.user.role not in 'ADMIN,ATTACHMENT_ADMIN' %}disabled{% endif %}>
+                {% if system_settings.registration_enabled %}Close Registration{% else %}Open Registration{% endif %}
+              </button>
+            </form>
+            {% if request.user.role not in 'ADMIN,ATTACHMENT_ADMIN' %}
+            <div style="margin-top: 10px; color:#92400e; font-size:0.92rem;">Only administrators may change the portal registration state.</div>
+            {% endif %}
+          </div>
+
+          <div class="card settings-card" style="margin-bottom: 20px; background: #ffffff; border: 1px solid #e2e8f0;">
+            <h3 style="margin-bottom: 12px;">2. Academic Period & Schedule Management</h3>
+            <p style="margin: 0 0 12px; color: #475569; line-height: 1.6;">Define attachment term dates, submission deadlines, and logbook lock policies.</p>
+            <div style="display:grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
+              <div style="padding: 14px; border: 1px solid #cbd5e1; border-radius: 12px;">Attachment Term Configuration</div>
+              <div style="padding: 14px; border: 1px solid #cbd5e1; border-radius: 12px;">Submission Deadlines</div>
+              <div style="padding: 14px; border: 1px solid #cbd5e1; border-radius: 12px;">Logbook Lock Policy</div>
+            </div>
+            <div class="overlay-grid" style="margin-top: 16px;">
+              <label>Term Start Date<input type="date" name="term_start"></label>
+              <label>Term End Date<input type="date" name="term_end"></label>
+              <label class="full-width">Logbook Lock Date<input type="date" name="lock_date"></label>
+            </div>
+          </div>
+
+          <div class="card settings-card" style="margin-bottom: 20px; background: #ffffff; border: 1px solid #e2e8f0;">
+            <h3 style="margin-bottom: 12px;">3. User Roles & Access Control</h3>
+            <p style="margin: 0 0 12px; color: #475569; line-height: 1.6;">Manage role assignments, account activation, and security policy rules.</p>
+            <div style="display:grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
+              <div style="padding: 14px; border: 1px solid #cbd5e1; border-radius: 12px;">Role Management</div>
+              <div style="padding: 14px; border: 1px solid #cbd5e1; border-radius: 12px;">Account Provisioning</div>
+              <div style="padding: 14px; border: 1px solid #cbd5e1; border-radius: 12px;">Password & Security Policies</div>
+            </div>
+            <div class="overlay-grid" style="margin-top: 16px;">
+              <label>Default New Account Role<select name="default_role"><option>STUDENT</option><option>SUPERVISOR</option><option>LECTURER</option></select></label>
+              <label>Require Password Reset<select name="password_policy"><option>Yes</option><option>No</option></select></label>
+            </div>
+          </div>
+
+          <div class="card settings-card" style="margin-bottom: 20px; background: #ffffff; border: 1px solid #e2e8f0;">
+            <h3 style="margin-bottom: 12px;">4. Organization & Industry Placement Settings</h3>
+            <p style="margin: 0 0 12px; color: #475569; line-height: 1.6;">Manage approved host organizations and supervisor allocation capacities.</p>
+            <div style="display:grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
+              <div style="padding: 14px; border: 1px solid #cbd5e1; border-radius: 12px;">Organization Registry</div>
+              <div style="padding: 14px; border: 1px solid #cbd5e1; border-radius: 12px;">Supervisor Allocation Rules</div>
+            </div>
+            <div class="overlay-grid" style="margin-top: 16px;">
+              <label>Active Industry Hosts<input type="number" name="industry_hosts" placeholder="Total hosts"></label>
+              <label>Placement Approval<select name="placement_approval"><option>Auto</option><option>Manual</option></select></label>
+            </div>
+          </div>
+
+          <div class="card settings-card" style="margin-bottom: 20px; background: #ffffff; border: 1px solid #e2e8f0;">
+            <h3 style="margin-bottom: 12px;">5. System Notifications & Alert Configuration</h3>
+            <p style="margin: 0 0 12px; color: #475569; line-height: 1.6;">Configure notification templates and reminders for pending approvals and overdue submissions.</p>
+            <div style="display:grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
+              <div style="padding: 14px; border: 1px solid #cbd5e1; border-radius: 12px;">Notification Preferences</div>
+              <div style="padding: 14px; border: 1px solid #cbd5e1; border-radius: 12px;">Trigger Thresholds</div>
+            </div>
+            <div class="overlay-grid" style="margin-top: 16px;">
+              <label>Notification Frequency<select name="notification_frequency"><option>Daily</option><option>Weekly</option><option>Monthly</option></select></label>
+              <label>Overdue Reminders<input type="number" name="overdue_reminders" placeholder="Days until reminder"></label>
+            </div>
+          </div>
+
+          <div class="card settings-card" style="margin-bottom: 20px; background: #ffffff; border: 1px solid #e2e8f0;">
+            <h3 style="margin-bottom: 12px;">6. Audit & System Configuration</h3>
+            <p style="margin: 0 0 12px; color: #475569; line-height: 1.6;">View audit logs, backup settings, and export controls for university reporting.</p>
+            <div style="display:grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
+              <div style="padding: 14px; border: 1px solid #cbd5e1; border-radius: 12px;">Audit Logs</div>
+              <div style="padding: 14px; border: 1px solid #cbd5e1; border-radius: 12px;">Backup & Export</div>
+            </div>
+            <div class="overlay-grid" style="margin-top: 16px;">
+              <label>Audit Retention<select name="audit_retention"><option>30 days</option><option>90 days</option><option>180 days</option></select></label>
+              <label>Backup Frequency<select name="backup_frequency"><option>Daily</option><option>Weekly</option></select></label>
+            </div>
+          </div>
+
         </div>
       </section>
 
@@ -1164,6 +1289,7 @@
       if (panelId === 'supervisors-panel') document.getElementById('link-supervisors')?.classList.add('active');
       if (panelId === 'lecturers-panel') document.getElementById('link-lecturers')?.classList.add('active');
       if (panelId === 'create-user-panel') document.getElementById('link-create')?.classList.add('active');
+      if (panelId === 'settings-panel') document.getElementById('link-settings')?.classList.add('active');
       if (panelId === 'reports-panel') document.getElementById('link-reports')?.classList.add('active');
 
       closeSidebar();
@@ -1183,6 +1309,9 @@
           row.style.boxShadow = '0 0 0 2px rgba(34, 197, 94, 0.45)';
           row.style.background = '#ecfdf5';
           row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          if (panel === 'supervisors-panel') {
+            openSupervisorRequestReview(periodId);
+          }
         }
       }
     }
@@ -1251,6 +1380,32 @@
       event.currentTarget.setAttribute('aria-expanded', String(!isOpen));
     }
 
+    function handleNotificationClick(event, actionUrl) {
+      try {
+        const url = new URL(actionUrl, window.location.origin);
+        const panel = url.searchParams.get('panel');
+        const periodId = url.searchParams.get('period_id');
+        if (panel === 'supervisors-panel') {
+          event.preventDefault();
+          closeNotificationMenu();
+          showPanel(panel);
+          if (periodId) {
+            const row = document.getElementById(`pending-period-${periodId}`);
+            if (row) {
+              row.style.boxShadow = '0 0 0 2px rgba(34, 197, 94, 0.45)';
+              row.style.background = '#ecfdf5';
+              row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            openSupervisorRequestReview(periodId);
+          }
+          return false;
+        }
+      } catch (err) {
+        // If the URL cannot be parsed, allow the link to proceed.
+      }
+      return true;
+    }
+
     function closeNotificationMenu() {
       const menu = document.getElementById('notifMenu');
       if (menu) menu.style.display = 'none';
@@ -1270,6 +1425,12 @@
     /* INITIALIZE VIBRANT CHARTS */
     document.addEventListener("DOMContentLoaded", function () {
       activateRequestedPanel();
+      const notificationLinks = document.querySelectorAll('a.notification-link');
+      notificationLinks.forEach(link => {
+        link.addEventListener('click', function (event) {
+          handleNotificationClick(event, this.dataset.actionUrl);
+        });
+      });
       const studentCount = parseInt("{{ stats.students|default:0 }}") || 0;
       const supervisorCount = parseInt("{{ stats.supervisors|default:0 }}") || 0;
       const lecturerCount = parseInt("{{ stats.lecturers|default:0 }}") || 0;

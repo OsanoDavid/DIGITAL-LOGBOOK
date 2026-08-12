@@ -250,6 +250,44 @@ code {
   transition: transform 0.15s ease;
 }
 
+.card.settings-card {
+  color: #0f172a !important;
+  cursor: default;
+}
+
+.card.settings-card * {
+  color: #0f172a !important;
+}
+
+.card.settings-card input,
+.card.settings-card select,
+.card.settings-card textarea,
+.card.settings-card label {
+  color: #0f172a !important;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 10px 14px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.status-pill.open {
+  background: rgba(16, 185, 129, 0.12);
+  color: #047857;
+  border: 1px solid rgba(16, 185, 129, 0.24);
+}
+
+.status-pill.closed {
+  background: rgba(239, 68, 68, 0.12);
+  color: #991b1b;
+  border: 1px solid rgba(239, 68, 68, 0.24);
+}
+
 .card:hover {
   transform: translateY(-2px);
 }
@@ -259,6 +297,57 @@ code {
   font-weight: 800;
   display: block;
   margin-top: 4px;
+}
+
+.card.settings-card,
+.card.settings-card * {
+  color: #0f172a !important;
+}
+
+.card.settings-card .status-pill {
+  color: inherit !important;
+}
+
+.charts-grid-container {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  margin-bottom: 20px;
+}
+
+.chart-card-box {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+  padding: 18px;
+}
+
+.chart-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.chart-card-title {
+  font-weight: 700;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+}
+
+.chart-wrapper-body {
+  position: relative;
+  min-height: 320px;
+}
+
+.chart-wrapper-body canvas {
+  width: 100% !important;
+  height: 100% !important;
 }
 
 .blue { background: linear-gradient(135deg, #0f4c81, #0284c7); }

@@ -629,8 +629,8 @@ def admin_dashboard_view(request):
     if request.method == 'POST':
         action = request.POST.get('action', '').strip()
         if action == 'toggle_registration':
-            if request.user.role != 'ADMIN':
-                return HttpResponseForbidden("Only the system administrator can open or lock registration for the whole platform.")
+            if request.user.role not in ['ADMIN', 'ATTACHMENT_ADMIN']:
+                return HttpResponseForbidden("Only administrators can open or lock registration for the whole platform.")
             system_settings.registration_enabled = not system_settings.registration_enabled
             system_settings.save(update_fields=['registration_enabled'])
             return redirect('core:admin_dashboard')
