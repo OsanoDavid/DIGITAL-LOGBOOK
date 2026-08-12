@@ -1,7 +1,11 @@
 import os
 import sys
 import traceback
+from pathlib import Path
 
+# Ensure project root is on sys.path so we can import the Django project package
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'sist_project.settings')
 
 try:
@@ -35,22 +39,33 @@ msg['To'] = TEST_TO
 msg.set_content('This is a test email from DIGITAL-LOGBOOK send_test_email.py')
 
 try:
-    with smtplib.SMTP(EMAIL_HOST, EMAIL_PORT, timeout=20) as smtp:
-        smtp.set_debuglevel(1)
-        smtp.ehlo()
-        if EMAIL_USE_TLS:
-            smtp.starttls()
+    # Prefer Django's send_mail (Anymail API backend) first — it uses the
+    # configured EMAIL_BACKEND in settings (e.g. anymail Mailgun API).
+    try:
+        from django.core.mail import send_mail
+        print('\nTrying Django send_mail() (Anymail/API backend)...')
+        result = send_mail('DIGITAL-LOGBOOK Django test', 'Body from Django send_mail', msg['From'], [TEST_TO], fail_silently=False)
+        print('send_mail result:', result)
+        print('Django send_mail succeeded')
+    except Exception:
+        print('\nDjango send_mail failed; falling back to raw SMTP:')
+        traceback.print_exc()
+        with smtplib.SMTP(EMAIL_HOST, EMAIL_PORT, timeout=20) as smtp:
+            smtp.set_debuglevel(1)
             smtp.ehlo()
-        if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
-            print('Attempting SMTP login...')
-            smtp.login(EMAIL_HOST_USER, EMAIL_HOST_PASSWORD)
-            print('Login succeeded')
-        else:
-            print('Skipping login because credentials are missing')
+            if EMAIL_USE_TLS:
+                smtp.starttls()
+                smtp.ehlo()
+            if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
+                print('Attempting SMTP login...')
+                smtp.login(EMAIL_HOST_USER, EMAIL_HOST_PASSWORD)
+                print('Login succeeded')
+            else:
+                print('Skipping login because credentials are missing')
 
-        print('Attempting to send test email via SMTP...')
-        smtp.send_message(msg)
-        print('SMTP send_message completed without exception')
+            print('Attempting to send test email via SMTP...')
+            smtp.send_message(msg)
+            print('SMTP send_message completed without exception')
 
 except Exception:
     print('SMTP test failed with exception:')
