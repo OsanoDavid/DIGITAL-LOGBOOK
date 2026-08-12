@@ -1,3 +1,4 @@
+import logging
 import re
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -18,6 +19,8 @@ from .auth_utils import normalize_username
 from .forms import SISTRegistrationForm, SISTLoginForm, LogEntryForm, SupervisorCommentForm, LecturerSignForm, FinalReportForm, FinalSupervisorGradingForm, FinalLecturerGradingForm
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
+
+logger = logging.getLogger(__name__)
 
 
 def info_page_view(request, page_name):
@@ -301,8 +304,12 @@ def _send_new_account_email(request, user, password=None):
             'Kisii University',
         ])
         from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'no-reply@kisiiuniversity.ac.ke')
-        send_mail(subject, message, from_email, [user.email], fail_silently=False)
-        return True
+        try:
+            send_mail(subject, message, from_email, [user.email], fail_silently=False)
+            return True
+        except Exception as exc:
+            logger.exception('Failed to send supervisor invitation email')
+            raise RuntimeError(f'Could not send email: {exc}') from exc
 
     lines = [
         f"Hello {user.get_full_name() or user.username},",
@@ -337,7 +344,12 @@ def _send_new_account_email(request, user, password=None):
 
     message = '\n'.join(lines)
     from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'no-reply@kisiiuniversity.ac.ke')
-    send_mail(subject, message, from_email, [user.email], fail_silently=False)
+    try:
+        send_mail(subject, message, from_email, [user.email], fail_silently=False)
+        return True
+    except Exception as exc:
+        logger.exception('Failed to send account invitation email')
+        raise RuntimeError(f'Could not send email: {exc}') from exc
     return True
 
 
@@ -907,8 +919,9 @@ def admin_manage_user_view(request, user_id):
         try:
             _send_new_account_email(request, target_user)
             messages.success(request, f'Invitation email resent to {target_user.email}.')
-        except Exception:
-            messages.error(request, 'Unable to resend invitation email. Please verify the user email address and try again.')
+        except Exception as exc:
+            logger.exception('Failed to resend invitation email')
+            messages.error(request, f'Unable to resend invitation email: {str(exc)}')
         return redirect('core:admin_dashboard')
 
     if action == 'reset_password':
