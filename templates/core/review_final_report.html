@@ -56,13 +56,21 @@
                 </div>
             </div>
 
-            <div class="field-grid">
-                <div>
-                    <strong>Submitted Final Report</strong>
+            <div class="field-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                <div style="background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                    <strong>Submitted Final Report Document</strong>
                     {% if period.final_report %}
-                        <p><a href="{{ period.final_report.url }}" class="download-link" target="_blank">Download submitted report</a></p>
+                        <p style="margin: 8px 0 0 0;"><a href="{{ period.final_report.url }}" class="download-link" target="_blank">📄 Download Submitted Report PDF</a></p>
                     {% else %}
-                        <p class="muted">No final report file was found for this student.</p>
+                        <p class="muted" style="margin: 8px 0 0 0;">No final report file uploaded yet.</p>
+                    {% endif %}
+                </div>
+                <div style="background: #f0f7ff; padding: 16px; border-radius: 12px; border: 1.5px solid #bae6fd;">
+                    <strong>Organization Recommendation Letter (Stamped)</strong>
+                    {% if period.recommendation_letter %}
+                        <p style="margin: 8px 0 0 0;"><a href="{{ period.recommendation_letter.url }}" class="download-link" target="_blank" style="color: #0284c7;">📜 View / Download Stamped Recommendation Letter</a></p>
+                    {% else %}
+                        <p class="muted" style="margin: 8px 0 0 0;">No recommendation letter uploaded yet.</p>
                     {% endif %}
                 </div>
             </div>

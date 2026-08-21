@@ -24,7 +24,7 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    overflow-x: hidden;
+    overflow-x: clip; /* clip ≠ hidden: does NOT create a scroll container, so position:sticky works */
     position: relative;
     transition: background 0.3s, color 0.3s;
 }
@@ -138,8 +138,12 @@ nav {
     align-items: center;
     position: sticky;
     top: 0;
-    z-index: 100;
+    z-index: 1000;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    transition: box-shadow 0.3s ease;
+}
+nav.scrolled {
+    box-shadow: 0 4px 24px rgba(15, 76, 129, 0.18);
 }
 .nav-logo-area { display: flex; align-items: center; gap: 14px; }
 .nav-logo-area img { height: 55px; width: auto; object-fit: contain; border-radius: 4px; }
@@ -375,4 +379,101 @@ footer { background: #0f172a; color: #94a3b8; padding: 40px 6% 25px 6%; font-siz
 .toast-error {
     background: linear-gradient(135deg, #ef4444, #dc2626);
     border-bottom: 4px solid #b91c1c;
+}
+
+/* ============================================================
+   ACCESSIBILITY PANEL — DARK THEME (matches homepage palette)
+   Applied on ALL portal pages via portal.css
+   ============================================================ */
+#accessibility-panel {
+    background: linear-gradient(160deg, #0a1628 0%, #0d1f3c 55%, #0f2a5e 100%) !important;
+    border-left: 1px solid rgba(0, 150, 255, 0.22) !important;
+    box-shadow: -8px 0 60px rgba(0, 0, 0, 0.65), inset 1px 0 0 rgba(255,255,255,0.05) !important;
+    color: #e2e8f0 !important;
+}
+
+/* Title row */
+.acc-title-text {
+    color: #e2e8f0 !important;
+    font-weight: 800 !important;
+}
+.acc-icon-box {
+    background: linear-gradient(135deg, #0f4c81, #0096ff) !important;
+}
+
+/* Section labels */
+.acc-label, [class*="text-primary"].acc-label {
+    color: #93c5fd !important;
+    letter-spacing: 1.5px !important;
+}
+
+/* Dividers */
+.acc-divider {
+    background: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Dyslexic / Reset option tiles */
+.acc-option {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #cbd5e1 !important;
+    border-radius: 10px !important;
+}
+.acc-option:hover,
+.acc-option.active,
+.acc-option.mode-active {
+    background: linear-gradient(135deg, #0f4c81, #0096ff) !important;
+    border-color: rgba(0, 150, 255, 0.4) !important;
+    color: #fff !important;
+    box-shadow: 0 4px 14px rgba(0, 150, 255, 0.25) !important;
+}
+
+/* Voice Engine primary button */
+.acc-btn-primary {
+    background: linear-gradient(135deg, #0f4c81, #0096ff) !important;
+    border: none !important;
+    box-shadow: 0 4px 16px rgba(0, 150, 255, 0.3) !important;
+    border-radius: 10px !important;
+}
+.acc-btn-primary:hover {
+    opacity: 0.9 !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Close outline button */
+.acc-btn-outline {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.14) !important;
+    color: #94a3b8 !important;
+    border-radius: 10px !important;
+}
+.acc-btn-outline:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #e2e8f0 !important;
+}
+
+/* X close circle button */
+.btn-close-acc {
+    background: rgba(255, 255, 255, 0.07) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.14) !important;
+    color: #94a3b8 !important;
+}
+.btn-close-acc:hover {
+    background: rgba(239, 68, 68, 0.18) !important;
+    border-color: rgba(239, 68, 68, 0.45) !important;
+    color: #fca5a5 !important;
+}
+
+/* Font family select dropdown */
+#accessibility-panel select,
+#accessibility-panel .form-select {
+    background: rgba(255, 255, 255, 0.06) !important;
+    color: #e2e8f0 !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 8px !important;
+}
+#accessibility-panel select option,
+#accessibility-panel .form-select option {
+    background: #0d1f3c !important;
+    color: #e2e8f0 !important;
 }

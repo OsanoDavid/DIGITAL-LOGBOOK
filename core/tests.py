@@ -188,12 +188,21 @@ class RegistrationFlowTests(TestCase):
             'phone_number': '+254700000099',
             'institution_or_company': 'Kisii University',
             'course': 'Computer Science',
+            'workspace_role': 'Internal Academic University Assessor',
+            'national_id': '12345678',
+            'specialization': 'Computer Science',
+            'university': 'Kisii University',
+            'faculty': 'School of Information Sciences & Technology',
+            'department': 'Computing Sciences',
+            'university_email': 'grace@kisiiuniversity.ac.ke',
             'password': 'SecurePass123!',
             'confirm_password': 'SecurePass123!',
         })
 
         self.assertEqual(response.status_code, 302)
         self.assertTrue(User.objects.filter(username='LEC999').exists())
+        lecturer = User.objects.get(username='LEC999')
+        self.assertEqual(lecturer.lecturer_profile.department, 'Computing Sciences')
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn('Account Invitation', mail.outbox[0].subject)
         self.assertIn('grace@example.com', mail.outbox[0].to)
@@ -208,6 +217,10 @@ class RegistrationFlowTests(TestCase):
         response = self.client.post(reverse('core:admin_create_user'), {
             'full_name': 'Email Failure Lecturer', 'username': 'LEC998', 'email': 'failure@example.com',
             'role': 'LECTURER', 'phone_number': '+254700000098', 'course': 'Computer Science',
+            'workspace_role': 'Internal Academic University Assessor', 'national_id': '12345679',
+            'specialization': 'Computer Science', 'university': 'Kisii University',
+            'faculty': 'School of Information Sciences & Technology', 'department': 'Computing Sciences',
+            'university_email': 'failure@kisiiuniversity.ac.ke',
             'password': 'SecurePass123!', 'confirm_password': 'SecurePass123!',
         }, follow=True)
 

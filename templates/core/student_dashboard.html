@@ -58,10 +58,11 @@
 
     <div class="main-container">
         {% if messages %}
-            <div id="messageBannerContainer" style="margin-bottom:24px;">
+            <div id="messageBannerContainer" style="margin-bottom:24px; display: flex; flex-direction: column; gap: 10px;">
                 {% for message in messages %}
-                    <div class="message-banner {% if message.tags == 'success' %}success{% elif message.tags == 'warning' %}warning{% elif message.tags == 'error' or message.tags == 'danger' %}error{% else %}success{% endif %}">
-                        {{ message }}
+                    <div class="message-banner" style="padding: 16px 20px; border-radius: 12px; font-weight: 700; font-size: 0.98rem; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); {% if message.tags == 'success' %}background: #dcfce7; color: #15803d; border: 1.5px solid #86efac;{% elif message.tags == 'warning' %}background: #fef3c7; color: #b45309; border: 1.5px solid #fde047;{% else %}background: #fee2e2; color: #b91c1c; border: 1.5px solid #fca5a5;{% endif %}">
+                        <span>{% if message.tags == 'success' %}✅{% elif message.tags == 'warning' %}⚠️{% else %}❌{% endif %}</span>
+                        <div style="flex: 1;">{{ message }}</div>
                     </div>
                 {% endfor %}
             </div>
@@ -341,14 +342,52 @@
                 <div style="display: flex; align-items: center; justify-content: space-between; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 20px; border-radius: 12px; flex-wrap: wrap; gap: 16px;">
                     <p style="color:var(--success); font-weight:700; margin: 0;">✓ Your final report has been approved by the lecturer.</p>
                     {% if period.final_report %}
-                        <a href="{{ period.final_report.url }}" class="btn btn-blue" download>Download Submitted File</a>
+                        <a href="{{ period.final_report.url }}" class="btn btn-blue" target="_blank" download>Download Approved Report</a>
                     {% endif %}
                 </div>
             {% elif period.report_status == 'RETURNED' %}
-                <div style="display: flex; flex-direction: column; gap: 12px; background: #fef2f2; border: 1px solid #fecaca; padding: 20px; border-radius: 12px;">
+                <div style="display: flex; flex-direction: column; gap: 14px; background: #fef2f2; border: 1px solid #fecaca; padding: 20px; border-radius: 12px;">
                     <p style="color:#b91c1c; font-weight:700; margin: 0;">⚠ Your report needs revision.</p>
-                    {% if period.report_review_comment %}<p style="margin: 0; color: #7f1d1d;">{{ period.report_review_comment }}</p>{% endif %}
-                    {% if period.final_report %}<a href="{{ period.final_report.url }}" class="btn btn-blue" download>Download Submitted File</a>{% endif %}
+                    {% if period.report_review_comment %}<p style="margin: 0; color: #7f1d1d; background: #fff; padding: 10px; border-radius: 8px; border: 1px solid #fee2e2;"><strong>Lecturer Feedback:</strong> {{ period.report_review_comment }}</p>{% endif %}
+                    {% if period.final_report %}<a href="{{ period.final_report.url }}" class="btn btn-blue" target="_blank" style="align-self: flex-start;" download>Download Previously Submitted File</a>{% endif %}
+                    
+                    <form method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 14px; margin-top: 8px;">
+                        {% csrf_token %}
+                        <div style="background: #ffffff; padding: 16px; border-radius: 10px; border: 1px dashed #fca5a5;">
+                            {{ report_form.as_p }}
+                        </div>
+                        <button type="submit" name="upload_report" class="btn btn-blue" style="align-self: flex-start;">Upload Revised Report Document</button>
+                    </form>
+                </div>
+            {% elif period.final_report %}
+                <div style="display: flex; flex-direction: column; gap: 16px; background: #f0f9ff; border: 1.5px solid #0284c7; padding: 20px; border-radius: 12px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                        <div>
+                            <p style="color: #0369a1; font-weight: 700; margin: 0; font-size: 1rem;">✓ Report Document Uploaded Successfully</p>
+                            <p style="margin: 4px 0 0 0; color: #475569; font-size: 0.88rem;">Your final report file is submitted and queued for lecturer evaluation and grading.</p>
+                        </div>
+                        <span class="status-pill pending" style="background: #e0f2fe; color: #0369a1; padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 0.85rem;">Status: Pending lecturer review</span>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 12px; background: #ffffff; padding: 12px 16px; border-radius: 10px; border: 1px solid #bae6fd;">
+                        <span style="font-size: 1.2rem;">📄</span>
+                        <div style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            <strong style="color: #0f172a; font-size: 0.9rem;">Attached Document:</strong>
+                            <span style="color: #475569; font-size: 0.85rem; margin-left: 6px;">{{ period.final_report.name }}</span>
+                        </div>
+                        <a href="{{ period.final_report.url }}" class="btn btn-blue btn-sm" target="_blank" style="padding: 6px 14px; font-size: 0.82rem; text-decoration: none;">View / Download File</a>
+                    </div>
+
+                    <details style="margin-top: 4px;">
+                        <summary style="cursor: pointer; color: #0284c7; font-weight: 600; font-size: 0.88rem;">Re-upload / Replace Report File</summary>
+                        <form method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 14px; margin-top: 12px;">
+                            {% csrf_token %}
+                            <div style="background: #ffffff; padding: 16px; border-radius: 10px; border: 1px dashed #cbd5e1;">
+                                {{ report_form.as_p }}
+                            </div>
+                            <button type="submit" name="upload_report" class="btn btn-blue" style="align-self: flex-start;">Upload New Version</button>
+                        </form>
+                    </details>
                 </div>
             {% else %}
                 <form method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 18px;">
@@ -357,7 +396,62 @@
                         {{ report_form.as_p }}
                     </div>
                     <button type="submit" name="upload_report" class="btn btn-blue" style="align-self: flex-start;">Upload Report Document</button>
-                    <p style="margin: 0; color: #64748b; font-size: 0.9rem;">Status: <strong>Pending lecturer review</strong></p>
+                    <p style="margin: 0; color: #64748b; font-size: 0.9rem;">Status: <strong>Not yet uploaded</strong></p>
+                </form>
+            {% endif %}
+        </div>
+
+        <div class="card" style="border-top: 5px solid #0284c7; margin-top: 24px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 8px;">
+                <h3 style="margin: 0; color: #0f172a;">Organization Recommendation Letter Submission Hub</h3>
+                <span class="status-pill" style="background: #e0f2fe; color: #0369a1; padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: 0.82rem;">Official Attachment Verification</span>
+            </div>
+            
+            <div style="background: #fffbeb; border: 1.5px solid #fde047; padding: 14px 18px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 1.4rem;">🏛️</span>
+                <p style="margin: 0; color: #92400e; font-size: 0.92rem; font-weight: 600; line-height: 1.5;">
+                    <strong>Mandatory Requirement:</strong> The recommendation letter submitted must have an official <strong>Organization Stamp</strong> and authorized signature from your place of attachment.
+                </p>
+            </div>
+
+            {% if period.recommendation_letter %}
+                <div style="display: flex; flex-direction: column; gap: 16px; background: #f0f9ff; border: 1.5px solid #0284c7; padding: 20px; border-radius: 12px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                        <div>
+                            <p style="color: #0369a1; font-weight: 700; margin: 0; font-size: 1rem;">✓ Stamped Recommendation Letter Uploaded &amp; Submitted</p>
+                            <p style="margin: 4px 0 0 0; color: #475569; font-size: 0.88rem;">Your stamped recommendation letter is saved and available for lecturer verification.</p>
+                        </div>
+                        <span class="status-pill" style="background: #dcfce7; color: #15803d; padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 0.85rem;">Submitted</span>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 12px; background: #ffffff; padding: 12px 16px; border-radius: 10px; border: 1px solid #bae6fd;">
+                        <span style="font-size: 1.2rem;">📜</span>
+                        <div style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            <strong style="color: #0f172a; font-size: 0.9rem;">Attached Recommendation Letter:</strong>
+                            <span style="color: #475569; font-size: 0.85rem; margin-left: 6px;">{{ period.recommendation_letter.name }}</span>
+                        </div>
+                        <a href="{{ period.recommendation_letter.url }}" class="btn btn-blue btn-sm" target="_blank" style="padding: 6px 14px; font-size: 0.82rem; text-decoration: none;">View / Download Letter</a>
+                    </div>
+
+                    <details style="margin-top: 4px;">
+                        <summary style="cursor: pointer; color: #0284c7; font-weight: 600; font-size: 0.88rem;">Re-upload / Replace Recommendation Letter</summary>
+                        <form method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 14px; margin-top: 12px;">
+                            {% csrf_token %}
+                            <div style="background: #ffffff; padding: 16px; border-radius: 10px; border: 1px dashed #cbd5e1;">
+                                {{ recommendation_form.as_p }}
+                            </div>
+                            <button type="submit" name="upload_recommendation" class="btn btn-blue" style="align-self: flex-start;">Upload Updated Letter</button>
+                        </form>
+                    </details>
+                </div>
+            {% else %}
+                <form method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 18px;">
+                    {% csrf_token %}
+                    <div style="background: var(--bg-light); padding: 20px; border-radius: 12px; border: 1px dashed var(--border-light);">
+                        {{ recommendation_form.as_p }}
+                    </div>
+                    <button type="submit" name="upload_recommendation" class="btn btn-blue" style="align-self: flex-start;">Upload Recommendation Letter</button>
+                    <p style="margin: 0; color: #64748b; font-size: 0.9rem;">Status: <strong>Not yet uploaded</strong></p>
                 </form>
             {% endif %}
         </div>

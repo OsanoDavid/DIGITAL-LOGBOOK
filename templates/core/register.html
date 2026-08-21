@@ -15,8 +15,9 @@
         rel="stylesheet">
 
     <link rel="stylesheet" href="{% static 'css/portal.css' %}">
-
     <style>
+        .back-home-btn { display:inline-flex;align-items:center;gap:4px;font-weight:700;color:#0f4c81 !important;font-size:0.88rem;text-decoration:none;border:1.5px solid rgba(15,76,129,0.25);padding:5px 12px;border-radius:8px;transition:all 0.2s;background:rgba(15,76,129,0.06); }
+        .back-home-btn:hover { background:rgba(15,76,129,0.12);border-color:#0f4c81;color:#0f4c81 !important; }
         .multicolor-gradient-side {
             flex: 1.1;
             background: linear-gradient(135deg, #0f4c81 0%, #0096ff 30%, #8b5cf6 70%, #f4a261 100%);
@@ -492,24 +493,26 @@
             <img src="{% static 'images/logo.jpeg' %}" alt="Kisii University Logo">
             <div class="brand-text">
                 <h1>KISII UNIVERSITY</h1>
-                <p>School of Information Sciences & Technology</p>
+                <p>{{ school_name|default:"School of Information Sciences & Technology" }}</p>
             </div>
         </div>
         <button class="mobile-nav-toggle" id="mobileNavToggle" type="button">☰</button>
         <div class="nav-links">
-            <a href="{% url 'core:login' %}">Home</a>
+            <a href="/" class="back-home-btn" title="Back to School Selection">&#8592; Home</a>
+            <a href="{% url 'core:login' %}?school={{ school_code|default:'SIST' }}">Login</a>
             <a href="#" class="active">Register for Logbook</a>
-            <a href="{% url 'core:login' %}#services">Services</a>
+            <a href="{% url 'core:login' %}?school={{ school_code|default:'SIST' }}#services">Services</a>
             <a href="#support">Support</a>
-            <a href="{% url 'core:login' %}" class="btn-nav">Sign In Terminal</a>
+            <a href="{% url 'core:login' %}?school={{ school_code|default:'SIST' }}" class="btn-nav">Sign In Terminal</a>
         </div>
         <div class="mobile-nav-menu" id="mobileNavMenu">
             <div class="mobile-menu-brand"><img src="{% static 'images/logo.jpeg' %}" alt="">KISII LOGBOOK</div>
-            <a href="{% url 'core:login' %}">Home</a>
+            <a href="/">&#8592; Back to Home</a>
+            <a href="{% url 'core:login' %}?school={{ school_code|default:'SIST' }}">Login</a>
             <a href="#" class="active">Register for Logbook</a>
-            <a href="{% url 'core:login' %}#services">Services</a>
+            <a href="{% url 'core:login' %}?school={{ school_code|default:'SIST' }}#services">Services</a>
             <a href="#support">Support</a>
-            <a href="{% url 'core:login' %}" class="btn-nav">Sign In Terminal</a>
+            <a href="{% url 'core:login' %}?school={{ school_code|default:'SIST' }}" class="btn-nav">Sign In Terminal</a>
         </div>
     </nav>
 
@@ -517,7 +520,7 @@
         <div class="split-card">
 
             <div class="sist-header-banner">
-                <h2>SIST <span>System Portal</span> Registration</h2>
+                <h2>{{ school_code|default:"SIST" }} <span>System Portal</span> Registration</h2>
                 <p>Create your verified attachment logging credentials for Kisii University evaluation cycles.</p>
             </div>
 
@@ -859,10 +862,13 @@
             const messageContainer = document.getElementById('registrationErrorMessage');
             const list = document.getElementById('registrationErrorList');
 
-            messageContainer.textContent = message;
+            messageContainer.textContent = message || "Registration Failed";
             list.innerHTML = '';
             if (errors && errors.length) {
-                errors.forEach(err => {
+                // Filter out any error that identically matches the header message to prevent duplication
+                const uniqueErrors = errors.filter(err => err.trim() !== (message || '').trim());
+                const displayErrors = uniqueErrors.length ? uniqueErrors : errors;
+                displayErrors.forEach(err => {
                     const li = document.createElement('li');
                     li.textContent = err;
                     list.appendChild(li);
@@ -917,6 +923,16 @@
         }
         function resetFontSize() { document.documentElement.style.fontSize = '14px'; }
         function toggleContrast() { document.body.classList.toggle('dark-contrast'); }
+
+        // Sticky nav scroll shadow
+        (function() {
+            const navEl = document.querySelector('nav');
+            if (navEl) {
+                window.addEventListener('scroll', function() {
+                    navEl.classList.toggle('scrolled', window.scrollY > 10);
+                }, { passive: true });
+            }
+        })();
     </script>
     {% include 'core/accessibility_snippet.html' %}
     {% include 'core/ui_transitions.html' %}

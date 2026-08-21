@@ -626,6 +626,7 @@
         <li><a href="#" class="nav-link" id="link-supervisors" onclick="showPanel('supervisors-panel', event)">💼 Manage Supervisors ({{ stats.supervisors }})</a></li>
         <li><a href="#" class="nav-link" id="link-lecturers" onclick="showPanel('lecturers-panel', event)">👨‍🏫 Manage Lecturers ({{ stats.lecturers }})</a></li>
         <li><a href="#" class="nav-link" id="link-create" onclick="showPanel('create-user-panel', event)">➕ Create New User</a></li>
+        <li><a href="#" class="nav-link" id="link-academic-cycle" onclick="showPanel('academic-cycle-panel', event)">🔄 Academic Cycle & Export</a></li>
         <li><a href="#" class="nav-link" id="link-settings" onclick="showPanel('settings-panel', event)">⚙️ System Settings</a></li>
         <li><a href="#" class="nav-link" id="link-reports" onclick="showPanel('reports-panel', event)">📊 Activity Logs & Reports</a></li>
         <li class="separator"></li>
@@ -770,6 +771,7 @@
           <div class="card green" onclick="showPanel('supervisors-panel')">Total Supervisors<span>{{ stats.supervisors }}</span></div>
           <div class="card orange" onclick="showPanel('lecturers-panel')">Total Lecturers<span>{{ stats.lecturers }}</span></div>
           <div class="card purple" onclick="showPanel('reports-panel')">Pending Reviews<span>{{ stats.pending_reviews }}</span></div>
+          <div class="card" style="background:linear-gradient(135deg,#14532d,#16a34a);cursor:pointer;" onclick="showPanel('academic-cycle-panel')">Completed (Archived)<span>{{ stats.completed_periods }}</span></div>
         </div>
 
         <!-- User Management Quick Actions with Multicolor Buttons -->
@@ -791,6 +793,16 @@
               <span>➕</span> Create New User
             </button>
             <div style="width:100%; color:#475569; font-size:0.95rem; margin-top:12px;">Click to open the new user form, choose a role, enter details, then create the account.</div>
+            <div style="width:100%;border-top:1px solid #e2e8f0;margin-top:16px;padding-top:16px;">
+              <a href="{% url 'core:admin_export_attachment_data' %}?academic_year={{ selected_academic_year|default:current_academic_year }}"
+                 style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#065f46,#059669);color:#fff;padding:10px 20px;border-radius:8px;font-weight:700;font-size:0.88rem;text-decoration:none;box-shadow:0 2px 8px rgba(5,150,105,0.3);">
+                📥 Download Attachment Data (CSV)
+              </a>
+              <button type="button" onclick="showPanel('academic-cycle-panel')"
+                style="margin-left:10px;display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;padding:10px 20px;border-radius:8px;font-weight:700;font-size:0.88rem;border:none;cursor:pointer;box-shadow:0 2px 8px rgba(37,99,235,0.3);">
+                🔄 Manage Academic Cycle
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1011,11 +1023,42 @@
             <button type="button" class="btn back-btn" onclick="showPanel('dashboard-overview')">← Back to Overview</button>
           </div>
 
+          {% if form.errors %}
+          <div class="alert-message danger" id="attachmentUserFormErrorBox" style="margin-bottom: 20px; border-left: 4px solid #dc2626; background: #fef2f2; padding: 16px; border-radius: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <div>
+                <strong style="color: #991b1b; font-size: 0.95rem;">Please correct the highlighted fields:</strong>
+                <ul style="margin: 8px 0 0 0; padding-left: 20px; font-size: 0.88rem; font-weight: normal; color: #991b1b;">
+                  {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                      <li><strong>{{ field|title }}:</strong> {{ error }}</li>
+                    {% endfor %}
+                  {% endfor %}
+                </ul>
+              </div>
+              <button type="button" onclick="cancelAttachmentAutoRefresh()" style="background: transparent; border: none; font-size: 1.2rem; cursor: pointer; color: #991b1b;" title="Close message">✕</button>
+            </div>
+            <div style="margin-top: 14px; padding-top: 10px; border-top: 1px solid #fecaca; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+              <span id="attAutoRefreshCountdownText" style="font-size: 0.85rem; color: #7f1d1d; font-weight: 600;">
+                ⏳ Page will automatically refresh in <span id="attCountdownSecs" style="font-size: 1rem; font-weight: bold; color: #dc2626;">5</span>s so you can enter new values...
+              </span>
+              <div style="display: flex; gap: 8px;">
+                <button type="button" class="btn" style="padding: 6px 14px; font-size: 0.82rem; background: #dc2626; color: white; border: none; cursor: pointer; border-radius: 6px; font-weight: 600;" onclick="refreshAttachmentDashboardPage()">
+                  🔄 Refresh Page Now
+                </button>
+                <button type="button" class="btn" id="btnPauseAttRefresh" style="padding: 6px 14px; font-size: 0.82rem; background: #475569; color: white; border: none; cursor: pointer; border-radius: 6px; font-weight: 600;" onclick="pauseAttachmentAutoRefresh()">
+                  ⏸️ Pause Auto-Refresh
+                </button>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
           <form method="post" action="{% url 'core:admin_create_user' %}">
             {% csrf_token %}
             <div style="margin-bottom: 18px; display: flex; align-items: center; gap: 12px;">
               <label for="create_role_select"><strong>Select User Role:</strong></label>
-              <select name="role" id="create_role_select" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1;">
+              <select name="role" id="create_role_select" onchange="toggleLecturerDetails()" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1;">
                 <option value="STUDENT">Student</option>
                 <option value="SUPERVISOR">Supervisor</option>
                 <option value="LECTURER">Lecturer</option>
@@ -1024,14 +1067,94 @@
 
             <div class="create-form-grid">
               <label>Full Name<input type="text" name="full_name" required placeholder="John Doe"></label>
-              <label>Username / Reg No.<input type="text" name="username" required placeholder="IN14/00000/22"></label>
+              <label id="username_label_container">Username / Reg No.<input type="text" name="username" id="create_username_input" required placeholder="IN14/00000/22"></label>
               <label>Email Address<input type="email" name="email" required placeholder="user@example.com"></label>
               <label>Phone Number<input type="text" name="phone_number" required placeholder="+254..."></label>
-              <label>Organization / University<input type="text" name="institution_or_company" placeholder="e.g. Kisii University"></label>
-              <label>Course / Department<input type="text" name="course" placeholder="e.g. Computer Science"></label>
+              <label>Organization / Institution
+                <input type="text" name="institution_or_company" list="admin_org_options" placeholder="Type to search or enter an organization" autocomplete="organization">
+                <datalist id="admin_org_options">
+                  <option value="Kisii University — Main Campus">
+                  <option value="ABNO Softwares International — Nairobi">
+                  <option value="Safaricom PLC — Nairobi">
+                  <option value="Equity Bank Kenya — Nairobi">
+                  <option value="Co-operative Bank of Kenya">
+                  <option value="KCB Bank Group">
+                  <option value="County Government of Kisii">
+                  <option value="County Government of Nyamira">
+                  <option value="County Government of Kisumu">
+                  <option value="County Government of Nairobi">
+                  <option value="Kisii Teaching and Referral Hospital">
+                  <option value="Kenya Power and Lighting Company (KPLC)">
+                  <option value="Kenya Revenue Authority (KRA)">
+                  <option value="Kenya Ports Authority (KPA)">
+                  <option value="ICT Authority Kenya">
+                  <option value="Huawei Technologies Kenya">
+                  <option value="Microsoft Africa Development Centre">
+                </datalist>
+              </label>
+              <label>Course / Programme
+                <select name="course" id="create_course_select" required style="padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                  <option value="" disabled selected>Select Course / Programme</option>
+                  <option value="Computer Science">Computer Science</option>
+                  <option value="Applied Computer Science">Applied Computer Science</option>
+                  <option value="Software Engineering">Software Engineering</option>
+                  <option value="Information Technology">Information Technology</option>
+                  <option value="Business Information Technology">Business Information Technology</option>
+                  <option value="Communication and Media Studies">Communication and Media Studies</option>
+                  <option value="All Courses">All Courses (Department Wide)</option>
+                </select>
+              </label>
               <label>Password<input type="password" name="password" required></label>
               <label>Confirm Password<input type="password" name="confirm_password" required></label>
             </div>
+
+            <fieldset id="lecturer-details" style="display:none; margin:20px 0 0; padding:18px; border:1px solid #cbd5e1; border-radius:8px;">
+              <legend style="padding:0 6px; font-weight:700;">Lecturer professional details</legend>
+              <p class="subheading-dark" style="margin:0 0 14px;">These details are saved with the lecturer account. The invitation email will be sent to the Email Address entered above.</p>
+              <div class="create-form-grid">
+                <label>Workspace Role
+                  <select data-lecturer-detail name="workspace_role" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                    <option value="Internal Academic University Assessor" selected>Internal Academic University Assessor</option>
+                    <option value="External University Representative">External University Representative</option>
+                    <option value="Department Administrator">Department Administrator</option>
+                  </select>
+                </label>
+                <label>National ID Number<input data-lecturer-detail type="text" name="national_id" placeholder="Enter ID Number"></label>
+                <label>Academic Specialization
+                  <select data-lecturer-detail name="specialization" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                    <option value="" disabled selected>Select academic specialization</option>
+                    <option value="Computer Science">Computer Science</option>
+                    <option value="Applied Computer Science">Applied Computer Science</option>
+                    <option value="Software Engineering">Software Engineering</option>
+                    <option value="Information Technology">Information Technology</option>
+                    <option value="Communication and Media Studies">Communication and Media Studies</option>
+                    <option value="Business Information Technology">Business Information Technology</option>
+                  </select>
+                </label>
+                <label>Faculty / School
+                  <select data-lecturer-detail name="faculty" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                    <option value="School of Information Sciences & Technology" selected>School of Information Sciences & Technology (SIST)</option>
+                    <option value="School of Arts and Social Sciences">School of Arts and Social Sciences (SASS)</option>
+                    <option value="School of Business and Economics">School of Business and Economics (SOBE)</option>
+                    <option value="School of Education and Human Resource Development">School of Education and Human Resource Development (SEDHURED)</option>
+                    <option value="School of Health Sciences">School of Health Sciences (SHS)</option>
+                    <option value="School of Law">School of Law (SLAW)</option>
+                    <option value="School of Pure and Applied Sciences">School of Pure and Applied Sciences (SPAS)</option>
+                    <option value="School of Agriculture and Natural Resources Management">School of Agriculture and Natural Resources Management (SANRM)</option>
+                  </select>
+                </label>
+                <label>Department
+                  <select data-lecturer-detail name="department" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                    <option value="" disabled selected>Select Department</option>
+                    <option value="Computing Sciences">Computing Sciences</option>
+                    <option value="Information Systems & Technology">Information Systems & Technology</option>
+                    <option value="Media and Communications">Media and Communications</option>
+                    <option value="Software Engineering">Software Engineering</option>
+                    <option value="Mathematics & Computer Science">Mathematics & Computer Science</option>
+                  </select>
+                </label>
+              </div>
+            </fieldset>
 
             <div style="margin-top: 20px; display: flex; gap: 12px;">
               <button type="submit" class="btn primary">Save & Create Account</button>
@@ -1185,6 +1308,111 @@
         </div>
       </section>
 
+      <!-- 7. ACADEMIC CYCLE & EXPORT PANEL -->
+      <section class="view-panel" id="academic-cycle-panel">
+        <div class="panel-box">
+          <div class="panel-header">
+            <div>
+              <h2>🔄 Academic Cycle Management</h2>
+              <p class="subheading-dark">Current active cycle: <strong style="color:#2563eb;">{{ current_academic_year }}</strong> &nbsp;|&nbsp; Archived/Completed periods: <strong style="color:#16a34a;">{{ stats.completed_periods }}</strong></p>
+            </div>
+            <button type="button" class="btn back-btn" onclick="showPanel('dashboard-overview')">← Back to Overview</button>
+          </div>
+
+          <!-- Year Filter Bar -->
+          <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:18px 20px;margin-bottom:24px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+            <span style="font-weight:700;color:#334155;">📅 Filter by Academic Year:</span>
+            <form method="get" action="{% url 'core:admin_dashboard' %}" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+              <input type="hidden" name="panel" value="academic-cycle-panel">
+              <select name="academic_year" onchange="this.form.submit()" style="padding:8px 14px;border-radius:7px;border:1.5px solid #cbd5e1;font-size:0.9rem;">
+                <option value="">-- All Years --</option>
+                {% for yr in available_academic_years %}
+                <option value="{{ yr }}" {% if yr == selected_academic_year %}selected{% endif %}>{{ yr }}</option>
+                {% endfor %}
+              </select>
+              <button type="submit" style="padding:8px 16px;background:#2563eb;color:#fff;border:none;border-radius:7px;font-weight:700;cursor:pointer;">Apply Filter</button>
+              {% if selected_academic_year %}
+              <a href="{% url 'core:admin_dashboard' %}?panel=academic-cycle-panel" style="padding:8px 14px;background:#e2e8f0;color:#475569;border-radius:7px;font-weight:700;text-decoration:none;">Clear</a>
+              {% endif %}
+            </form>
+          </div>
+
+          <!-- 5-Year Historical Chart -->
+          <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:24px;margin-bottom:24px;">
+            <h3 style="margin-bottom:6px;color:#1e293b;">📊 Attachment Completions — Last 5 Academic Years</h3>
+            <p style="color:#94a3b8;font-size:0.85rem;margin-bottom:20px;">Archived student attachment records per academic year for this school</p>
+            <div style="display:flex;align-items:flex-end;gap:16px;height:160px;">
+              {% for stat in five_year_stats %}
+              <div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex:1;">
+                <div style="font-size:1rem;font-weight:800;color:#1e293b;">{{ stat.count }}</div>
+                <div data-year-count="{{ stat.count }}" style="width:100%;background:linear-gradient(to top,#2563eb,#60a5fa);border-radius:6px 6px 0 0;height:10px;"></div>
+                <div style="font-size:0.68rem;color:#64748b;font-weight:700;text-align:center;">{{ stat.year }}</div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- Download Attachment Data CSV -->
+          <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:22px;margin-bottom:24px;">
+            <h3 style="color:#15803d;margin-bottom:6px;">📥 Export Attachment Data to CSV / Excel</h3>
+            <p style="color:#4ade80;font-size:0.85rem;margin-bottom:16px;">Download a full spreadsheet of all student attachment records, grades, supervisors, and organizations.</p>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;">
+              <a href="{% url 'core:admin_export_attachment_data' %}"
+                 style="display:inline-flex;align-items:center;gap:8px;background:#16a34a;color:#fff;padding:11px 22px;border-radius:8px;font-weight:700;font-size:0.9rem;text-decoration:none;">
+                📥 All Records (All Years)
+              </a>
+              {% if selected_academic_year %}
+              <a href="{% url 'core:admin_export_attachment_data' %}?academic_year={{ selected_academic_year }}"
+                 style="display:inline-flex;align-items:center;gap:8px;background:#065f46;color:#fff;padding:11px 22px;border-radius:8px;font-weight:700;font-size:0.9rem;text-decoration:none;">
+                📥 Export {{ selected_academic_year }} Only
+              </a>
+              {% else %}
+              <a href="{% url 'core:admin_export_attachment_data' %}?academic_year={{ current_academic_year }}"
+                 style="display:inline-flex;align-items:center;gap:8px;background:#065f46;color:#fff;padding:11px 22px;border-radius:8px;font-weight:700;font-size:0.9rem;text-decoration:none;">
+                📥 Export Current Year ({{ current_academic_year }})
+              </a>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Refresh / Archive Academic Cycle Form -->
+          <div style="background:#fff7ed;border:1.5px solid #fed7aa;border-radius:12px;padding:24px;">
+            <h3 style="color:#c2410c;margin-bottom:6px;">🔄 Start New Academic Attachment Cycle</h3>
+            <p style="color:#9a3412;font-size:0.85rem;margin-bottom:6px;">
+              When a new attachment intake begins, use this action to:
+            </p>
+            <ul style="color:#9a3412;font-size:0.84rem;margin:0 0 16px 18px;line-height:1.8;">
+              <li>Archive all <strong>{{ stats.active_periods }}</strong> currently active attachment record(s) under <strong>{{ current_academic_year }}</strong></li>
+              <li>All student data, logs, grades and documents are <strong>permanently preserved</strong></li>
+              <li>Students can still log in and view their records — no data is deleted</li>
+              <li>The dashboard resets to show a fresh view for the new academic year</li>
+            </ul>
+
+            <form method="post" action="{% url 'core:admin_reset_academic_cycle' %}" id="cycleResetForm"
+                  onsubmit="return confirmCycleReset(event)">
+              {% csrf_token %}
+              <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+                <div>
+                  <label style="font-size:0.85rem;font-weight:700;color:#7c2d12;display:block;margin-bottom:5px;">New Academic Year Label</label>
+                  <input type="text" name="new_academic_year" id="new_academic_year"
+                         placeholder="e.g. 2026/2027"
+                         style="padding:10px 14px;border:1.5px solid #fdba74;border-radius:8px;font-size:0.95rem;width:180px;"
+                         required pattern="\d{4}/\d{4}" title="Format: YYYY/YYYY e.g. 2026/2027">
+                </div>
+                <div style="padding-top:24px;">
+                  <button type="submit"
+                          style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#c2410c,#ea580c);color:#fff;padding:11px 24px;border-radius:8px;font-weight:800;font-size:0.92rem;border:none;cursor:pointer;box-shadow:0 3px 10px rgba(194,65,12,0.35);">
+                    🔄 Archive Current &amp; Start New Cycle
+                  </button>
+                </div>
+              </div>
+              <p style="color:#9a3412;font-size:0.78rem;margin-top:10px;">⚠️ This action cannot be undone. Make sure to <strong>export a CSV backup</strong> before proceeding.</p>
+            </form>
+          </div>
+
+        </div>
+      </section>
+
     </main>
   </div>
 
@@ -1289,11 +1517,80 @@
       if (panelId === 'supervisors-panel') document.getElementById('link-supervisors')?.classList.add('active');
       if (panelId === 'lecturers-panel') document.getElementById('link-lecturers')?.classList.add('active');
       if (panelId === 'create-user-panel') document.getElementById('link-create')?.classList.add('active');
+      if (panelId === 'academic-cycle-panel') document.getElementById('link-academic-cycle')?.classList.add('active');
       if (panelId === 'settings-panel') document.getElementById('link-settings')?.classList.add('active');
       if (panelId === 'reports-panel') document.getElementById('link-reports')?.classList.add('active');
 
+      // Animate year bars when academic-cycle-panel is shown
+      if (panelId === 'academic-cycle-panel') {
+        setTimeout(() => {
+          const bars = document.querySelectorAll('[data-year-count]');
+          if (!bars.length) return;
+          const maxVal = Math.max(...Array.from(bars).map(b => parseInt(b.dataset.yearCount) || 0));
+          bars.forEach(bar => {
+            const pct = maxVal > 0 ? parseInt(bar.dataset.yearCount) / maxVal : 0;
+            bar.style.transition = 'height 0.6s cubic-bezier(0.34,1.56,0.64,1)';
+            bar.style.height = Math.round(pct * 120) + 'px';
+          });
+        }, 50);
+      }
+
       closeSidebar();
       window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+
+    let attAutoRefreshTimer = null;
+    let attCountdownValue = 5;
+
+    function confirmCycleReset(event) {
+      const yearInput = document.getElementById('new_academic_year');
+      const newYear = yearInput ? yearInput.value.trim() : '';
+      if (!newYear) { event.preventDefault(); return false; }
+      return confirm(
+        '⚠️ IMPORTANT: Academic Cycle Refresh\n\n' +
+        'You are about to archive all active attachment records under the current cycle.\n\n' +
+        '✅ Student data, logs, and grades are PRESERVED permanently.\n' +
+        '✅ Students can still log in and access their records.\n' +
+        '✅ Admins can view archived records at any time.\n\n' +
+        'New cycle will be initialized as: ' + newYear + '\n\n' +
+        'Have you downloaded a CSV backup? Proceed?'
+      );
+    }
+
+    function refreshAttachmentDashboardPage() {
+      window.location.href = "{% url 'core:admin_dashboard' %}?panel=create-user-panel";
+    }
+
+    function pauseAttachmentAutoRefresh() {
+      if (attAutoRefreshTimer) {
+        clearInterval(attAutoRefreshTimer);
+        attAutoRefreshTimer = null;
+      }
+      const txt = document.getElementById('attAutoRefreshCountdownText');
+      if (txt) txt.innerHTML = '⏸️ Auto-refresh paused. Edit fields or click <strong>Refresh Page Now</strong> to reset.';
+      const btn = document.getElementById('btnPauseAttRefresh');
+      if (btn) btn.style.display = 'none';
+    }
+
+    function cancelAttachmentAutoRefresh() {
+      pauseAttachmentAutoRefresh();
+      const box = document.getElementById('attachmentUserFormErrorBox');
+      if (box) box.style.display = 'none';
+    }
+
+    function startAttachmentAutoRefreshCountdown() {
+      const errorBox = document.getElementById('attachmentUserFormErrorBox');
+      if (!errorBox) return;
+
+      attAutoRefreshTimer = setInterval(() => {
+        attCountdownValue--;
+        const elem = document.getElementById('attCountdownSecs');
+        if (elem) elem.innerText = attCountdownValue;
+        if (attCountdownValue <= 0) {
+          clearInterval(attAutoRefreshTimer);
+          refreshAttachmentDashboardPage();
+        }
+      }, 1000);
     }
 
     function activateRequestedPanel() {
@@ -1302,7 +1599,14 @@
       const periodId = params.get('period_id');
       if (panel) {
         showPanel(panel);
+      } else if (document.getElementById('attachmentUserFormErrorBox')) {
+        showPanel('create-user-panel');
       }
+
+      if (document.getElementById('attachmentUserFormErrorBox')) {
+        startAttachmentAutoRefreshCountdown();
+      }
+
       if (periodId) {
         const row = document.getElementById(`pending-period-${periodId}`);
         if (row) {
@@ -1319,7 +1623,31 @@
     function openCreateForRole(role) {
       showPanel('create-user-panel');
       const select = document.getElementById('create_role_select');
-      if (select) select.value = role;
+      if (select) {
+        select.value = role;
+        toggleLecturerDetails();
+      }
+    }
+
+    function toggleLecturerDetails() {
+      const select = document.getElementById('create_role_select');
+      const details = document.getElementById('lecturer-details');
+      const usernameContainer = document.getElementById('username_label_container');
+      const usernameInput = document.getElementById('create_username_input');
+      if (!select || !details) return;
+      const isLecturer = select.value === 'LECTURER';
+      
+      details.style.display = isLecturer ? 'block' : 'none';
+      if (usernameContainer) {
+        usernameContainer.style.display = isLecturer ? 'none' : 'block';
+      }
+      if (usernameInput) {
+        usernameInput.required = !isLecturer;
+      }
+      
+      details.querySelectorAll('[data-lecturer-detail]').forEach(input => {
+        input.required = isLecturer;
+      });
     }
 
     function openAttachmentUserDetails(userId) {

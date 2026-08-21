@@ -2,8 +2,6 @@
 
 
 
-
-
   <div class="container">
     <h2>Lecturer Details Form</h2>
     <p class="subtitle">Please update your professional academic credentials profile.</p>
@@ -59,12 +57,12 @@
           </select>
         </div>
 
-        <!-- Lecturer Employee Number field + descriptive clean text context underneath -->
+        <!-- Lecturer Employee Number (Optional) -->
         <div class="form-group full-width">
-          <label for="lec_employee_number">Lecturer Employee Number</label>
-          <input type="text" id="lec_employee_number" name="username" placeholder="e.g., KSU-PF-1024" required>
+          <label for="lec_employee_number">Lecturer Employee Number <span style="font-weight:400; color:#64748b; font-size:0.85em;">(Optional)</span></label>
+          <input type="text" id="lec_employee_number" name="username" placeholder="e.g., KSU-PF-1024">
           <div class="helper-text">
-            Student prefix mapping: IN13/ = Computer Science, IN14/ = Applied Computer Science, IN16/ = Software Engineering, IN12/ = Information Technology.
+            Leave blank if the lecturer does not have an employee number. The system will use their email as their login username.
           </div>
         </div>
 
@@ -99,25 +97,147 @@
     <!-- Step 2: University Information -->
     <div id="lec_step2" class="step">
       <div class="form-grid">
-        <!-- University Name spanning full width -->
+
+        <!-- Organisation / Institution (full width, with system datalist) -->
         <div class="form-group full-width">
-          <label for="lec_university">University Name</label>
-          <select id="lec_university" name="university" required>
-            <option value="" disabled selected>Select University</option>
-            <option value="Kisii University">Kisii University</option>
-            <option value="University of Nairobi">University of Nairobi</option>
-            <option value="Kenyatta University">Kenyatta University</option>
-            <option value="Moi University">Moi University</option>
-            <option value="Strathmore University">Strathmore University</option>
-            <option value="JKUAT">JKUAT</option>
-            <option value="Maseno University">Maseno University</option>
-            <option value="Egerton University">Egerton University</option>
-            <option value="Karatina University">Karatina University</option>
-            <option value="Dedan Kimathi University">Dedan Kimathi University</option>
-            <option value="Technical University of Kenya">Technical University of Kenya</option>
-            <option value="Other">Other</option>
-          </select>
+          <label for="lec_organisation">Organisation / Institution</label>
+          <input type="text" id="lec_organisation" name="institution_or_company" list="lec_org_options"
+                 placeholder="Type to search or enter an organisation name..." required>
+          <datalist id="lec_org_options">
+            <option value="ABNO Softwares International — P.O BOX 19892-00100, Nairobi — 020 3573210">
+            <option value="AccessKenya Group — Nairobi">
+            <option value="Amref Health Africa — P.O BOX 30125-00100, Nairobi — +254 20 6994000">
+            <option value="Amica Savings and Credit — P.O BOX 816-10200, Muranga — 060 2030254">
+            <option value="Aura Safira Consulting — P.O BOX 16298-00100, Nairobi — 254 20 4400450">
+            <option value="BackSpace Software Developers — P.O BOX 57742-00200, Nairobi">
+            <option value="Belgut Technical Training Institute — P.O BOX 205-20200, Kericho — 254 701566195">
+            <option value="Bunifu Technologies Ltd — P.O BOX 41064-00100, Nairobi — 254 758592949">
+            <option value="Capacity Spring Africa — P.O BOX 4344-30100, Eldoret — 254 741500091">
+            <option value="Chemelil Sugar Company Limited — P.O BOX 177-40107, Muhoroni — 020 2031883">
+            <option value="Co-operative Bank of Kenya — Nairobi">
+            <option value="Communications Authority of Kenya — Nairobi">
+            <option value="County Commissioner's Office, Busia County — P.O BOX 14-50400, Busia">
+            <option value="County Government of Bomet — P.O BOX 19-20400, Bomet — 202084068">
+            <option value="County Government of Bungoma — P.O BOX 437, Bungoma — 725393939">
+            <option value="County Government of Embu — P.O BOX 126-60100, Embu — 31181">
+            <option value="County Government of Kericho — P.O BOX 112-20200, Kericho — 254 522021100">
+            <option value="County Government of Kisii — P.O BOX 4550-40200, Kisii — 709727038">
+            <option value="County Government of Migori — P.O BOX 195-40400, Suna Migori — 254 0592092">
+            <option value="County Government of Nandi — P.O BOX 802-30300, Kapsabet — 053 5252355">
+            <option value="County Government of Nakuru — P.O BOX 2870-20100, Nakuru — 254 721278798">
+            <option value="County Government of Nyandarua — P.O BOX 701-20303, Ol Kalou — 202660859">
+            <option value="County Government of Siaya — P.O BOX 803-40600, Siaya">
+            <option value="County Government of Uasin Gishu — P.O BOX 40-30100, Eldoret — 254 0532016153">
+            <option value="County Government of Vihiga — P.O BOX 344-50300, Maragoli">
+            <option value="Craft Silicon — Nairobi">
+            <option value="Deloitte East Africa — Nairobi">
+            <option value="Directline Assurance Company — P.O BOX 40863-00100, GPO Kenya — 711030000">
+            <option value="Eldoret International Airport — P.O BOX 2323-30100, Eldoret — 053 2063377">
+            <option value="Equity Bank Kenya — Nairobi">
+            <option value="EY Kenya — Nairobi">
+            <option value="Faiba (Jamii Telecommunications) — Nairobi">
+            <option value="Flaxem System Enterprises Limited — P.O BOX 3885-00100, Nairobi — 254 20 2305051">
+            <option value="Gicatech Enterprise Solutions — P.O BOX 775, Kisii — 724563348">
+            <option value="Garissa Law Courts — P.O BOX 68-70100, Garissa — 254 702687542">
+            <option value="Getembe Television Network — P.O BOX 3345-40200, Kisii — 254 726547363">
+            <option value="Google Kenya — Nairobi">
+            <option value="Government of Makueni County — P.O BOX 78-90300, Makueni">
+            <option value="Huawei Technologies Kenya — Nairobi">
+            <option value="IBM East Africa — Nairobi">
+            <option value="ICT Authority Kisumu County — P.O BOX 1912-40100, Kisumu — +254 20 2089061">
+            <option value="ICT Authority Nairobi — P.O BOX 27150-00100, Nairobi — 254 20 2089061">
+            <option value="iProcure — Nairobi">
+            <option value="Jaramogi Oginga Odinga Referral Hospital — P.O BOX 849-40100, Kisumu — 057 2020801">
+            <option value="Juhudi Kilimo Ltd — P.O BOX 25441-00100, Nairobi — 254 709692030">
+            <option value="Kakamega County General Hospital — P.O BOX 15-50100, Kakamega — 720295739">
+            <option value="Kenya Airports Authority (KAA) — Nairobi">
+            <option value="Kenya Bureau of Standards (KEBS) — P.O BOX 54974-00200, Nairobi — 254 20 6948000">
+            <option value="Kenya Broadcasting Corporation (KBC) — P.O BOX 30456-00100, Nairobi — 254 2223757">
+            <option value="Kenya Civil Aviation Authority — P.O BOX 30163-00100, Nairobi — 254 020 827470">
+            <option value="Kenya Connect — P.O BOX 223-90103, Wamunyu">
+            <option value="Kenya Film Classification Board — P.O BOX 44226-00100, Nairobi — 020 2250600">
+            <option value="Kenya Industrial Research and Development — P.O BOX 30650-00100, Nairobi — +254 (20) 2388216">
+            <option value="Kenya Meteorological Department — P.O BOX 30259-00100, Nairobi — 254 020 3867880">
+            <option value="Kenya National Bureau of Statistics (KNBS) — Nairobi">
+            <option value="Kenya National Library Services — P.O BOX 30573-00100, Nairobi — 254 20 2739893">
+            <option value="Kenya National Archives — P.O BOX 49210, Nairobi — 722509212">
+            <option value="Kenya Ports Authority (KPA) — P.O BOX 20072-00200, Nairobi — 254 20 6931000">
+            <option value="Kenya Power and Lighting Company (KPLC) Kisii Branch — P.O BOX 5-40200, Kisii — 95551">
+            <option value="Kenya Power Coast Region — P.O BOX 90104-80100, Mombasa — 254 041 2225564">
+            <option value="Kenya Power Kisumu Branch — P.O BOX 151-40100, Kisumu — 254 057 2020536">
+            <option value="Kenya Railways Corporation — Nairobi">
+            <option value="Kenya Revenue Authority (KRA) — Nairobi">
+            <option value="Kenya Television Network Kisii — P.O BOX 4103-40200, Kisii — 727883074">
+            <option value="Kenya Wildlife Service — Nairobi">
+            <option value="Kisii County Government — P.O BOX 4550-40200, Kisii — 709727038">
+            <option value="Kisii Huduma Center — P.O BOX 590-40200, Kisii">
+            <option value="Kisii Impact Institute of Science and Technology — P.O BOX 3628, Kisii — 254 784663693">
+            <option value="Kisii Law Courts — P.O BOX 69-40200, Kisii — 111431147">
+            <option value="Kisii Municipality — P.O BOX 406-40200, Kisii — 730184301">
+            <option value="Kisii National Polytechnic — P.O BOX 222-40200, Kisii — 752031300">
+            <option value="Kisii Teaching and Referral Hospital — Kisii">
+            <option value="Konza Technopolis Development Authority — Nairobi">
+            <option value="KPMG Kenya — Nairobi">
+            <option value="Liquid Telecommunications Kenya — Nairobi">
+            <option value="LISH AI Labs — P.O BOX 16412-20100, Nairobi — 254 722575169">
+            <option value="Masinde Muliro University — P.O BOX 190-50100, Kakamega — 254 702597360">
+            <option value="Microsoft Africa Development Centre — Nairobi">
+            <option value="Ministry of Energy and Petroleum — P.O BOX 30582-00100, Nairobi — 254 20 310112">
+            <option value="Ministry of Health — P.O BOX 30016-00100, Nairobi — 254 20 2717077">
+            <option value="Ministry of ICT and Digital Economy — P.O BOX 8053, Nairobi — 020 3340659">
+            <option value="Ministry of Roads and Transport — P.O BOX 52692-00100, Nairobi — 020 2729200">
+            <option value="Nairobi City County — P.O BOX 30075-00100, Nairobi — 254 725624489">
+            <option value="Nandi County Assembly — P.O BOX 673-30300, Kapsabet — 780000029">
+            <option value="Nakuru Town West Subcounty — P.O BOX 2870-20100, Nakuru — 254 721278798">
+            <option value="Narok County Government — P.O BOX 898-20500, Narok — 020 2688929">
+            <option value="National Hospital Insurance Fund (NHIF) Eldoret Branch — P.O BOX 3091-30100, Eldoret — 053 2030749">
+            <option value="NHIF Kisii Branch — P.O BOX 898-40200, Kisii — 582030206">
+            <option value="Newton Institute of Technology — P.O BOX 4275-40200, Kisii — 790805493">
+            <option value="NIFTECS Company Ltd — P.O BOX 3506-40200, Kisii">
+            <option value="NITA-K (National IT Authority Kenya) — Nairobi">
+            <option value="Nyamira County Referral Hospital — P.O BOX 3-40500, Nyamira — 254 738344009">
+            <option value="Nyandaru County Assembly — P.O BOX 720-20303, Ol Kalou — 743079333">
+            <option value="Nyandaru County Government — P.O BOX 701-20303, Ol Kalou — 202660859">
+            <option value="Nyandaru National Polytechnic — P.O BOX 2033-20300, Nyahururu — 727256001">
+            <option value="Nyangena Hospital — P.O BOX 3492-40200, Kisii — 254 732749146">
+            <option value="Oracle Kenya — Nairobi">
+            <option value="PwC Kenya — Nairobi">
+            <option value="Radio Lake Victoria — P.O BOX 4580-40103, Kisumu — 7572022937">
+            <option value="RAM Hospital Ltd — P.O BOX 81, Kisii — 705239281">
+            <option value="Royal Media Services Limited — P.O BOX 7468-00300, Nairobi — 719060000">
+            <option value="Safaricom PLC — Nairobi">
+            <option value="Siaya County Referral Hospital — P.O BOX 144-40600, Siaya — 757955067">
+            <option value="Smart Applications International Ltd — P.O BOX 57776-00200, Nairobi — 254 20 3206000">
+            <option value="Standard Chartered Bank Kenya — Nairobi">
+            <option value="Tamnet Systems Limited — P.O BOX 2564-40200, Kisii — 254 707445991">
+            <option value="Telkom Kenya — Nairobi">
+            <option value="The Kisii National Polytechnic — P.O BOX 222-40200, Kisii — 058-20319558">
+            <option value="The Kisumu National Polytechnic — P.O BOX 143-40100, Kisumu — 057 2501501">
+            <option value="The Mawego National Polytechnic — P.O BOX 289-40222, Oyogis — 0725050033">
+            <option value="TV Magharibi — P.O BOX 1138-50200, Bungoma — 790497090">
+            <option value="TV Oyominto — P.O BOX 34786-00100, Nairobi — 254 781891372">
+            <option value="TV47 Kenya — Nairobi">
+            <option value="Twitter (X) Kenya — Nairobi">
+            <option value="UAP Insurance Holdings — Nairobi">
+            <option value="Ukulima Sacco Society Ltd — P.O BOX 35369, Nairobi — 020 3310371">
+            <option value="Unilever Kenya — Nairobi">
+            <option value="Universal College of Technology — P.O BOX 712-40200, Kisii — 254 725928065">
+            <option value="USAID — Nairobi">
+            <option value="USIU-Africa — P.O BOX 14208-00800, Nairobi — 254 730116000">
+            <option value="Veeress Technologies Ltd — P.O BOX 11247-20100, Nakuru — 757621770">
+            <option value="Vihiga County Assembly — P.O BOX 350-50300, Maseno — 056 21417">
+            <option value="Vihiga County Meteorological Service — P.O BOX 183-50307, Luanda — 254 710602712">
+            <option value="Vivo Energy Kenya — Nairobi">
+            <option value="Walk Through Africa Expeditions — P.O BOX 12531-00100, Nairobi — 254 722779470">
+            <option value="Western Kenya Eye Care Centre — P.O BOX 2549-40100, Kisumu — 057 2022172">
+            <option value="West Kenya Sugar Company Limited — P.O BOX 2101-50100, Kakamega — 254 20 2036320">
+            <option value="WyMore IT Solutions — P.O BOX 3729-00100, Nairobi — 254 716297960">
+            <option value="Zitron Labs Computing Group — P.O BOX 2327-00100, Nairobi — 724857835">
+            <option value="ZTE Kenya — Nairobi">
+          </datalist>
+          <div class="helper-text">Type to search from the system's organisation list or enter a new one.</div>
         </div>
+
         <div class="form-group">
           <label for="lec_faculty">Faculty / School</label>
           <select id="lec_faculty" name="faculty" required>
@@ -130,6 +250,20 @@
             <option value="Faculty of Education">Faculty of Education</option>
             <option value="School of Pure and Applied Sciences">School of Pure and Applied Sciences</option>
             <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="lec_school">University School Code</label>
+          <select id="lec_school" name="school" required>
+            <option value="" disabled selected>Select School Code</option>
+            <option value="SIST">SIST (School of Information Sciences &amp; Technology)</option>
+            <option value="SASS">SASS (School of Arts and Social Sciences)</option>
+            <option value="SOBE">SOBE (School of Business and Economics)</option>
+            <option value="SEDHURED">SEDHURED (School of Education and Human Resource Development)</option>
+            <option value="SHS">SHS (School of Health Sciences)</option>
+            <option value="SLAW">SLAW (School of Law)</option>
+            <option value="SPAS">SPAS (School of Pure and Applied Sciences)</option>
+            <option value="SANRM">SANRM (School of Agriculture and Natural Resources Management)</option>
           </select>
         </div>
         <div class="form-group">
@@ -157,10 +291,6 @@
             <option value="Mathematics">Mathematics</option>
             <option value="All Courses">All Courses (Department Wide)</option>
           </select>
-        </div>
-        <div class="form-group">
-          <label for="lec_uni_email">Official University Email Address</label>
-          <input type="email" id="lec_uni_email" name="university_email" placeholder="lecturer@university.ac.ke" required>
         </div>
       </div>
       <div class="nav-buttons">
@@ -242,11 +372,11 @@
             { id: "lec_national_id", label: "National ID Number" },
             { id: "lec_specialization", label: "Specialization" },
             { id: "lec_employee_number", label: "Employee Number" },
-            { id: "lec_university", label: "University Name" },
+            { id: "lec_organisation", label: "Organisation" },
             { id: "lec_faculty", label: "Faculty / School" },
+            { id: "lec_school", label: "School Code" },
             { id: "lec_department", label: "Department" },
             { id: "lec_programme", label: "Course / Programme" },
-            { id: "lec_uni_email", label: "Official Uni Email" }
           ];
           
           let reviewHTML = "<ul>";
@@ -256,6 +386,9 @@
             reviewHTML += `<li><strong>${field.label}</strong> ${val}</li>`;
           });
           reviewHTML += "</ul>";
+          reviewHTML += `<p style="margin-top:12px; color:#475569; font-size:0.9rem;">
+            📧 A welcome email will be sent to <strong>${document.getElementById('lec_email').value}</strong> with login instructions.
+          </p>`;
           document.getElementById('lec_reviewContent').innerHTML = reviewHTML;
         }
       }, 400); 

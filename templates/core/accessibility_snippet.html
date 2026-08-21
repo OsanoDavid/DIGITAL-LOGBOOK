@@ -3,43 +3,369 @@
 <link rel="stylesheet" href="{% static 'css/accessibility.css' %}">
 
 <style>
-    .theme-circle {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        cursor: pointer;
-        border: 2px solid white;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        transition: all 0.2s;
+    /* ── Adaptive Panel Theming ──
+       When the body carries a theme-* class the panel recolours itself
+       using CSS custom properties so every label, border, and accent
+       automatically shifts to match. */
+
+    /* Default palette (deep navy) */
+    #accessibility-panel {
+        --acc-accent:     #0096ff;
+        --acc-accent-rgb: 0,150,255;
+        --acc-bg-start:   #080e1e;
+        --acc-bg-end:     #0f2348;
+        --acc-text:       #e2e8f0;
+        --acc-label:      #7dd3fc;
+        --acc-border:     rgba(0,150,255,0.22);
     }
 
-    .theme-circle:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 5px 12px rgba(0, 0, 0, 0.3);
+    /* Red theme — the panel becomes a deep crimson glass */
+    body.theme-red #accessibility-panel {
+        --acc-accent:     #ef4444;
+        --acc-accent-rgb: 239,68,68;
+        --acc-bg-start:   #1a0505;
+        --acc-bg-end:     #3b0a0a;
+        --acc-text:       #ffe4e4;
+        --acc-label:      #fca5a5;
+        --acc-border:     rgba(239,68,68,0.35);
     }
 
-    .tc-red { background: linear-gradient(to bottom, #f44336, #b71c1c); }
-    .tc-yellow { background: linear-gradient(to bottom, #ffeb3b, #fbc02d); }
-    .tc-blue { background: linear-gradient(to bottom, #2196f3, #0d47a1); }
-    .tc-default { background: #eeeeee; }
-
-    .acc-divider {
-        height: 1px;
-        background: rgba(0, 0, 0, 0.06);
-        margin: 20px 0;
+    /* Yellow theme — rich amber glass */
+    body.theme-yellow #accessibility-panel {
+        --acc-accent:     #f59e0b;
+        --acc-accent-rgb: 245,158,11;
+        --acc-bg-start:   #1a1200;
+        --acc-bg-end:     #3b2800;
+        --acc-text:       #fff8e1;
+        --acc-label:      #fcd34d;
+        --acc-border:     rgba(245,158,11,0.35);
     }
 
-    /* Custom Flex and Grid Classes to avoid relying on external Bootstrap */
-    .acc-flex-between { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-    .acc-flex-center { display: flex; align-items: center; justify-content: center; }
-    .acc-inline-flex { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; flex-wrap: nowrap; }
-    .acc-icon-box { background: #0d6efd; color: white; padding: 8px; border-radius: 8px; margin-right: 8px; display: flex; align-items: center; justify-content: center; }
-    .acc-title-text { color: #212529; font-weight: bold; margin: 0; font-size: 1.1rem; }
+    /* Blue theme — deep sapphire glass */
+    body.theme-blue #accessibility-panel {
+        --acc-accent:     #38bdf8;
+        --acc-accent-rgb: 56,189,248;
+        --acc-bg-start:   #03091a;
+        --acc-bg-end:     #0a2040;
+        --acc-text:       #e0f2fe;
+        --acc-label:      #7dd3fc;
+        --acc-border:     rgba(56,189,248,0.35);
+    }
+
+    /* Apply the CSS variables to panel internals */
+    #accessibility-panel {
+        background: linear-gradient(160deg, var(--acc-bg-start) 0%, var(--acc-bg-end) 100%) !important;
+        border-left-color: var(--acc-border) !important;
+    }
+    #accessibility-panel .acc-label {
+        color: var(--acc-label) !important;
+    }
+    #accessibility-panel .acc-icon-box {
+        background: linear-gradient(135deg, var(--acc-bg-end), var(--acc-accent)) !important;
+        box-shadow: 0 4px 12px rgba(var(--acc-accent-rgb),0.35) !important;
+    }
+    #accessibility-panel .acc-btn-primary {
+        background: linear-gradient(135deg, var(--acc-bg-end), var(--acc-accent)) !important;
+        box-shadow: 0 4px 16px rgba(var(--acc-accent-rgb),0.35) !important;
+    }
+    #accessibility-panel #acc-font-display {
+        color: var(--acc-accent) !important;
+    }
+    #accessibility-panel .acc-option.active,
+    #accessibility-panel .acc-option.mode-active {
+        background: linear-gradient(135deg, var(--acc-bg-end), var(--acc-accent)) !important;
+        border-color: rgba(var(--acc-accent-rgb),0.5) !important;
+    }
+    #accessibility-panel .acc-option:hover {
+        background: rgba(var(--acc-accent-rgb),0.18) !important;
+        border-color: rgba(var(--acc-accent-rgb),0.4) !important;
+    }
+    #accessibility-panel .acc-divider {
+        background: linear-gradient(90deg,transparent,rgba(var(--acc-accent-rgb),0.2),transparent) !important;
+    }
+    /* Also tint the scrollbar thumb */
+    #accessibility-panel::-webkit-scrollbar-thumb {
+        background: rgba(var(--acc-accent-rgb),0.3) !important;
+    }
+
+    /* ===== FLOATING TRIGGER BUTTON ===== */
+    #accessibility-widget {
+        position: fixed !important;
+        bottom: 28px !important;
+        right: 28px !important;
+        z-index: 99999 !important;
+    }
     
-    .acc-btn-primary { background: #212529; width: 100%; padding: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: bold; border-radius: 8px; color: white; border: none; cursor: pointer; transition: background 0.2s; }
-    .acc-btn-primary:hover { background: #343a40; }
-    .acc-btn-outline { background: transparent; border: 2px solid #cbd5e1; width: 100%; padding: 10px; font-weight: bold; border-radius: 8px; color: #475569; cursor: pointer; margin-top: 15px; display: flex; align-items: center; justify-content: center; gap: 5px; transition: background 0.2s; }
-    .acc-btn-outline:hover { background: #f1f5f9; }
+    #accessibility-btn {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 50px !important;
+        height: 50px !important;
+        border-radius: 50% !important;
+        border: none !important;
+        cursor: pointer !important;
+        color: #ffffff !important;
+        background: linear-gradient(135deg, #0f4c81 0%, #0096ff 50%, #38bdf8 100%) !important;
+        box-shadow: 0 4px 20px rgba(0, 150, 255, 0.45), 0 2px 8px rgba(0, 0, 0, 0.25) !important;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+        outline: none !important;
+        position: relative !important;
+    }
+    #accessibility-btn:hover {
+        transform: translateY(-3px) scale(1.04) !important;
+        box-shadow: 0 8px 28px rgba(0, 150, 255, 0.55), 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    }
+    #accessibility-btn:active {
+        transform: translateY(0) scale(0.97) !important;
+    }
+    #acc-gear-icon {
+        font-size: 1.4rem !important;
+    }
+
+    /* ===== SIDEBAR PUSH SYSTEM ===== */
+    body {
+        transition: margin-right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    body.acc-sidebar-open {
+        margin-right: 320px;
+    }
+
+    /* ===== ACCESSIBILITY PANEL ===== */
+    #accessibility-panel {
+        position: fixed !important;
+        top: 0 !important;
+        right: 0 !important;
+        width: 320px !important;
+        height: 100vh !important;
+        transform: translateX(100%) !important;
+        z-index: 99998 !important;
+        transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        padding: 22px 20px 28px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        color: #e2e8f0 !important;
+        scrollbar-width: thin !important;
+        box-shadow: -10px 0 70px rgba(0, 0, 0, 0.65) !important;
+    }
+    #accessibility-panel.active {
+        transform: translateX(0) !important;
+    }
+
+    /* Panel Header */
+    .acc-flex-between { display: flex !important; justify-content: space-between !important; align-items: center !important; margin-bottom: 1.2rem !important; }
+    .acc-flex-center  { display: flex !important; align-items: center !important; justify-content: center !important; gap: 10px !important; }
+    .acc-title-text { color: #f1f5f9 !important; font-weight: 800 !important; font-size: 1.05rem !important; margin: 0 !important; }
+    
+    .btn-close-acc {
+        background: rgba(255, 255, 255, 0.08) !important;
+        border: 1.5px solid rgba(255, 255, 255, 0.15) !important;
+        width: 34px !important;
+        height: 34px !important;
+        border-radius: 50% !important;
+        font-size: 0.9rem !important;
+        color: #94a3b8 !important;
+        cursor: pointer !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    }
+    .btn-close-acc:hover {
+        background: rgba(239, 68, 68, 0.22) !important;
+        border-color: rgba(239, 68, 68, 0.5) !important;
+        color: #fca5a5 !important;
+        transform: rotate(90deg) scale(1.1) !important;
+    }
+
+    /* Sections & Dividers */
+    .acc-section { margin-bottom: 18px !important; }
+    .acc-label {
+        display: block !important;
+        font-weight: 700 !important;
+        font-size: 0.7rem !important;
+        text-transform: uppercase !important;
+        letter-spacing: 1.8px !important;
+        margin-bottom: 10px !important;
+    }
+
+    /* Grid layout */
+    .acc-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+    }
+
+    /* Primary Action Buttons */
+    .acc-btn-primary {
+        background: linear-gradient(135deg, #0f4c81, #0096ff) !important;
+        width: 100% !important;
+        padding: 12px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 8px !important;
+        font-weight: 700 !important;
+        font-size: 0.88rem !important;
+        border-radius: 10px !important;
+        color: white !important;
+        border: none !important;
+        cursor: pointer !important;
+        transition: opacity 0.2s, transform 0.18s !important;
+        box-shadow: 0 4px 16px rgba(0, 150, 255, 0.3) !important;
+    }
+    .acc-btn-primary:hover { opacity: 0.9 !important; transform: translateY(-1px) !important; }
+    .acc-btn-primary:active { transform: translateY(0) !important; }
+
+    .acc-btn-outline {
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1.5px solid rgba(255, 255, 255, 0.14) !important;
+        width: 100% !important;
+        padding: 10px !important;
+        font-weight: 700 !important;
+        font-size: 0.85rem !important;
+        border-radius: 10px !important;
+        color: #94a3b8 !important;
+        cursor: pointer !important;
+        margin-top: 12px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 6px !important;
+        transition: all 0.2s !important;
+    }
+    .acc-btn-outline:hover { background: rgba(255, 255, 255, 0.1) !important; color: #e2e8f0 !important; }
+
+    /* Theme Circles */
+    .theme-circle {
+        width: 34px !important;
+        height: 34px !important;
+        border-radius: 50% !important;
+        cursor: pointer !important;
+        border: 2.5px solid rgba(255, 255, 255, 0.3) !important;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.4) !important;
+        transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    }
+    .theme-circle:hover {
+        transform: translateY(-4px) scale(1.15) !important;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.5) !important;
+    }
+    .tc-default { background: linear-gradient(135deg, #64748b, #1e293b) !important; }
+    .tc-red     { background: linear-gradient(135deg, #f44336, #b71c1c) !important; }
+    .tc-yellow  { background: linear-gradient(135deg, #ffeb3b, #fbc02d) !important; }
+    .tc-blue    { background: linear-gradient(135deg, #2196f3, #0d47a1) !important; }
+
+    /* Default styling for options in the panel */
+    #accessibility-panel .acc-option {
+        background: rgba(255, 255, 255, 0.06) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: var(--acc-text) !important;
+        transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    }
+
+    /* ===== FONT SIZE CONTROLS ===== */
+    .acc-font-row {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 12px !important;
+        width: 100% !important;
+        margin: 10px 0 !important;
+    }
+    
+    .acc-font-btn {
+        flex: 1 !important;
+        height: 48px !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        background: rgba(255, 255, 255, 0.05) !important;
+        border-radius: 12px !important;
+        cursor: pointer !important;
+        font-size: 1.6rem !important;
+        font-weight: 400 !important;
+        line-height: 1 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+        user-select: none !important;
+        color: #e2e8f0 !important;
+        backdrop-filter: blur(8px) !important;
+    }
+    
+    .acc-font-btn-minus {
+        color: #fca5a5 !important;
+        border-color: rgba(239, 68, 68, 0.25) !important;
+        background: rgba(239, 68, 68, 0.08) !important;
+    }
+    .acc-font-btn-minus:hover {
+        background: rgba(239, 68, 68, 0.2) !important;
+        border-color: rgba(239, 68, 68, 0.5) !important;
+        box-shadow: 0 4px 15px rgba(239, 68, 68, 0.25) !important;
+        transform: translateY(-2px) !important;
+        color: #ffffff !important;
+    }
+    .acc-font-btn-minus:active {
+        transform: scale(0.92) !important;
+    }
+    
+    .acc-font-btn-plus {
+        color: #86efac !important;
+        border-color: rgba(16, 185, 129, 0.25) !important;
+        background: rgba(16, 185, 129, 0.08) !important;
+    }
+    .acc-font-btn-plus:hover {
+        background: rgba(16, 185, 129, 0.2) !important;
+        border-color: rgba(16, 185, 129, 0.5) !important;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.25) !important;
+        transform: translateY(-2px) !important;
+        color: #ffffff !important;
+    }
+    .acc-font-btn-plus:active {
+        transform: scale(0.92) !important;
+    }
+    
+    .acc-font-display-wrap {
+        flex: 1.2 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background: rgba(255, 255, 255, 0.06) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 12px !important;
+        padding: 6px 4px !important;
+        min-width: 80px !important;
+        height: 48px !important;
+    }
+    
+    #acc-font-display {
+        font-size: 1.25rem !important;
+        font-weight: 800 !important;
+        line-height: 1.1 !important;
+    }
+    
+    .acc-font-label {
+        font-size: 0.6rem !important;
+        color: #94a3b8 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 1.2px !important;
+        margin-top: 2px !important;
+    }
+
+    /* Select dropdown */
+    #accessibility-panel select, #accessibility-panel .form-select {
+        background: #0d1f3c !important;
+        color: #ffffff !important;
+        border-color: rgba(var(--acc-accent-rgb),0.3) !important;
+        border-radius: 8px !important;
+    }
+    #accessibility-panel select option,
+    #accessibility-panel .form-select option {
+        background: #0d1f3c !important;
+        color: #ffffff !important;
+    }
 </style>
 
 <!-- Premium 3-Color Glowing Spinner Loader -->
@@ -82,14 +408,14 @@
 
     <!-- 1. Text Controls -->
     <div class="acc-section">
-        <span class="acc-label text-primary" style="color: #0d6efd;">Font Scaling</span>
-        <div class="acc-inline-flex">
-            <button onclick="changeFontSize(-15)" style="flex:1; height:48px; font-size:1.8rem; line-height: 1; font-weight:900; background:#dc3545; color:white; border:none; border-radius:12px; cursor:pointer; box-shadow:0 3px 10px rgba(220,53,69,0.4); transition:transform 0.15s; display: flex; align-items: center; justify-content: center;" onmousedown="this.style.transform='scale(0.93)'" onmouseup="this.style.transform='scale(1)'">&#8722;</button>
-            <div style="text-align:center; min-width:75px;">
-                <div id="acc-font-display" style="font-size:1.3rem; font-weight:800; color:#0d6efd;">100%</div>
-                <div style="font-size:0.65rem; color:#999; letter-spacing:1px; text-transform:uppercase;">Font Size</div>
+        <span class="acc-label">Font Scaling</span>
+        <div class="acc-font-row">
+            <button class="acc-font-btn acc-font-btn-minus" onclick="changeFontSize(-15)" title="Decrease font size">&minus;</button>
+            <div class="acc-font-display-wrap">
+                <div id="acc-font-display">100%</div>
+                <div class="acc-font-label">Font Size</div>
             </div>
-            <button onclick="changeFontSize(15)" style="flex:1; height:48px; font-size:1.8rem; line-height: 1; font-weight:900; background:#198754; color:white; border:none; border-radius:12px; cursor:pointer; box-shadow:0 3px 10px rgba(25,135,84,0.4); transition:transform 0.15s; display: flex; align-items: center; justify-content: center;" onmousedown="this.style.transform='scale(0.93)'" onmouseup="this.style.transform='scale(1)'">+</button>
+            <button class="acc-font-btn acc-font-btn-plus" onclick="changeFontSize(15)" title="Increase font size">+</button>
         </div>
     </div>
 
@@ -97,7 +423,7 @@
 
     <!-- 2. Intelligence Section -->
     <div class="acc-section">
-        <span class="acc-label text-primary" style="color: #0d6efd;">Voice-First Navigation</span>
+        <span class="acc-label">Voice-First Navigation</span>
         <button class="acc-btn-primary" onclick="startVoiceAssistant()">
             <i class="bi bi-mic-fill" style="color: #0dcaf0;"></i> Engage Voice Engine
         </button>
@@ -107,7 +433,7 @@
 
     <!-- 3. Reading Tools -->
     <div class="acc-section">
-        <span class="acc-label text-primary" style="color: #0d6efd;">Reading Assistance</span>
+        <span class="acc-label">Reading Assistance</span>
         <div class="acc-grid">
             <div class="acc-option py-3" style="padding: 1rem 0;" onclick="toggleAccSetting('dyslexic')">
                 <i class="bi bi-fonts" style="display:block; margin-bottom:6px; font-size: 1.2rem;"></i> Dyslexic
@@ -122,7 +448,7 @@
 
     <!-- Font Family Selector -->
     <div class="acc-section">
-        <span class="acc-label text-primary" style="color: #0d6efd;">Font Family</span>
+        <span class="acc-label">Font Family</span>
         <select class="form-select shadow-sm" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ced4da; font-size: 0.9rem;" onchange="changeFont(this.value)">
             <option value="">— Default System Font —</option>
             <option value="'Arial', sans-serif">Arial (Clean)</option>
@@ -139,7 +465,7 @@
 
     <!-- Visual Display Options -->
     <div class="acc-section">
-        <span class="acc-label text-primary" style="color: #0d6efd;">Visual Display Options</span>
+        <span class="acc-label">Visual Display Options</span>
         <div class="acc-grid">
             <div class="acc-option py-3" style="padding: 1rem 0;" onclick="toggleDisplayMode('dark')" id="btn-dark">
                 <i class="bi bi-moon-stars-fill" style="display:block; margin-bottom:6px; font-size: 1.2rem;"></i> Dark Mode
@@ -159,7 +485,7 @@
     <div style="margin-top: auto;">
         <!-- 4. Themes -->
         <div class="acc-section" style="border-top: 1px solid rgba(0,0,0,0.08); padding-top: 1.5rem;">
-            <span class="acc-label text-primary text-center" style="color: #0d6efd; text-align: center;">Interface Themes</span>
+            <span class="acc-label" style="text-align:center;">Interface Themes</span>
             <div class="acc-flex-center" style="gap: 18px;">
                 <div class="theme-circle tc-default" onclick="setTheme('default')" title="Standard"></div>
                 <div class="theme-circle tc-red" onclick="setTheme('red')" title="Red Mode"></div>

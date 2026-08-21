@@ -52,9 +52,21 @@ class User(AbstractUser):
         'IN12': 'Information Technology',
     }
 
+    SCHOOL_CHOICES = (
+        ('SIST', 'School of Information Sciences & Technology'),
+        ('SASS', 'School of Arts and Social Sciences'),
+        ('SOBE', 'School of Business and Economics'),
+        ('SEDHURED', 'School of Education and Human Resource Development'),
+        ('SHS', 'School of Health Sciences'),
+        ('SLAW', 'School of Law'),
+        ('SPAS', 'School of Pure and Applied Sciences'),
+        ('SANRM', 'School of Agriculture and Natural Resources Management'),
+    )
+
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='STUDENT')
+    school = models.CharField(max_length=20, choices=SCHOOL_CHOICES, blank=True, null=True)
     institution_or_company = models.CharField(max_length=255, blank=True, null=True, default="Kisii University (SIST)")
-    phone_number = models.CharField(max_length=15, blank=True, null=True)
+    phone_number = models.CharField(max_length=30, blank=True, null=True)
     course = models.CharField(max_length=120, blank=True, null=True)
     profile_photo = models.FileField(upload_to='profile_photos/', blank=True, null=True)
     
@@ -109,6 +121,7 @@ class User(AbstractUser):
 class SystemSettings(models.Model):
     registration_enabled = models.BooleanField(default=True)
     registration_closed_message = models.CharField(max_length=255, default='Registration is temporarily closed by the system administrator.')
+    current_academic_year = models.CharField(max_length=20, default='2025/2026')
 
     class Meta:
         verbose_name = 'System Settings'
@@ -121,6 +134,21 @@ class SystemSettings(models.Model):
 
     def __str__(self):
         return 'System Settings'
+
+
+class LecturerProfile(models.Model):
+    """Professional information supplied when an administrator creates a lecturer."""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='lecturer_profile')
+    workspace_role = models.CharField(max_length=120, blank=True)
+    national_id = models.CharField(max_length=50, blank=True)
+    specialization = models.CharField(max_length=120, blank=True)
+    university = models.CharField(max_length=255, blank=True)
+    faculty = models.CharField(max_length=255, blank=True)
+    department = models.CharField(max_length=255, blank=True)
+    university_email = models.EmailField(blank=True)
+
+    def __str__(self):
+        return f'Lecturer profile: {self.user}'
 
 
 class AttachmentPeriod(models.Model):
@@ -136,8 +164,13 @@ class AttachmentPeriod(models.Model):
     start_date = models.DateField()
     total_weeks = models.IntegerField(default=14, validators=[MinValueValidator(12), MaxValueValidator(16)])
     
+    academic_year = models.CharField(max_length=20, default='2025/2026')
+    is_archived = models.BooleanField(default=False)
+    status = models.CharField(max_length=20, default='ACTIVE')
+    
     # Final Capstone Uploads & Grading Chain
     final_report = models.FileField(upload_to=_sist_reports_upload_path, max_length=255, blank=True, null=True)
+    recommendation_letter = models.FileField(upload_to=_sist_reports_upload_path, max_length=255, blank=True, null=True)
     report_status = models.CharField(max_length=24, default='NOT_SUBMITTED')
     report_review_comment = models.TextField(blank=True, null=True)
     supervisor_marks = models.FloatField(null=True, blank=True)

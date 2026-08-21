@@ -369,6 +369,10 @@
                 <div class="stat-value">{{ pending_reports|length }}</div>
                 <div class="stat-label">Submitted final reports</div>
             </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ recommendation_letters|length }}</div>
+                <div class="stat-label">Stamped Rec. Letters</div>
+            </div>
         </div>
 
         <div class="course-section">
@@ -412,9 +416,10 @@
                             <td>{{ report.report_review_comment|default:'No review comments yet.' }}</td>
                             <td class="action-cell">
                                 {% if report.final_report %}
-                                    <a href="{{ report.final_report.url }}" class="action-btn secondary" target="_blank"><i class="fa-solid fa-download"></i> Download</a>
-                                {% else %}
-                                    <span class="muted">No report file</span>
+                                    <a href="{{ report.final_report.url }}" class="action-btn secondary" target="_blank" title="Download Report PDF"><i class="fa-solid fa-file-pdf"></i> Report PDF</a>
+                                {% endif %}
+                                {% if report.recommendation_letter %}
+                                    <a href="{{ report.recommendation_letter.url }}" class="action-btn secondary" target="_blank" style="background: #e0f2fe; color: #0369a1; border-color: #bae6fd;" title="Download Stamped Recommendation Letter"><i class="fa-solid fa-stamp"></i> Rec. Letter</a>
                                 {% endif %}
                                 <a href="{% url 'core:review_final_report' report.id %}" class="action-btn"><i class="fa-solid fa-eye"></i> Review</a>
                             </td>
@@ -424,6 +429,56 @@
                 </table>
                 {% else %}
                 <div class="empty-state" style="padding: 24px 0;">No submitted final reports are awaiting your review right now.</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="course-section" style="margin-top: 24px;">
+            <div class="course-header" style="border-left: 4px solid #0284c7;">
+                <i class="fa-solid fa-stamp" style="color: #0284c7; font-size: 1.2rem;"></i>
+                <h2 class="course-title">Organization Recommendation Letters Queue</h2>
+                <span class="course-badge" style="background: #e0f2fe; color: #0369a1;">{{ recommendation_letters|length }} Submitted</span>
+            </div>
+            <div class="table-card">
+                {% if recommendation_letters %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Student / Attachee</th>
+                            <th>Course</th>
+                            <th>Organisation / Company</th>
+                            <th>Stamped Recommendation Letter</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rec in recommendation_letters %}
+                        <tr>
+                            <td>
+                                <div class="student-name">{{ rec.student.get_full_name|default:rec.student.username }}</div>
+                                <div class="muted">{{ rec.student.username }}</div>
+                                <div class="muted">{{ rec.student.email|default:'No email' }}</div>
+                            </td>
+                            <td>{{ rec.student.course|default:'Unassigned' }}</td>
+                            <td>{{ rec.student.institution_or_company|default:'Not specified' }}</td>
+                            <td>
+                                <a href="{{ rec.recommendation_letter.url }}" class="action-btn secondary" target="_blank" style="background: #e0f2fe; color: #0369a1; border-color: #bae6fd; font-size: 0.82rem; padding: 6px 12px; display: inline-flex; align-items: center; gap: 6px;">
+                                    <i class="fa-solid fa-file-pdf"></i> View Stamped Letter
+                                </a>
+                            </td>
+                            <td>
+                                <span class="status-pill status-approved" style="background: #e0f2fe; color: #0369a1;">✓ Submitted with Stamp</span>
+                            </td>
+                            <td class="action-cell">
+                                <a href="{% url 'core:review_final_report' rec.id %}" class="action-btn" style="background: #0284c7; color: white;"><i class="fa-solid fa-eye"></i> View & Review</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state" style="padding: 24px 0;">No organization recommendation letters have been submitted by students yet.</div>
                 {% endif %}
             </div>
         </div>
@@ -458,6 +513,13 @@
                                     <div class="muted">{{ p.student.username|default:"No registration number" }}</div>
                                     <div class="muted"><strong>Course:</strong> {{ p.student.course|default:"Unassigned" }}</div>
                                     <div class="muted"><strong>Email:</strong> {{ p.student.email|default:"No email on record" }}</div>
+                                    {% if p.recommendation_letter %}
+                                        <div style="margin-top: 6px;">
+                                            <a href="{{ p.recommendation_letter.url }}" target="_blank" class="action-btn secondary" style="background: #e0f2fe; color: #0369a1; border-color: #bae6fd; font-size: 0.76rem; padding: 4px 10px; display: inline-flex; align-items: center; gap: 6px;" title="Download Stamped Recommendation Letter"><i class="fa-solid fa-stamp"></i> Rec. Letter</a>
+                                        </div>
+                                    {% else %}
+                                        <div style="margin-top: 4px; font-size: 0.75rem; color: #94a3b8; font-style: italic;">Rec. Letter: Not submitted</div>
+                                    {% endif %}
                                 </td>
                                 <td>
                                     <div class="muted">{{ p.supervisor.get_full_name|default:"Not assigned yet" }}</div>
@@ -529,11 +591,23 @@
                                     {% else %}
                                         <span class="muted" style="display: block; font-size: 0.8rem; margin-top: 8px;">Week 12 Assess: Locked</span>
                                     {% endif %}
+
+                                    <div style="background: #f0f7ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 10px; margin-top: 8px;">
+                                        <strong style="font-size: 0.85rem; color: #0369a1; display: block; margin-bottom: 4px;">Organization Rec. Letter</strong>
+                                        {% if p.recommendation_letter %}
+                                            <a href="{{ p.recommendation_letter.url }}" target="_blank" style="font-size: 0.8rem; color: #0284c7; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-stamp"></i> View Stamped Rec. Letter</a>
+                                        {% else %}
+                                            <span style="font-size: 0.78rem; color: #64748b; font-style: italic;">Not submitted by student</span>
+                                        {% endif %}
+                                    </div>
                                 </td>
                                 <td>
                                     <div class="action-cell">
-                                        {% if p.supervisor_signed %}
-                                            <a href="{% url 'core:final_grading' p.id %}" class="action-btn"><i class="fa-solid fa-pen-to-square"></i> Allocate Grade</a>
+                                        {% if p.lecturer_signed %}
+                                            <span class="status-pill status-approved" style="font-weight: 700; background: #dcfce7; color: #15803d; padding: 4px 10px; border-radius: 12px;">Grade: {{ p.lecturer_grade|default:"A" }} ({{ p.lecturer_marks|default:"-" }}%)</span>
+                                            <a href="{% url 'core:final_grading' p.id %}" class="action-btn secondary" style="padding: 4px 10px; font-size: 0.78rem;"><i class="fa-solid fa-pen-to-square"></i> Edit</a>
+                                        {% elif p.supervisor_signed or p.weekly_logs.all|length >= 1 or p.final_report or p.first_visit_comment or p.second_visit_comment %}
+                                            <a href="{% url 'core:final_grading' p.id %}" class="action-btn" style="background: #0284c7; color: white; border-radius: 8px; padding: 6px 14px; font-size: 0.85rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-pen-to-square"></i> Allocate Grade</a>
                                         {% else %}
                                             <span class="muted" style="display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-lock"></i> Locked until completion</span>
                                         {% endif %}

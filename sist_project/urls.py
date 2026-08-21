@@ -26,8 +26,8 @@ urlpatterns = [
     path('admins/', views.admin_login_view, name='admin_login_root'),
     path('admins/dashboard/', views.admin_dashboard_view, name='admin_dashboard_root'),
     
-    # 1. Maps the blank root URL directly to your landing login portal page
-    path('', views.login_view, name='login'), 
+    # 1. Root URL → New beautiful school-selector landing page
+    path('', views.landing_view, name='landing'),
     
     # 2. Includes all other workflow routes (register, dashboard, edit_log) from core/urls.py
     path('portal/', include(('core.urls', 'core'), namespace='core')),

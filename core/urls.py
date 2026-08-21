@@ -16,6 +16,8 @@ urlpatterns = [
     path('admin/create-supervisor-request/', views.admin_create_supervisor_from_request_view, name='admin_create_supervisor_from_request'),
     path('admin/notification/<int:notif_id>/read/', views.mark_admin_notification_read, name='mark_admin_notification_read'),
     path('admin/users/<int:user_id>/manage/', views.admin_manage_user_view, name='admin_manage_user'),
+    path('admin/export-attachment-data/', views.admin_export_attachment_data_view, name='admin_export_attachment_data'),
+    path('admin/reset-academic-cycle/', views.admin_reset_academic_cycle_view, name='admin_reset_academic_cycle'),
     path('debug/login-supervisor/', views.debug_login_supervisor, name='debug_login_supervisor'),
 
     # highlight-start

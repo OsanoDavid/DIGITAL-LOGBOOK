@@ -787,15 +787,33 @@
                         <h3>Create a New User Profile</h3>
 
                         {% if form.errors %}
-                        <div class="fee-alert-box" style="display: block;">
-                            <strong>Please correct the highlighted fields:</strong>
-                            <ul style="margin: 8px 0 0 0; padding-left: 20px; font-size: 0.85rem; font-weight: normal; color: #991b1b;">
-                                {% for field, errors in form.errors.items %}
-                                    {% for error in errors %}
-                                        <li>{{ field|title }}: {{ error }}</li>
-                                    {% endfor %}
-                                {% endfor %}
-                            </ul>
+                        <div class="fee-alert-box" id="userFormErrorBox" style="display: block; margin-bottom: 24px; border-left: 4px solid #dc2626; background: #fef2f2; padding: 16px; border-radius: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                <div>
+                                    <strong style="color: #991b1b; font-size: 0.95rem;">Please correct the highlighted fields:</strong>
+                                    <ul style="margin: 8px 0 0 0; padding-left: 20px; font-size: 0.88rem; font-weight: normal; color: #991b1b;">
+                                        {% for field, errors in form.errors.items %}
+                                            {% for error in errors %}
+                                                <li><strong>{{ field|title }}:</strong> {{ error }}</li>
+                                            {% endfor %}
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                <button type="button" onclick="cancelAutoRefresh()" style="background: transparent; border: none; font-size: 1.2rem; cursor: pointer; color: #991b1b;" title="Close message">✕</button>
+                            </div>
+                            <div style="margin-top: 14px; padding-top: 10px; border-top: 1px solid #fecaca; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                                <span id="autoRefreshCountdownText" style="font-size: 0.85rem; color: #7f1d1d; font-weight: 600;">
+                                    ⏳ Page will automatically refresh in <span id="countdownSecs" style="font-size: 1rem; font-weight: bold; color: #dc2626;">5</span>s so you can enter new values...
+                                </span>
+                                <div style="display: flex; gap: 8px;">
+                                    <button type="button" class="btn-portal" style="width: auto; padding: 6px 14px; font-size: 0.82rem; background: #dc2626; color: white; border: none; margin: 0; cursor: pointer; border-radius: 6px; font-weight: 600;" onclick="refreshDashboardPage()">
+                                        🔄 Refresh Page Now
+                                    </button>
+                                    <button type="button" class="btn-portal" id="btnPauseRefresh" style="width: auto; padding: 6px 14px; font-size: 0.82rem; background: #475569; color: white; border: none; margin: 0; cursor: pointer; border-radius: 6px; font-weight: 600;" onclick="pauseAutoRefresh()">
+                                        ⏸️ Pause Auto-Refresh
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                         {% endif %}
                         
@@ -919,6 +937,15 @@
                                     <div class="form-group">
                                         <label for="id_confirm_password_attachment_admin">Confirm Password</label>
                                         <input type="password" name="confirm_password" class="form-control" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="id_school_attachment_admin">Designated School</label>
+                                        <select name="school" id="id_school_attachment_admin" class="form-control" required>
+                                            <option value="" disabled selected>Select school...</option>
+                                            {% for code, name in schools %}
+                                                <option value="{{ code }}">{{ name }}</option>
+                                            {% endfor %}
+                                        </select>
                                     </div>
                                     <button type="submit" class="btn-portal" style="grid-column: 1 / -1;">Save Attachment Administrator Record</button>
                                 </div>
@@ -1433,12 +1460,52 @@
     </script>
     
     <script>
+        let autoRefreshTimer = null;
+        let countdownValue = 5;
+
+        function refreshDashboardPage() {
+            window.location.href = "{% url 'core:admin_dashboard' %}?section=create-user-section";
+        }
+
+        function pauseAutoRefresh() {
+            if (autoRefreshTimer) {
+                clearInterval(autoRefreshTimer);
+                autoRefreshTimer = null;
+            }
+            const txt = document.getElementById('autoRefreshCountdownText');
+            if (txt) txt.innerHTML = '⏸️ Auto-refresh paused. Edit fields or click <strong>Refresh Page Now</strong> to reset.';
+            const btn = document.getElementById('btnPauseRefresh');
+            if (btn) btn.style.display = 'none';
+        }
+
+        function cancelAutoRefresh() {
+            pauseAutoRefresh();
+            const box = document.getElementById('userFormErrorBox');
+            if (box) box.style.display = 'none';
+        }
+
+        function startAutoRefreshCountdown() {
+            const errorBox = document.getElementById('userFormErrorBox');
+            if (!errorBox) return;
+
+            autoRefreshTimer = setInterval(() => {
+                countdownValue--;
+                const elem = document.getElementById('countdownSecs');
+                if (elem) elem.innerText = countdownValue;
+                if (countdownValue <= 0) {
+                    clearInterval(autoRefreshTimer);
+                    refreshDashboardPage();
+                }
+            }, 1000);
+        }
+
         function selectAdminCreateProfile(role) {
             document.getElementById('admin-profile-selector').style.display = 'none';
             document.getElementById('admin_student_wizard').style.display = 'none';
             document.getElementById('admin_sup_wizard').style.display = 'none';
             document.getElementById('admin_lec_wizard').style.display = 'none';
             document.getElementById('admin_admin_wizard').style.display = 'none';
+            document.getElementById('admin_attachment_admin_wizard').style.display = 'none';
 
             if (role === 'STUDENT') {
                 document.getElementById('admin_student_wizard').style.display = 'block';
@@ -1454,6 +1521,7 @@
         }
 
         function returnToAdminProfileSelector() {
+            document.querySelectorAll('#create-user-section form').forEach(f => f.reset());
             document.getElementById('admin_student_wizard').style.display = 'none';
             document.getElementById('admin_sup_wizard').style.display = 'none';
             document.getElementById('admin_lec_wizard').style.display = 'none';
@@ -1463,11 +1531,22 @@
         }
 
         document.addEventListener("DOMContentLoaded", function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const sectionParam = urlParams.get('section');
             const selectedRole = "{{ selected_role }}";
-            if (selectedRole) {
-                // Instantly open the form section and expand the selected wizard role
+
+            if (sectionParam) {
+                navigateToSection(sectionParam, selectedRole || '');
+                if (selectedRole) {
+                    selectAdminCreateProfile(selectedRole);
+                }
+            } else if (selectedRole) {
                 navigateToSection('create-user-section', selectedRole);
                 selectAdminCreateProfile(selectedRole);
+            }
+
+            if (document.getElementById('userFormErrorBox')) {
+                startAutoRefreshCountdown();
             }
         });
     </script>

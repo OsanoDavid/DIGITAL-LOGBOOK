@@ -51,7 +51,10 @@ class SISTRegistrationForm(forms.ModelForm):
             raise forms.ValidationError('Email is required.')
         
         # Check if email already exists in database
-        if User.objects.filter(email__iexact=email).exists():
+        qs = User.objects.filter(email__iexact=email)
+        if self.instance and self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
             raise forms.ValidationError('An account with this email already exists in the database.')
         
         return email
@@ -142,6 +145,11 @@ class FinalReportForm(forms.ModelForm):
     class Meta:
         model = AttachmentPeriod
         fields = ['final_report']
+
+class RecommendationLetterForm(forms.ModelForm):
+    class Meta:
+        model = AttachmentPeriod
+        fields = ['recommendation_letter']
 
 class FinalSupervisorGradingForm(forms.ModelForm):
     class Meta:

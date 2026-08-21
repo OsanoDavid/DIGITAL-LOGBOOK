@@ -1,0 +1,408 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kisii University -- Digital Logbook Portal</title>
+    <meta name="description" content="Kisii University Digital Attachment Logbook System. Select your school to access the centralized evaluation portal.">
+    <link rel="icon" type="image/jpeg" href="{% static 'images/logo.jpeg' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root{--blue-mid:#0f4c81;--blue-sky:#0096ff;--gold:#f4a261;--glass:rgba(255,255,255,0.08);--glass-border:rgba(255,255,255,0.18)}
+        *{box-sizing:border-box;margin:0;padding:0}
+        html{scroll-behavior:smooth}
+        body{font-family:'Plus Jakarta Sans',sans-serif;background:#070d1a;color:#fff;min-height:100vh;overflow-x:clip}
+        /* orbs */
+        .bg-orbs{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+        .bg-orbs::before{content:'';position:absolute;width:700px;height:700px;background:radial-gradient(circle,rgba(15,76,129,0.35) 0%,transparent 70%);top:-200px;left:-200px;animation:orbFloat1 18s ease-in-out infinite}
+        .bg-orbs::after{content:'';position:absolute;width:600px;height:600px;background:radial-gradient(circle,rgba(244,162,97,0.18) 0%,transparent 70%);bottom:-100px;right:-100px;animation:orbFloat2 22s ease-in-out infinite}
+        @keyframes orbFloat1{0%,100%{transform:translate(0,0)}50%{transform:translate(60px,80px)}}
+        @keyframes orbFloat2{0%,100%{transform:translate(0,0)}50%{transform:translate(-80px,-60px)}}
+        /* nav */
+        nav{position:sticky;top:0;z-index:1000;background:rgba(7,13,26,0.88);backdrop-filter:blur(20px);border-bottom:1px solid rgba(15,76,129,0.35);padding:14px 6%;display:flex;align-items:center;justify-content:space-between;transition:box-shadow 0.3s}
+        nav.scrolled{box-shadow:0 4px 30px rgba(0,0,0,0.5)}
+        .nav-brand{display:flex;align-items:center;gap:12px;text-decoration:none}
+        .nav-brand img{height:48px;border-radius:6px}
+        .nav-brand-text h1{font-size:1rem;font-weight:800;color:#fff;letter-spacing:-0.3px;line-height:1.2}
+        .nav-brand-text p{font-size:0.68rem;color:var(--gold);font-weight:700;text-transform:uppercase;letter-spacing:0.6px}
+        .nav-actions{display:flex;gap:12px;align-items:center}
+        .nav-btn{padding:9px 20px;border-radius:8px;font-weight:700;font-size:0.85rem;cursor:pointer;text-decoration:none;transition:all 0.2s;border:1.5px solid var(--glass-border);color:#fff;background:var(--glass);backdrop-filter:blur(10px)}
+        .nav-btn:hover{background:rgba(255,255,255,0.14);border-color:rgba(255,255,255,0.3)}
+        .nav-btn.primary{background:linear-gradient(135deg,var(--blue-mid),var(--blue-sky));border-color:transparent;box-shadow:0 4px 14px rgba(0,150,255,0.3)}
+        .nav-btn.primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,150,255,0.4)}
+        /* hero */
+        .hero{position:relative;z-index:1;min-height:92vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px 6% 60px;overflow:hidden}
+        .hero-bg-image{position:absolute;inset:0;z-index:0;background:url("{% static 'images/logo.jpeg' %}") center/cover no-repeat;filter:blur(2px) brightness(0.08);transform:scale(1.05)}
+        .hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(15,76,129,0.3);border:1px solid rgba(0,150,255,0.35);padding:7px 18px;border-radius:50px;font-size:0.78rem;font-weight:700;color:#7dd3fc;letter-spacing:0.5px;margin-bottom:30px;backdrop-filter:blur(10px);animation:fadeSlideDown 0.8s ease both}
+        .hero-badge span{width:7px;height:7px;background:#38bdf8;border-radius:50%;display:inline-block;animation:pulse 2s ease infinite}
+        @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(1.4)}}
+        .hero-logo{width:110px;height:110px;object-fit:contain;border-radius:20px;border:2px solid var(--glass-border);background:rgba(255,255,255,0.08);backdrop-filter:blur(10px);padding:10px;margin-bottom:28px;box-shadow:0 0 60px rgba(0,150,255,0.2);animation:fadeSlideDown 0.9s ease 0.1s both}
+        .hero-title{font-size:clamp(2.2rem,5vw,4rem);font-weight:900;line-height:1.1;letter-spacing:-1.5px;color:#fff;margin-bottom:10px;animation:fadeSlideDown 0.9s ease 0.2s both}
+        .hero-title .gold{color:var(--gold)}
+        .hero-subtitle-school{font-size:clamp(0.85rem,2vw,1.05rem);color:rgba(255,255,255,0.55);font-weight:600;text-transform:uppercase;letter-spacing:2px;margin-bottom:18px;animation:fadeSlideDown 0.9s ease 0.3s both}
+        .hero-desc{max-width:600px;font-size:clamp(0.95rem,2vw,1.1rem);color:rgba(255,255,255,0.6);line-height:1.7;margin-bottom:40px;animation:fadeSlideDown 0.9s ease 0.35s both}
+        .hero-cta-group{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-bottom:60px;animation:fadeSlideDown 0.9s ease 0.45s both}
+        .hero-cta{padding:14px 32px;border-radius:12px;font-weight:800;font-size:0.95rem;cursor:pointer;text-decoration:none;transition:all 0.25s;display:inline-block}
+        .hero-cta.primary{background:linear-gradient(135deg,var(--blue-mid) 0%,var(--blue-sky) 100%);color:#fff;box-shadow:0 8px 24px rgba(0,150,255,0.35)}
+        .hero-cta.primary:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(0,150,255,0.5)}
+        .hero-cta.ghost{border:1.5px solid var(--glass-border);color:rgba(255,255,255,0.85);background:var(--glass);backdrop-filter:blur(10px)}
+        .hero-cta.ghost:hover{background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.3)}
+        .hero-scroll-hint{display:flex;flex-direction:column;align-items:center;gap:8px;color:rgba(255,255,255,0.35);font-size:0.78rem;font-weight:600;animation:fadeSlideDown 1s ease 0.6s both}
+        .scroll-arrow{width:36px;height:36px;border:1.5px solid rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;animation:bounce 2s ease infinite}
+        @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
+        @keyframes fadeSlideDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+        /* stats */
+        .stats-bar{position:relative;z-index:1;background:rgba(255,255,255,0.04);border-top:1px solid rgba(255,255,255,0.08);border-bottom:1px solid rgba(255,255,255,0.08);padding:32px 6%;display:flex;justify-content:center;gap:60px;flex-wrap:wrap}
+        .stat-item{text-align:center}
+        .stat-num{font-size:2rem;font-weight:900;color:#fff;letter-spacing:-1px}
+        .stat-num .accent{color:var(--blue-sky)}
+        .stat-label{font-size:0.78rem;color:rgba(255,255,255,0.45);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+        /* schools */
+        .schools-section{position:relative;z-index:1;padding:80px 6% 100px}
+        .section-header{text-align:center;margin-bottom:56px}
+        .section-tag{display:inline-block;background:rgba(244,162,97,0.15);border:1px solid rgba(244,162,97,0.3);color:var(--gold);font-size:0.75rem;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;padding:6px 16px;border-radius:50px;margin-bottom:16px}
+        .section-title{font-size:clamp(1.6rem,3vw,2.4rem);font-weight:900;letter-spacing:-0.8px;color:#fff;margin-bottom:12px}
+        .section-title .accent{color:var(--blue-sky)}
+        .section-desc{color:rgba(255,255,255,0.5);font-size:1rem;max-width:550px;margin:0 auto;line-height:1.6}
+        .schools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:22px;max-width:1200px;margin:0 auto}
+        .school-card{position:relative;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:32px 28px;cursor:pointer;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:14px;transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1),box-shadow 0.3s,border-color 0.3s;overflow:hidden;opacity:0;transform:translateY(30px)}
+        .school-card.visible{animation:cardReveal 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards}
+        @keyframes cardReveal{to{opacity:1;transform:translateY(0)}}
+        .school-card::before{content:'';position:absolute;inset:0;background:var(--card-gradient,linear-gradient(135deg,rgba(15,76,129,0.2),rgba(0,150,255,0.05)));opacity:0;transition:opacity 0.3s;border-radius:inherit}
+        .school-card:hover{transform:translateY(-6px);border-color:rgba(255,255,255,0.22);box-shadow:0 20px 40px rgba(0,0,0,0.3)}
+        .school-card:hover::before{opacity:1}
+        .school-card:hover .card-arrow{transform:translateX(4px);opacity:1}
+        .card-icon-wrap{width:58px;height:58px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;background:var(--icon-bg,rgba(15,76,129,0.2));border:1px solid var(--icon-border,rgba(15,76,129,0.3));flex-shrink:0}
+        .card-code{font-size:1.3rem;font-weight:900;letter-spacing:-0.5px;color:var(--code-color,#7dd3fc)}
+        .card-name{font-size:0.88rem;color:rgba(255,255,255,0.65);line-height:1.4;font-weight:500;flex:1}
+        .card-footer-row{display:flex;align-items:center;justify-content:space-between;margin-top:4px}
+        .card-cta-text{font-size:0.8rem;font-weight:700;color:var(--code-color,#7dd3fc);text-transform:uppercase;letter-spacing:0.8px}
+        .card-arrow{font-size:1.1rem;color:var(--code-color,#7dd3fc);transition:transform 0.25s,opacity 0.25s;opacity:0.5}
+        .card-sist{--card-gradient:linear-gradient(135deg,rgba(0,150,255,0.18),rgba(15,76,129,0.05));--icon-bg:rgba(0,150,255,0.15);--icon-border:rgba(0,150,255,0.3);--code-color:#7dd3fc}
+        .card-sass{--card-gradient:linear-gradient(135deg,rgba(139,92,246,0.18),rgba(109,40,217,0.05));--icon-bg:rgba(139,92,246,0.15);--icon-border:rgba(139,92,246,0.3);--code-color:#c4b5fd}
+        .card-sobe{--card-gradient:linear-gradient(135deg,rgba(16,185,129,0.18),rgba(5,150,105,0.05));--icon-bg:rgba(16,185,129,0.15);--icon-border:rgba(16,185,129,0.3);--code-color:#6ee7b7}
+        .card-sedhured{--card-gradient:linear-gradient(135deg,rgba(244,162,97,0.18),rgba(231,111,81,0.05));--icon-bg:rgba(244,162,97,0.15);--icon-border:rgba(244,162,97,0.3);--code-color:#fcd34d}
+        .card-shs{--card-gradient:linear-gradient(135deg,rgba(239,68,68,0.18),rgba(185,28,28,0.05));--icon-bg:rgba(239,68,68,0.15);--icon-border:rgba(239,68,68,0.3);--code-color:#fca5a5}
+        .card-slaw{--card-gradient:linear-gradient(135deg,rgba(251,191,36,0.18),rgba(245,158,11,0.05));--icon-bg:rgba(251,191,36,0.15);--icon-border:rgba(251,191,36,0.3);--code-color:#fde68a}
+        .card-spas{--card-gradient:linear-gradient(135deg,rgba(236,72,153,0.18),rgba(190,24,93,0.05));--icon-bg:rgba(236,72,153,0.15);--icon-border:rgba(236,72,153,0.3);--code-color:#f9a8d4}
+        .card-sanrm{--card-gradient:linear-gradient(135deg,rgba(52,211,153,0.18),rgba(4,120,87,0.05));--icon-bg:rgba(52,211,153,0.15);--icon-border:rgba(52,211,153,0.3);--code-color:#a7f3d0}
+        /* LOADING OVERLAY */
+        .portal-loader{position:fixed;inset:0;z-index:9999;background:rgba(7,13,26,0.97);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;opacity:0;pointer-events:none;transition:opacity 0.25s}
+        .portal-loader.active{opacity:1;pointer-events:all}
+        .loader-ring{width:72px;height:72px;border-radius:50%;border:4px solid transparent;background:linear-gradient(rgba(0,0,0,0),rgba(0,0,0,0)) padding-box,linear-gradient(135deg,#0096ff,#8b5cf6,#f4a261,#10b981) border-box;background-clip:padding-box,border-box;animation:spin 0.9s linear infinite}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        .loader-school-name{font-size:1.1rem;font-weight:800;color:#fff;letter-spacing:-0.3px}
+        .loader-sub{font-size:0.82rem;color:rgba(255,255,255,0.45);margin-top:-8px}
+        /* FOOTER */
+        .site-footer{position:relative;z-index:1;background:rgba(7,13,26,0.95);border-top:1px solid rgba(255,255,255,0.07);padding:60px 6% 32px}
+        .footer-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:40px;max-width:1200px;margin:0 auto 48px}
+        .footer-col h4{font-size:0.75rem;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,0.4);margin-bottom:18px}
+        .footer-col ul{list-style:none}
+        .footer-col ul li{margin-bottom:10px}
+        .footer-col ul li a{color:rgba(255,255,255,0.6);text-decoration:none;font-size:0.88rem;font-weight:500;transition:color 0.2s}
+        .footer-col ul li a:hover{color:var(--blue-sky)}
+        .footer-bottom{text-align:center;color:rgba(255,255,255,0.25);font-size:0.8rem;border-top:1px solid rgba(255,255,255,0.06);padding-top:28px;max-width:1200px;margin:0 auto}
+        .footer-bottom a{color:rgba(255,255,255,0.4);text-decoration:none}
+        .footer-bottom a:hover{color:var(--blue-sky)}
+        @media(max-width:640px){.schools-grid{grid-template-columns:1fr;gap:16px}.hero-cta-group{flex-direction:column;align-items:center}.nav-actions .nav-btn:first-child{display:none}.footer-grid{grid-template-columns:1fr}}
+        
+        /* Terms Modal */
+        .terms-modal-overlay { position: fixed; inset: 0; background: rgba(7,13,26,0.85); backdrop-filter: blur(8px); z-index: 99999; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; padding: 20px; }
+        .terms-modal-overlay.active { opacity: 1; pointer-events: all; }
+        .terms-modal-content { background: #0f172a; border: 1px solid rgba(0, 150, 255, 0.3); border-radius: 20px; width: 100%; max-width: 600px; max-height: 85vh; overflow-y: auto; padding: 35px; box-shadow: 0 20px 60px rgba(0,0,0,0.6); transform: translateY(20px) scale(0.95); transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); color: #e2e8f0; }
+        .terms-modal-overlay.active .terms-modal-content { transform: translateY(0) scale(1); }
+        .terms-modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; margin-bottom: 25px; }
+        .terms-modal-header h2 { font-size: 1.5rem; font-weight: 800; color: #fff; margin: 0; }
+        .terms-modal-close { background: rgba(255,255,255,0.1); border: none; width: 36px; height: 36px; border-radius: 50%; color: #fff; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .terms-modal-close:hover { background: #ef4444; transform: rotate(90deg); }
+        .terms-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 16px; }
+        .terms-list li { padding: 16px 20px; background: rgba(255,255,255,0.04); border-left: 4px solid var(--blue-sky); border-radius: 8px; font-size: 1rem; line-height: 1.5; font-weight: 500; }
+        .terms-modal-footer { margin-top: 30px; text-align: right; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; }
+    </style>
+</head>
+<body>
+<!-- Loading overlay -->
+<div class="portal-loader" id="portalLoader">
+    <div class="loader-ring"></div>
+    <div class="loader-school-name" id="loaderSchoolName">Loading Portal...</div>
+    <div class="loader-sub">Preparing your logbook environment</div>
+</div>
+
+<div class="bg-orbs"></div>
+
+<!-- NAV: both buttons scroll to #schools instead of leaving page -->
+<nav id="top-nav">
+    <a href="/" class="nav-brand">
+        <img src="{% static 'images/logo.jpeg' %}" alt="Kisii University Crest">
+        <div class="nav-brand-text">
+            <h1>KISII UNIVERSITY</h1>
+            <p>Digital Logbook Portal</p>
+        </div>
+    </a>
+    <div class="nav-actions">
+        <a href="#" class="nav-btn" onclick="openTermsModal(event)" style="background: transparent; border: 1px solid rgba(255,255,255,0.15);">Terms & Conditions</a>
+        <a href="#schools" class="nav-btn" onclick="scrollToSchools(event)">Register</a>
+        <a href="#schools" class="nav-btn primary" onclick="scrollToSchools(event)">Sign In</a>
+    </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+    <div class="hero-bg-image"></div>
+    <div class="hero-badge"><span></span> Kisii University -- Digital Attachment System</div>
+    <img src="{% static 'images/logo.jpeg' %}" alt="Kisii University Logo" class="hero-logo">
+    <h1 class="hero-title">Kisii University<br><span class="gold">Digital Logbook</span> Portal</h1>
+    <p class="hero-subtitle-school">Centralized Attachment Evaluation System</p>
+    <p class="hero-desc">The unified platform for all Kisii University schools. Select your school below to access your attachment logbook, submit weekly reports, and track evaluations.</p>
+    <div class="hero-cta-group">
+        <a href="#schools" class="hero-cta primary" onclick="scrollToSchools(event)">Select Your School &#8595;</a>
+        <a href="#schools" class="hero-cta ghost" onclick="scrollToSchools(event)">View All Schools</a>
+    </div>
+    <div class="hero-scroll-hint">
+        <div class="scroll-arrow">&#8595;</div>
+        <span>Scroll to schools</span>
+    </div>
+</section>
+
+
+<!-- STATS -->
+<div class="stats-bar">
+    <div class="stat-item"><div class="stat-num"><span class="accent">8</span></div><div class="stat-label">Schools</div></div>
+    <div class="stat-item"><div class="stat-num"><span class="accent" id="stat-last-year">{{ last_year_completed }}</span></div><div class="stat-label">Completed Last Academic Year</div></div>
+    <div class="stat-item"><div class="stat-num"><span class="accent" id="stat-5yr">{{ total_5yr_completed }}</span></div><div class="stat-label">Completed Last 5 Years</div></div>
+    <div class="stat-item"><div class="stat-num"><span class="accent">24/7</span></div><div class="stat-label">Availability</div></div>
+</div>
+
+<!-- 5-YEAR ATTACHMENT HISTORY -->
+<section style="position:relative;z-index:1;background:rgba(255,255,255,0.02);border-bottom:1px solid rgba(255,255,255,0.06);padding:48px 6%;">
+    <div style="max-width:900px;margin:0 auto;">
+        <div style="text-align:center;margin-bottom:32px;">
+            <div style="display:inline-block;background:rgba(0,150,255,0.12);border:1px solid rgba(0,150,255,0.25);color:#7dd3fc;font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;padding:5px 14px;border-radius:50px;margin-bottom:12px;">Historical Records</div>
+            <h2 style="font-size:clamp(1.3rem,2.5vw,1.9rem);font-weight:900;color:#fff;letter-spacing:-0.5px;margin-bottom:8px;">Attachment Completions — Last <span style="color:#7dd3fc;">5 Academic Years</span></h2>
+            <p style="color:rgba(255,255,255,0.45);font-size:0.9rem;">All student attachment records are permanently stored and accessible by administrators.</p>
+        </div>
+        <div style="display:flex;align-items:flex-end;justify-content:center;gap:18px;height:180px;flex-wrap:wrap;">
+            {% for stat in five_year_stats %}
+            <div style="display:flex;flex-direction:column;align-items:center;gap:10px;flex:1;min-width:100px;max-width:160px;">
+                <div style="font-size:1.05rem;font-weight:900;color:#fff;">{{ stat.count }}</div>
+                <div style="width:100%;background:linear-gradient(to top,rgba(0,150,255,0.75),rgba(0,150,255,0.2));border-radius:8px 8px 0 0;transition:all 0.4s;" style="height:{{ stat.count|divisibleby:10 }}px"
+                     data-count="{{ stat.count }}"></div>
+                <div style="font-size:0.72rem;color:rgba(255,255,255,0.5);font-weight:700;text-align:center;letter-spacing:0.5px;">{{ stat.year }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<script>
+  // Animate bar heights proportionally
+  document.addEventListener('DOMContentLoaded', function() {
+      const bars = document.querySelectorAll('[data-count]');
+      if (!bars.length) return;
+      const maxVal = Math.max(...Array.from(bars).map(b => parseInt(b.dataset.count)));
+      bars.forEach(bar => {
+          const pct = parseInt(bar.dataset.count) / maxVal;
+          bar.style.height = Math.round(pct * 130) + 'px';
+      });
+      // Counter animation for stats
+      function animateCounter(el, target) {
+          let start = 0, dur = 1800;
+          let startTime = null;
+          function step(ts) {
+              if (!startTime) startTime = ts;
+              let progress = Math.min((ts - startTime) / dur, 1);
+              let ease = 1 - Math.pow(1 - progress, 3);
+              el.textContent = Math.round(ease * target).toLocaleString();
+              if (progress < 1) requestAnimationFrame(step);
+          }
+          requestAnimationFrame(step);
+      }
+      const lastYr = document.getElementById('stat-last-year');
+      const total5yr = document.getElementById('stat-5yr');
+      if (lastYr) animateCounter(lastYr, parseInt(lastYr.textContent.replace(/,/g, '')));
+      if (total5yr) animateCounter(total5yr, parseInt(total5yr.textContent.replace(/,/g, '')));
+  });
+</script>
+
+
+<!-- SCHOOLS GRID -->
+<section class="schools-section" id="schools">
+    <div class="section-header">
+        <div class="section-tag">Schools &amp; Faculties</div>
+        <h2 class="section-title">Select Your <span class="accent">School</span></h2>
+        <p class="section-desc">Click on your school to open the dedicated digital attachment logbook portal for your faculty.</p>
+    </div>
+    <div class="schools-grid" id="schoolsGrid">
+        <a href="{% url 'core:login' %}?school=SIST" class="school-card card-sist" data-school="SIST" data-name="School of Information Sciences &amp; Technology">
+            <div class="card-icon-wrap">&#128187;</div>
+            <div class="card-code">SIST</div>
+            <div class="card-name">School of Information Sciences &amp; Technology</div>
+            <div class="card-footer-row"><span class="card-cta-text">Open Logbook</span><span class="card-arrow">&#8594;</span></div>
+        </a>
+        <a href="{% url 'core:login' %}?school=SASS" class="school-card card-sass" data-school="SASS" data-name="School of Arts and Social Sciences">
+            <div class="card-icon-wrap">&#127917;</div>
+            <div class="card-code">SASS</div>
+            <div class="card-name">School of Arts and Social Sciences</div>
+            <div class="card-footer-row"><span class="card-cta-text">Open Logbook</span><span class="card-arrow">&#8594;</span></div>
+        </a>
+        <a href="{% url 'core:login' %}?school=SOBE" class="school-card card-sobe" data-school="SOBE" data-name="School of Business and Economics">
+            <div class="card-icon-wrap">&#128202;</div>
+            <div class="card-code">SOBE</div>
+            <div class="card-name">School of Business and Economics</div>
+            <div class="card-footer-row"><span class="card-cta-text">Open Logbook</span><span class="card-arrow">&#8594;</span></div>
+        </a>
+        <a href="{% url 'core:login' %}?school=SEDHURED" class="school-card card-sedhured" data-school="SEDHURED" data-name="School of Education and Human Resource Development">
+            <div class="card-icon-wrap">&#127891;</div>
+            <div class="card-code">SEDHURED</div>
+            <div class="card-name">School of Education and Human Resource Development</div>
+            <div class="card-footer-row"><span class="card-cta-text">Open Logbook</span><span class="card-arrow">&#8594;</span></div>
+        </a>
+        <a href="{% url 'core:login' %}?school=SHS" class="school-card card-shs" data-school="SHS" data-name="School of Health Sciences">
+            <div class="card-icon-wrap">&#127973;</div>
+            <div class="card-code">SHS</div>
+            <div class="card-name">School of Health Sciences</div>
+            <div class="card-footer-row"><span class="card-cta-text">Open Logbook</span><span class="card-arrow">&#8594;</span></div>
+        </a>
+        <a href="{% url 'core:login' %}?school=SLAW" class="school-card card-slaw" data-school="SLAW" data-name="School of Law">
+            <div class="card-icon-wrap">&#9878;</div>
+            <div class="card-code">SLAW</div>
+            <div class="card-name">School of Law</div>
+            <div class="card-footer-row"><span class="card-cta-text">Open Logbook</span><span class="card-arrow">&#8594;</span></div>
+        </a>
+        <a href="{% url 'core:login' %}?school=SPAS" class="school-card card-spas" data-school="SPAS" data-name="School of Pure and Applied Sciences">
+            <div class="card-icon-wrap">&#128300;</div>
+            <div class="card-code">SPAS</div>
+            <div class="card-name">School of Pure and Applied Sciences</div>
+            <div class="card-footer-row"><span class="card-cta-text">Open Logbook</span><span class="card-arrow">&#8594;</span></div>
+        </a>
+        <a href="{% url 'core:login' %}?school=SANRM" class="school-card card-sanrm" data-school="SANRM" data-name="School of Agriculture and Natural Resources Management">
+            <div class="card-icon-wrap">&#127806;</div>
+            <div class="card-code">SANRM</div>
+            <div class="card-name">School of Agriculture and Natural Resources Management</div>
+            <div class="card-footer-row"><span class="card-cta-text">Open Logbook</span><span class="card-arrow">&#8594;</span></div>
+        </a>
+    </div>
+</section>
+
+<!-- FOOTER with real Kisii University links -->
+<footer class="site-footer">
+    <div class="footer-grid">
+        <div class="footer-col">
+            <h4>Logbook Portal</h4>
+            <ul>
+                <li><a href="#schools" onclick="scrollToSchools(event)">Select Your School</a></li>
+                <li><a href="{% url 'core:login' %}?school=SIST">SIST Logbook</a></li>
+                <li><a href="{% url 'core:register' %}?school=SIST">Register Account</a></li>
+                <li><a href="/admins/">Administrator Portal</a></li>
+            </ul>
+        </div>
+        <div class="footer-col">
+            <h4>Services</h4>
+            <ul>
+                <li><a href="https://kisiiuniversity.ac.ke/" target="_blank" rel="noopener">Main University Site</a></li>
+                <li><a href="https://kisiiuniversity.ac.ke/index.php/schools" target="_blank" rel="noopener">Schools &amp; Faculties</a></li>
+                <li><a href="https://kisiiuniversity.ac.ke/index.php/library" target="_blank" rel="noopener">University Library</a></li>
+                <li><a href="https://kisiiuniversity.ac.ke/index.php/research" target="_blank" rel="noopener">Research &amp; Innovation</a></li>
+                <li><a href="https://kisiiuniversity.ac.ke/index.php/e-learning" target="_blank" rel="noopener">E-Learning (LMS)</a></li>
+            </ul>
+        </div>
+        <div class="footer-col">
+            <h4>Support</h4>
+            <ul>
+                <li><a href="https://kisiiuniversity.ac.ke/index.php/ict-services" target="_blank" rel="noopener">ICT Help Desk</a></li>
+                <li><a href="https://kisiiuniversity.ac.ke/index.php/student-affairs" target="_blank" rel="noopener">Student Affairs</a></li>
+                <li><a href="https://kisiiuniversity.ac.ke/index.php/contacts" target="_blank" rel="noopener">Contact University</a></li>
+                <li><a href="https://kisiiuniversity.ac.ke/index.php/fees-structure" target="_blank" rel="noopener">Fees Structure</a></li>
+                <li><a href="{% url 'core:info_page' 'support' %}">Logbook Help</a></li>
+            </ul>
+        </div>
+        <div class="footer-col">
+            <h4>Quick Links</h4>
+            <ul>
+                <li><a href="https://kisiiuniversity.ac.ke/index.php/admissions" target="_blank" rel="noopener">Admissions</a></li>
+                <li><a href="https://kisiiuniversity.ac.ke/index.php/news-events" target="_blank" rel="noopener">News &amp; Events</a></li>
+                <li><a href="https://kisiiuniversity.ac.ke/index.php/tenders" target="_blank" rel="noopener">Tenders</a></li>
+                <li><a href="https://kisiiuniversity.ac.ke/index.php/downloads" target="_blank" rel="noopener">Downloads</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2026 Kisii University -- Digital Attachment Logbook System &nbsp;|&nbsp;
+        <a href="https://kisiiuniversity.ac.ke/" target="_blank" rel="noopener">kisiiuniversity.ac.ke</a> &nbsp;|&nbsp;
+        <a href="/admins/">Admin</a></p>
+    </div>
+</footer>
+
+<!-- Terms Modal -->
+<div class="terms-modal-overlay" id="termsModal">
+    <div class="terms-modal-content">
+        <div class="terms-modal-header">
+            <h2>System Terms & Conditions</h2>
+            <button class="terms-modal-close" onclick="closeTermsModal()">✕</button>
+        </div>
+        <ul class="terms-list">
+            <li><strong>Fees Clearance:</strong> You must clear your university tuition fees in full to register and access the logbook system.</li>
+            <li><strong>Weekly Logs:</strong> Weekly logs must be submitted consistently. Unsubmitted or delayed logs may lead to attachment rejection.</li>
+            <li><strong>System Compliance:</strong> All terms of the system must be met, including accurate organization and supervisor details. Fraudulent entries will lead to academic disciplinary action.</li>
+        </ul>
+        <div class="terms-modal-footer">
+            <button class="nav-btn primary" onclick="closeTermsModal()" style="border: none;">I Understand & Agree</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openTermsModal(e) {
+        if(e) e.preventDefault();
+        document.getElementById('termsModal').classList.add('active');
+    }
+    function closeTermsModal() {
+        document.getElementById('termsModal').classList.remove('active');
+    }
+
+    // Sticky nav shadow
+    const navEl = document.getElementById('top-nav');
+    window.addEventListener('scroll', () => {
+        navEl.classList.toggle('scrolled', window.scrollY > 10);
+    }, { passive: true });
+
+    // Scroll to #schools smoothly (keeps user on landing page)
+    function scrollToSchools(e) {
+        e.preventDefault();
+        document.getElementById('schools').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // School card click: show spinner then navigate
+    document.querySelectorAll('.school-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+            e.preventDefault();
+            const url = this.getAttribute('href');
+            const code = this.dataset.school || '';
+            const name = this.dataset.name || 'Your School';
+            // Show loader
+            document.getElementById('loaderSchoolName').textContent = code + ' Logbook';
+            document.getElementById('portalLoader').classList.add('active');
+            // Navigate after short spin
+            setTimeout(() => { window.location.href = url; }, 900);
+        });
+    });
+
+    // Card reveal animation on scroll
+    const cards = document.querySelectorAll('.school-card');
+    const obs = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const idx = Array.from(cards).indexOf(entry.target);
+                setTimeout(() => entry.target.classList.add('visible'), idx * 70);
+                obs.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.1 });
+    cards.forEach(c => obs.observe(c));
+</script>
+{% include 'core/accessibility_snippet.html' %}
+</body>
+</html>

@@ -240,13 +240,24 @@
     <!-- Step 2: Institution & Academic Details -->
     <div id="student_step2" class="step">
       <div class="form-grid">
-        <div class="form-group">
-          <label for="student_university">University Name</label>
-          <input type="text" id="student_university" name="university" placeholder="Enter University" required>
-        </div>
+
         <div class="form-group">
           <label for="student_faculty">Faculty</label>
           <input type="text" id="student_faculty" name="faculty" placeholder="Enter Faculty" required>
+        </div>
+        <div class="form-group">
+          <label for="student_school">University School Code</label>
+          <select id="student_school" name="school" required>
+            <option value="" disabled selected>Select School Code</option>
+            <option value="SIST" {% if school_code == 'SIST' %}selected{% endif %}>SIST (School of Information Sciences & Technology)</option>
+            <option value="SASS" {% if school_code == 'SASS' %}selected{% endif %}>SASS (School of Arts and Social Sciences)</option>
+            <option value="SOBE" {% if school_code == 'SOBE' %}selected{% endif %}>SOBE (School of Business and Economics)</option>
+            <option value="SEDHURED" {% if school_code == 'SEDHURED' %}selected{% endif %}>SEDHURED (School of Education and Human Resource Development)</option>
+            <option value="SHS" {% if school_code == 'SHS' %}selected{% endif %}>SHS (School of Health Sciences)</option>
+            <option value="SLAW" {% if school_code == 'SLAW' %}selected{% endif %}>SLAW (School of Law)</option>
+            <option value="SPAS" {% if school_code == 'SPAS' %}selected{% endif %}>SPAS (School of Pure and Applied Sciences)</option>
+            <option value="SANRM" {% if school_code == 'SANRM' %}selected{% endif %}>SANRM (School of Agriculture and Natural Resources Management)</option>
+          </select>
         </div>
         
         <!-- Department Dropdown Configuration -->
@@ -409,8 +420,9 @@
         { id: "student_year", label: "Year of Study" },
         { id: "student_organization", label: "Organization Name" },
         { id: "student_fees_status", label: "Fees Status" },
-        { id: "student_university", label: "University" },
+
         { id: "student_faculty", label: "Faculty" },
+        { id: "student_school", label: "School Code" },
         { id: "student_department", label: "Department" },
         { id: "student_programme", label: "Course / Programme" },
         { id: "student_unit_name", label: "Unit Name" },
