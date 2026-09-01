@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIST Logbook - Lecturer Dashboard</title>
+    <link rel="icon" type="image/jpeg" href="/static/images/logo.jpeg">
+    <link rel="stylesheet" href="/static/css/sist_style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #f8fbff 0%, #fef7ed 100%);
+            color: #1f2937;
+        }
+
+        /* --- Lovely Multicolor Gradient Navigation Bar --- */
+        .navbar {
+            background: linear-gradient(135deg, #0f4c81 0%, #1e40af 50%, #38bdf8 100%);
+            box-shadow: 0 4px 20px rgba(15, 76, 129, 0.25);
+            padding: 14px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 800;
+            color: #ffffff;
+            font-size: 1.35rem;
+            letter-spacing: -0.02em;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        }
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        /* Profile & Dropdown Module */
+        .profile-container {
+            position: relative;
+            cursor: pointer;
+        }
+        .profile-trigger {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.2s ease;
+        }
+        .profile-trigger:hover {
+            background: rgba(255, 255, 255, 0.22);
+            transform: translateY(-1px);
+        }
+        .avatar-wrapper {
+            position: relative;
+            width: 38px;
+            height: 38px;
+        }
+        .user-avatar {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #ffffff;
+            background: #eef6ff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+        /* Hidden file input styled overlay */
+        .avatar-edit-overlay {
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            background: #f59e0b;
+            color: white;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.55rem;
+            border: 1.5px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        #avatar-input {
+            display: none;
+        }
+        .user-meta-name {
+            font-weight: 700;
+            font-size: 0.92rem;
+            color: #ffffff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Dropdown Menu Box */
+        .profile-dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(15, 76, 129, 0.18);
+            border: 1px solid #e5ecf4;
+            width: 220px;
+            padding: 8px;
+            display: none; 
+            animation: slideDown 0.2s ease;
+        }
+        .profile-dropdown.show {
+            display: block;
+        }
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            color: #475569;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+        }
+        .dropdown-item:hover {
+            background: #f1f5f9;
+            color: #0f4c81;
+        }
+        .dropdown-item.logout-btn {
+            color: #dc2626;
+            background: #fef2f2;
+            margin-top: 6px;
+            border: none;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+            cursor: pointer;
+        }
+        .dropdown-item.logout-btn:hover {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        /* --- Workspace Structural Shell Layout --- */
+        .lecturer-shell {
+            max-width: 1280px;
+            margin: 24px auto 40px;
+            padding: 0 20px;
+        }
+        .hero-card {
+            background: linear-gradient(90deg, #0f4c81 0%, #38bdf8 100%);
+            color: white;
+            border-radius: 24px;
+            padding: 24px 28px;
+            box-shadow: 0 18px 40px rgba(15, 76, 129, 0.16);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .hero-card h1 { margin: 0 0 4px; font-size: 1.45rem; }
+        .hero-card p { margin: 0; opacity: 0.9; }
+        .hero-pill {
+            background: rgba(255,255,255,0.18);
+            border: 1px solid rgba(255,255,255,0.22);
+            border-radius: 999px;
+            padding: 10px 14px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 32px; }
+        .stat-card { background: white; border-radius: 18px; padding: 18px; border: 1px solid #e5ecf4; box-shadow: 0 10px 25px rgba(15, 76, 129, 0.05); }
+        .course-filter-panel { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+        .course-filter-panel label { font-weight: 700; color: #0f172a; }
+        .course-filter-panel select { padding: 10px 14px; border-radius: 14px; border: 1px solid #cbd5e1; background: white; color: #0f172a; font-size: 0.95rem; }
+        .stat-value { font-size: 1.45rem; font-weight: 800; color: #0f4c81; }
+        .stat-label { color: #64748b; font-size: 0.9rem; }
+        
+        /* Course Section Styling */
+        .course-section {
+            margin-bottom: 32px;
+        }
+        .course-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #ffffff;
+            padding: 14px 20px;
+            border-radius: 14px 14px 0 0;
+            border: 1px solid #e5ecf4;
+            border-bottom: none;
+            margin: 0;
+        }
+        .course-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #0f4c81;
+            margin: 0;
+        }
+        .course-badge {
+            background: #eef6ff;
+            color: #0f4c81;
+            font-size: 0.78rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 999px;
+            border: 1px solid #d0e3ff;
+        }
+
+        .table-card { 
+            background: white; 
+            border-radius: 0 0 22px 22px; 
+            border: 1px solid #e5ecf4; 
+            padding: 18px; 
+            box-shadow: 0 10px 25px rgba(15, 76, 129, 0.05); 
+            overflow-x: auto; 
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 12px 10px; color: #475569; border-bottom: 2px solid #eef2f7; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.04em; }
+        td { padding: 14px 10px; border-bottom: 1px solid #f2f5f8; vertical-align: top; }
+        .student-name { font-weight: 700; color: #0f172a; }
+        .muted { color: #64748b; font-size: 0.92rem; }
+        .status-pill { display: inline-block; padding: 6px 10px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; }
+        .status-approved { background: #dcfce7; color: #166534; }
+        .status-pending { background: #fef3c7; color: #b45309; }
+        .week-link { 
+            display: inline-block; 
+            margin: 6px 8px 6px 0; 
+            padding: 8px 12px; 
+            border-radius: 10px; 
+            text-decoration: none; 
+            background: #eef6ff; 
+            color: #0f4c81; 
+            font-weight: 700; 
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 6px rgba(15, 76, 129, 0.1);
+            font-size: 0.9rem;
+        }
+        .week-link:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 4px 12px rgba(15, 76, 129, 0.2);
+            background: #d0e3ff;
+        }
+        .week-link.done { 
+            background: #dcfce7; 
+            color: #166534;
+            box-shadow: 0 2px 6px rgba(22, 101, 52, 0.15);
+        }
+        .week-link.done:hover {
+            box-shadow: 0 4px 12px rgba(22, 101, 52, 0.25);
+        }
+        .week-link.pending { 
+            background: #fef3c7; 
+            color: #b45309;
+            box-shadow: 0 2px 6px rgba(180, 83, 9, 0.15);
+        }
+        .week-link.pending:hover {
+            box-shadow: 0 4px 12px rgba(180, 83, 9, 0.25);
+        }
+        .empty-state { color: #64748b; padding: 24px 0; text-align: center; font-style: italic; }
+        .action-btn { 
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px; 
+            border-radius: 10px; 
+            text-decoration: none; 
+            font-weight: 700; 
+            background: #0f4c81; 
+            color: white; 
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            box-shadow: 0 4px 12px rgba(15, 76, 129, 0.2);
+        }
+        .action-btn:hover { 
+            background: #1d65a3;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(15, 76, 129, 0.3);
+        }
+        .action-btn.secondary { background: #f59e0b; color: white; }
+        .action-btn:disabled { opacity: 0.6; pointer-events: none; }
+        .action-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="nav-brand">
+            <i class="fa-solid fa-layer-group"></i> SIST LOGBOOK
+        </div>
+        <div class="nav-right">
+            <div class="profile-container" id="profileContainer">
+                <div class="profile-trigger" id="profileTrigger">
+                    <div class="avatar-wrapper" onclick="event.stopPropagation(); document.getElementById('avatar-input').click();" title="Click icon to change picture">
+                        <img id="navbarAvatar" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="Lecturer Photo" class="user-avatar">
+                        <div class="avatar-edit-overlay">
+                            <i class="fa-solid fa-camera"></i>
+                        </div>
+                    </div>
+                    <input type="file" id="avatar-input" accept="image/*" onchange="previewAvatar(event)">
+                    <span class="user-meta-name">Prof. {{ request.user.username|default:"Lecturer Workspace" }} <i class="fa-solid fa-chevron-down" style="font-size:0.75rem; margin-left:4px; color:rgba(255,255,255,0.8);"></i></span>
+                </div>
+                
+                <div class="profile-dropdown" id="profileDropdown">
+                    <a href="#" onclick="event.preventDefault(); openSettingsModal();" class="dropdown-item"><i class="fa-solid fa-user-gear"></i> Customise Profile</a>
+                    <a href="#" class="dropdown-item"><i class="fa-solid fa-id-card"></i> Institution Profile</a>
+                    <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 6px 0;">
+                    <form action="{% url 'core:logout' %}" method="POST" style="margin: 0;">
+                        {% csrf_token %}
+                        <button type="submit" class="dropdown-item logout-btn">
+                            <i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="lecturer-shell">
+        <div class="hero-card">
+            <div>
+                <h1>University Lecturer Review Workspace</h1>
+                <p>View live attachment records and sign off on supervisor-approved weekly logs.</p>
+            </div>
+            <div class="hero-pill"><i class="fa-solid fa-circle-check"></i> Live database view</div>
+        </div>
+
+        <form method="get" id="courseFilterForm" class="course-filter-panel">
+            <label for="courseFilter">Filter by course</label>
+            <select id="courseFilter" name="course" onchange="this.form.submit()">
+                <option value="">All courses</option>
+                {% for value, label in course_options %}
+                    <option value="{{ value }}" {% if selected_course == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </form>
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-value">{{ students|length }}</div>
+                <div class="stat-label">Assigned students</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ ready_for_lecturer_count|default:0 }}</div>
+                <div class="stat-label">Supervisor-approved logs ready</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ pending_reports|length }}</div>
+                <div class="stat-label">Submitted final reports</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ recommendation_letters|length }}</div>
+                <div class="stat-label">Stamped Rec. Letters</div>
+            </div>
+        </div>
+
+        <div class="course-section">
+            <div class="course-header">
+                <i class="fa-solid fa-file-lines" style="color: #0f4c81; font-size: 1.2rem;"></i>
+                <h2 class="course-title">Final Report Review Queue</h2>
+                <span class="course-badge">{{ pending_reports|length }} Pending</span>
+            </div>
+            <div class="table-card">
+                {% if pending_reports %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Course</th>
+                            <th>Company</th>
+                            <th>Status</th>
+                            <th>Comments</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for report in pending_reports %}
+                        <tr>
+                            <td>
+                                <div class="student-name">{{ report.student.get_full_name|default:report.student.username }}</div>
+                                <div class="muted">{{ report.student.username }}</div>
+                                <div class="muted">{{ report.student.email|default:'No email' }}</div>
+                            </td>
+                            <td>{{ report.student.course|default:'Unassigned' }}</td>
+                            <td>{{ report.student.institution_or_company|default:'Not specified' }}</td>
+                            <td>
+                                {% if report.report_status == 'PENDING_REVIEW' %}
+                                    <span class="status-pill status-pending">Pending Review</span>
+                                {% elif report.report_status == 'RETURNED' %}
+                                    <span class="status-pill status-pending">Returned</span>
+                                {% else %}
+                                    <span class="status-pill status-approved">{{ report.report_status|title }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ report.report_review_comment|default:'No review comments yet.' }}</td>
+                            <td class="action-cell">
+                                {% if report.final_report %}
+                                    <a href="{{ report.final_report.url }}" class="action-btn secondary" target="_blank" title="Download Report PDF"><i class="fa-solid fa-file-pdf"></i> Report PDF</a>
+                                {% endif %}
+                                {% if report.recommendation_letter %}
+                                    <a href="{{ report.recommendation_letter.url }}" class="action-btn secondary" target="_blank" style="background: #e0f2fe; color: #0369a1; border-color: #bae6fd;" title="Download Stamped Recommendation Letter"><i class="fa-solid fa-stamp"></i> Rec. Letter</a>
+                                {% endif %}
+                                <a href="{% url 'core:review_final_report' report.id %}" class="action-btn"><i class="fa-solid fa-eye"></i> Review</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state" style="padding: 24px 0;">No submitted final reports are awaiting your review right now.</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="course-section" style="margin-top: 24px;">
+            <div class="course-header" style="border-left: 4px solid #0284c7;">
+                <i class="fa-solid fa-stamp" style="color: #0284c7; font-size: 1.2rem;"></i>
+                <h2 class="course-title">Organization Recommendation Letters Queue</h2>
+                <span class="course-badge" style="background: #e0f2fe; color: #0369a1;">{{ recommendation_letters|length }} Submitted</span>
+            </div>
+            <div class="table-card">
+                {% if recommendation_letters %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Student / Attachee</th>
+                            <th>Course</th>
+                            <th>Organisation / Company</th>
+                            <th>Stamped Recommendation Letter</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rec in recommendation_letters %}
+                        <tr>
+                            <td>
+                                <div class="student-name">{{ rec.student.get_full_name|default:rec.student.username }}</div>
+                                <div class="muted">{{ rec.student.username }}</div>
+                                <div class="muted">{{ rec.student.email|default:'No email' }}</div>
+                            </td>
+                            <td>{{ rec.student.course|default:'Unassigned' }}</td>
+                            <td>{{ rec.student.institution_or_company|default:'Not specified' }}</td>
+                            <td>
+                                <a href="{{ rec.recommendation_letter.url }}" class="action-btn secondary" target="_blank" style="background: #e0f2fe; color: #0369a1; border-color: #bae6fd; font-size: 0.82rem; padding: 6px 12px; display: inline-flex; align-items: center; gap: 6px;">
+                                    <i class="fa-solid fa-file-pdf"></i> View Stamped Letter
+                                </a>
+                            </td>
+                            <td>
+                                <span class="status-pill status-approved" style="background: #e0f2fe; color: #0369a1;">✓ Submitted with Stamp</span>
+                            </td>
+                            <td class="action-cell">
+                                <a href="{% url 'core:review_final_report' rec.id %}" class="action-btn" style="background: #0284c7; color: white;"><i class="fa-solid fa-eye"></i> View & Review</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state" style="padding: 24px 0;">No organization recommendation letters have been submitted by students yet.</div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% regroup students by student.course as course_list %}
+
+        {% for course in course_list %}
+            <div class="course-section">
+                <div class="course-header">
+                    <i class="fa-solid fa-graduation-cap" style="color: #0f4c81; font-size: 1.2rem;"></i>
+                    <h2 class="course-title">{{ course.grouper|default:"Unassigned / General Courses" }}</h2>
+                    <span class="course-badge">{{ course.list|length }} Student{{ course.list|length|pluralize }}</span>
+                </div>
+
+                <div class="table-card">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Attachee</th>
+                                <th>Supervisor</th>
+                                <th>Organisation / Company</th>
+                                <th>Weekly sign-offs</th>
+                                <th>Assessments</th>
+                                <th>Final grade</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in course.list %}
+                            <tr>
+                                <td>
+                                    <div class="student-name">{{ p.student.get_full_name|default:p.student.username }}</div>
+                                    <div class="muted">{{ p.student.username|default:"No registration number" }}</div>
+                                    <div class="muted"><strong>Course:</strong> {{ p.student.course|default:"Unassigned" }}</div>
+                                    <div class="muted"><strong>Email:</strong> {{ p.student.email|default:"No email on record" }}</div>
+                                    {% if p.recommendation_letter %}
+                                        <div style="margin-top: 6px;">
+                                            <a href="{{ p.recommendation_letter.url }}" target="_blank" class="action-btn secondary" style="background: #e0f2fe; color: #0369a1; border-color: #bae6fd; font-size: 0.76rem; padding: 4px 10px; display: inline-flex; align-items: center; gap: 6px;" title="Download Stamped Recommendation Letter"><i class="fa-solid fa-stamp"></i> Rec. Letter</a>
+                                        </div>
+                                    {% else %}
+                                        <div style="margin-top: 4px; font-size: 0.75rem; color: #94a3b8; font-style: italic;">Rec. Letter: Not submitted</div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="muted">{{ p.supervisor.get_full_name|default:"Not assigned yet" }}</div>
+                                    {% if p.supervisor %}
+                                        <div class="muted">{{ p.supervisor.institution_or_company|default:"No company listed" }}</div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="muted">{{ p.student.institution_or_company|default:"Not specified" }}</div>
+                                </td>
+                                <td>
+                                    {% for log in p.weekly_logs.all %}
+                                        {% if log.supervisor_approved %}
+                                            {% if log.lecturer_approved %}
+                                                <a href="{% url 'core:lecturer_sign' log.id %}" class="week-link done" title="Lecturer Approved">W{{ log.week_number }}</a>
+                                            {% else %}
+                                                <a href="{% url 'core:lecturer_sign' log.id %}" class="week-link pending" title="Pending Your Approval">W{{ log.week_number }}</a>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% empty %}
+                                        <span class="empty-state">No approved weekly logs yet.</span>
+                                    {% endfor %}
+                                </td>
+                                <td style="min-width: 250px;">
+                                    {% if p.weekly_logs.all|length >= 7 %}
+                                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin-bottom: 8px;">
+                                            <strong style="font-size: 0.85rem; color: #334155;">Week 7 Assessment</strong>
+                                            {% if p.first_visit_comment %}
+                                                <p style="font-size: 0.8rem; margin: 4px 0; color: #16a34a;">✓ Remarks completed</p>
+                                                {% if p.week_7_returned_doc %}
+                                                    <a href="{{ p.week_7_returned_doc.url }}" style="font-size: 0.8rem; color: #0f4c81;">Download Graded Doc ({{ p.week_7_supervisor_marks|default:"-" }} Marks)</a>
+                                                {% elif p.week_7_grading_doc %}
+                                                    <p style="font-size: 0.8rem; margin: 4px 0; color: #ca8a04;">Pending supervisor grading...</p>
+                                                {% endif %}
+                                            {% else %}
+                                                <form action="{% url 'core:submit_assessment_form' p.id %}" method="POST" enctype="multipart/form-data" style="margin-top: 8px; display: flex; flex-direction: column; gap: 6px;">
+                                                    {% csrf_token %}
+                                                    <textarea name="first_visit_comment" placeholder="First Visit Remarks" required style="width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px; font-size: 0.8rem;" rows="2"></textarea>
+                                                    <input type="date" name="first_visit_date" required style="width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px; font-size: 0.8rem;">
+                                                    <input type="file" name="week_7_grading_doc" accept=".pdf,.doc,.docx" required style="font-size: 0.75rem;">
+                                                    <button type="submit" class="action-btn" style="padding: 6px 12px; font-size: 0.8rem;">Submit Week 7</button>
+                                                </form>
+                                            {% endif %}
+                                        </div>
+                                    {% else %}
+                                        <span class="muted" style="display: block; font-size: 0.8rem;">Week 7 Assess: Locked</span>
+                                    {% endif %}
+
+                                    {% if p.weekly_logs.all|length >= 12 %}
+                                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px;">
+                                            <strong style="font-size: 0.85rem; color: #334155;">Week 12 Assessment</strong>
+                                            {% if p.second_visit_comment %}
+                                                <p style="font-size: 0.8rem; margin: 4px 0; color: #16a34a;">✓ Remarks completed</p>
+                                                {% if p.week_12_returned_doc %}
+                                                    <a href="{{ p.week_12_returned_doc.url }}" style="font-size: 0.8rem; color: #0f4c81;">Download Graded Doc ({{ p.week_12_supervisor_marks|default:"-" }} Marks)</a>
+                                                {% elif p.week_12_grading_doc %}
+                                                    <p style="font-size: 0.8rem; margin: 4px 0; color: #ca8a04;">Pending supervisor grading...</p>
+                                                {% endif %}
+                                            {% else %}
+                                                <form action="{% url 'core:submit_assessment_form' p.id %}" method="POST" enctype="multipart/form-data" style="margin-top: 8px; display: flex; flex-direction: column; gap: 6px;">
+                                                    {% csrf_token %}
+                                                    <textarea name="second_visit_comment" placeholder="Second Visit Remarks" required style="width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px; font-size: 0.8rem;" rows="2"></textarea>
+                                                    <input type="date" name="second_visit_date" required style="width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px; font-size: 0.8rem;">
+                                                    <input type="file" name="week_12_grading_doc" accept=".pdf,.doc,.docx" required style="font-size: 0.75rem;">
+                                                    <button type="submit" class="action-btn" style="padding: 6px 12px; font-size: 0.8rem;">Submit Week 12</button>
+                                                </form>
+                                            {% endif %}
+                                        </div>
+                                    {% else %}
+                                        <span class="muted" style="display: block; font-size: 0.8rem; margin-top: 8px;">Week 12 Assess: Locked</span>
+                                    {% endif %}
+
+                                    <div style="background: #f0f7ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 10px; margin-top: 8px;">
+                                        <strong style="font-size: 0.85rem; color: #0369a1; display: block; margin-bottom: 4px;">Organization Rec. Letter</strong>
+                                        {% if p.recommendation_letter %}
+                                            <a href="{{ p.recommendation_letter.url }}" target="_blank" style="font-size: 0.8rem; color: #0284c7; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-stamp"></i> View Stamped Rec. Letter</a>
+                                        {% else %}
+                                            <span style="font-size: 0.78rem; color: #64748b; font-style: italic;">Not submitted by student</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="action-cell">
+                                        {% if p.lecturer_signed %}
+                                            <span class="status-pill status-approved" style="font-weight: 700; background: #dcfce7; color: #15803d; padding: 4px 10px; border-radius: 12px;">Grade: {{ p.lecturer_grade|default:"A" }} ({{ p.lecturer_marks|default:"-" }}%)</span>
+                                            <a href="{% url 'core:final_grading' p.id %}" class="action-btn secondary" style="padding: 4px 10px; font-size: 0.78rem;"><i class="fa-solid fa-pen-to-square"></i> Edit</a>
+                                        {% elif p.supervisor_signed or p.weekly_logs.all|length >= 1 or p.final_report or p.first_visit_comment or p.second_visit_comment %}
+                                            <a href="{% url 'core:final_grading' p.id %}" class="action-btn" style="background: #0284c7; color: white; border-radius: 8px; padding: 6px 14px; font-size: 0.85rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-pen-to-square"></i> Allocate Grade</a>
+                                        {% else %}
+                                            <span class="muted" style="display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-lock"></i> Locked until completion</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% empty %}
+            <div class="table-card">
+                <div class="empty-state" style="padding: 40px 0;">
+                    <i class="fa-solid fa-folder-open" style="font-size: 2.5rem; color: #cbd5e1; margin-bottom: 12px; display: block;"></i>
+                    No assigned students are available yet.
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        // Toggle dropdown logic
+        const profileTrigger = document.getElementById('profileTrigger');
+        const profileDropdown = document.getElementById('profileDropdown');
+
+        profileTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            profileDropdown.classList.toggle('show');
+        });
+
+        document.addEventListener('click', () => {
+            profileDropdown.classList.remove('show');
+        });
+
+        // Initialize avatar on page load
+        function initializeAvatar() {
+            const userAvatar = document.getElementById('navbarAvatar');
+            const fullName = '{{ request.user.get_full_name|default:request.user.username }}';
+            const avatarColor = '{{ request.user.avatar_color|default:"0284c7" }}';
+            const profilePhoto = '{% if request.user.profile_photo %}{{ request.user.profile_photo.url }}{% endif %}';
+            
+            if (profilePhoto) {
+                userAvatar.src = profilePhoto;
+            } else {
+                // Generate avatar with initials
+                const initials = fullName.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
+                userAvatar.outerHTML = `<div style="width: 38px; height: 38px; border-radius: 50%; background-color: #${avatarColor}; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 1rem; border: 2px solid white; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);">${initials || 'U'}</div>`;
+            }
+        }
+        
+        // Open settings modal
+        function openSettingsModal() {
+            document.getElementById('settingsModal').style.display = 'flex';
+            profileDropdown.classList.remove('show');
+        }
+        
+        // Close settings modal
+        function closeSettingsModal() {
+            document.getElementById('settingsModal').style.display = 'none';
+        }
+        
+        // Save profile updates
+        async function saveProfileChanges() {
+            const form = new FormData();
+            const colorInput = document.getElementById('avatarColorInput');
+            const photoInput = document.getElementById('profilePhotoInput');
+            
+            if (colorInput && colorInput.value) {
+                form.append('avatar_color', colorInput.value.replace('#', ''));
+            }
+            
+            if (photoInput && photoInput.files.length > 0) {
+                form.append('profile_photo', photoInput.files[0]);
+            }
+            
+            try {
+                const response = await fetch('{% url "core:update_profile_meta" %}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '{% csrf_token %}'
+                    },
+                    body: form
+                });
+                
+                if (response.ok) {
+                    closeSettingsModal();
+                    location.reload();
+                } else {
+                    alert('Failed to save profile changes. Please try again.');
+                }
+            } catch (error) {
+                alert('Error saving profile: ' + error.message);
+            }
+        }
+
+        // Instant avatar local image selection preview update
+        function previewAvatar(event) {
+            const input = event.target;
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('navbarAvatar').src = e.target.result;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', initializeAvatar);
+    </script>
+    
+    <!-- Profile Settings Modal -->
+    <div id="settingsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center;">
+        <div style="background: white; border-radius: 20px; padding: 32px; max-width: 500px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h2 style="margin: 0; font-size: 1.35rem; color: #0f4c81;">⚙️ Profile Settings</h2>
+                <button onclick="closeSettingsModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b;">✕</button>
+            </div>
+            
+            <form onsubmit="event.preventDefault(); saveProfileChanges();">
+                {% csrf_token %}
+                
+                <div style="margin-bottom: 24px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #0f172a;">Profile Picture</label>
+                    <input type="file" id="profilePhotoInput" accept="image/*" style="display: block; width: 100%; padding: 12px; border: 2px solid #e5ecf4; border-radius: 12px; cursor: pointer;">
+                    <p style="font-size: 0.85rem; color: #64748b; margin-top: 6px;">Upload a picture or leave blank to use your avatar color below.</p>
+                </div>
+                
+                <div style="margin-bottom: 24px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #0f172a;">Avatar Color</label>
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        {% if request.user.avatar_color %}
+                        <input type="color" id="avatarColorInput" value="#{{ request.user.avatar_color }}" style="width: 80px; height: 50px; border: 2px solid #e5ecf4; border-radius: 12px; cursor: pointer;">
+                        {% else %}
+                        <input type="color" id="avatarColorInput" value="#0284c7" style="width: 80px; height: 50px; border: 2px solid #e5ecf4; border-radius: 12px; cursor: pointer;">
+                        {% endif %}
+                        <p style="margin: 0; font-size: 0.9rem; color: #64748b;">This color will be used for your profile avatar if no picture is uploaded.</p>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                    <button type="button" onclick="closeSettingsModal()" style="padding: 12px 24px; border: 2px solid #e5ecf4; background: white; color: #0f4c81; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s;">Cancel</button>
+                    <button type="submit" style="padding: 12px 24px; background: #0f4c81; color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s;">💾 Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% include 'core/ui_transitions.html' %}
+</body>
+</html>

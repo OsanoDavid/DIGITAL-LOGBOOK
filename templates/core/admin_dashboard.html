@@ -1,0 +1,1555 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Control Center | SIST Logbook</title>
+    <link rel="stylesheet" href="{% static 'css/portal.css' %}">
+    <style>
+        /* Modern System Dashboard Styling */
+        body { 
+            background: linear-gradient(135deg, #f8fbff 0%, #fef7ed 100%);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #0f172a;
+        }
+        
+        .admin-shell { 
+            width: 100%;
+            max-width: 1600px; 
+            margin: 0 auto; 
+            padding: 36px 24px 48px;
+            box-sizing: border-box;
+        }
+        
+        .admin-panel { 
+            display: grid; 
+            grid-template-columns: 320px 1fr; 
+            gap: 28px; 
+            align-items: start;
+        }
+
+        /* --- SIST-BRANDED SIDEBAR --- */
+        .sidebar { 
+            background: linear-gradient(180deg, #0f4c81 0%, #1e3a8a 100%);
+            color: #ffffff; 
+            border-radius: 24px; 
+            padding: 30px 22px;
+            box-shadow: 0 20px 40px rgba(15, 76, 129, 0.16);
+            display: flex;
+            flex-direction: column;
+            min-height: 760px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            position: sticky;
+            top: 40px;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        
+        .sidebar h2 { 
+            margin-top: 0; 
+            margin-bottom: 8px; 
+            font-size: 1.6rem; 
+            color: #ffffff !important; 
+            font-weight: 800; 
+            letter-spacing: -0.5px;
+        }
+        
+        .sidebar p { 
+            color: #dbeafe !important; 
+            font-size: 0.9rem; 
+            line-height: 1.5; 
+            font-weight: 400;
+            margin-bottom: 30px;
+        }
+        
+        .sidebar-nav { 
+            display: flex !important; 
+            flex-direction: column !important; 
+            gap: 12px !important; 
+            background: transparent !important; 
+            padding: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            width: 100%;
+        }
+        
+        .sidebar-nav a { 
+            text-decoration: none !important; 
+            color: #94a3b8 !important; 
+            padding: 14px 20px !important; 
+            border-radius: 14px !important; 
+            background: rgba(255, 255, 255, 0.03) !important; 
+            font-weight: 600 !important; 
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important; 
+            font-size: 0.98rem !important; 
+            display: flex !important;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.02) !important;
+            cursor: pointer;
+            box-sizing: border-box;
+            width: 100% !important;
+            text-align: left;
+        }
+        
+        .sidebar-nav a:hover { 
+            color: #ffffff !important;
+            background: rgba(255, 255, 255, 0.08) !important;
+            transform: translateX(4px);
+        }
+
+        /* SIST Brand Active Navigation Tabs */
+        .sidebar-nav a[data-target="overview"].active { background: linear-gradient(135deg, #f4a261, #fb923c) !important; color: #ffffff !important; box-shadow: 0 10px 20px rgba(244, 162, 97, 0.3) !important; }
+        .sidebar-nav a[data-target="create-user-section"].active { background: linear-gradient(135deg, #0f4c81, #2563eb) !important; color: #ffffff !important; box-shadow: 0 10px 20px rgba(15, 76, 129, 0.3) !important; }
+        .sidebar-nav a[data-target="students"].active { background: linear-gradient(135deg, #10b981, #059669) !important; color: #ffffff !important; box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3) !important; }
+        .sidebar-nav a[data-target="supervisors"].active { background: linear-gradient(135deg, #0f4c81, #1d4ed8) !important; color: #ffffff !important; box-shadow: 0 10px 20px rgba(15, 76, 129, 0.3) !important; }
+        .sidebar-nav a[data-target="lecturers"].active { background: linear-gradient(135deg, #f59e0b, #d97706) !important; color: #ffffff !important; box-shadow: 0 10px 20px rgba(245, 158, 11, 0.3) !important; }
+        .sidebar-nav a[data-target="admins"].active { background: linear-gradient(135deg, #38bdf8, #0ea5e9) !important; color: #ffffff !important; box-shadow: 0 10px 20px rgba(56, 189, 248, 0.3) !important; }
+        .sidebar-nav a[data-target="attachment-admins"].active { background: linear-gradient(135deg, #ec4899, #fb7185) !important; color: #ffffff !important; box-shadow: 0 10px 20px rgba(236, 72, 153, 0.22) !important; }
+        
+        /* --- CONTENT AREA & WIDE VIEWS --- */
+        .content-area { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 30px; 
+            position: relative;
+            width: 100%;
+        }
+
+        .admin-hero {
+            background: linear-gradient(135deg, #0f4c81 0%, #1e3a8a 100%);
+            color: #ffffff;
+            border-radius: 24px;
+            padding: 28px 30px;
+            box-shadow: 0 16px 32px rgba(15, 76, 129, 0.16);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .admin-hero h1 {
+            margin: 0 0 8px;
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .admin-hero p {
+            margin: 0;
+            color: #dbeafe;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .dashboard-section {
+            display: none;
+            opacity: 0;
+            width: 100%;
+        }
+
+        .dashboard-section.section-active {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            opacity: 1;
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* --- LOADING SPIN ANIMATION --- */
+        .loading-overlay {
+            display: none;
+            position: absolute;
+            top: 150px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 999;
+            text-align: center;
+        }
+
+        .spinner {
+            width: 55px;
+            height: 55px;
+            border: 5px solid #e2e8f0;
+            border-top: 5px solid #0f172a;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* --- DYNAMIC COURSE PATHWAY SELECTOR STYLES --- */
+        .course-picker-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .course-selection-card {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 26px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            text-align: left;
+        }
+
+        .course-selection-card:hover {
+            border-color: #10b981;
+            background: #ffffff;
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(16, 185, 129, 0.06);
+        }
+
+        .course-selection-card h4 {
+            margin: 0 0 6px 0;
+            color: #0f172a;
+            font-size: 1.2rem;
+            font-weight: 800;
+        }
+
+        .course-selection-card p {
+            margin: 0;
+            color: #64748b;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .course-selection-card.master-option {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: none;
+        }
+        .course-selection-card.master-option h4 { color: #ffffff; }
+        .course-selection-card.master-option p { color: #94a3b8; }
+        .course-selection-card.master-option:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(15, 23, 42, 0.15);
+            background: linear-gradient(135deg, #334155, #1e293b);
+        }
+
+        .back-to-courses-btn {
+            background: #f1f5f9;
+            color: #334155;
+            border: 1px solid #cbd5e1;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .back-to-courses-btn:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+
+        /* === SHARED WIZARD STYLES === */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .form-group label {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .form-control, .form-group input, .form-group select {
+            padding: 14px 18px;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            background: #f8fafc;
+            color: #334155;
+            transition: all 0.2s ease;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .form-control:focus, .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--kisii-blue);
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(15, 76, 129, 0.1);
+        }
+
+        .password-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        .password-wrapper input {
+            width: 100%;
+            padding-right: 45px;
+        }
+
+        .toggle-eye-btn {
+            position: absolute;
+            right: 12px;
+            background: none;
+            border: none;
+            font-size: 1.1rem;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+
+        .toggle-eye-btn:hover {
+            opacity: 1;
+        }
+
+        .wizard-container {
+            width: 100%;
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 25px rgba(15, 76, 129, 0.05);
+            box-sizing: border-box;
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-portal {
+            background: linear-gradient(135deg, var(--kisii-blue), var(--kisii-sky));
+            color: #ffffff;
+            padding: 14px 35px;
+            border-radius: 12px;
+            font-weight: 600;
+            border: none;
+            box-shadow: 0 8px 16px rgba(15, 76, 129, 0.2);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            transition: all 0.2s ease;
+        }
+        .btn-portal:hover { transform: translateY(-1px); box-shadow: 0 12px 20px rgba(15, 76, 129, 0.3); }
+
+        .wizard-container h2 {
+            text-align: center;
+            color: var(--kisii-blue);
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 26px;
+            font-weight: 800;
+        }
+
+        .wizard-container .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .progress-container {
+            width: 100%;
+            background: #f0f3f6;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            height: 8px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 33.33%;
+            background: linear-gradient(90deg, var(--kisii-blue), var(--kisii-sky));
+            border-radius: 20px;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .step { 
+            display: none; 
+            opacity: 0;
+            transform: translateY(8px);
+        }
+        
+        .step.active { 
+            display: block; 
+            animation: fadeInStep 0.4s ease forwards;
+        }
+
+        @keyframes fadeInStep {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .btn-back {
+            background: #f1f5f9;
+            color: #64748b;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s;
+        }
+        .btn-back:hover:not(:disabled) { background: #e2e8f0; color: #334155; }
+        .btn-back:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .btn-next {
+            background: linear-gradient(135deg, var(--kisii-blue), var(--kisii-sky));
+            color: #ffffff;
+            padding: 14px 35px;
+            border-radius: 12px;
+            font-weight: 600;
+            border: none;
+            box-shadow: 0 8px 16px rgba(15, 76, 129, 0.2);
+            display: inline-flex;
+            align-items: center;
+        }
+        .btn-next:disabled { background: #cbd5e1; box-shadow: none; cursor: not-allowed; color: #94a3b8; }
+        .btn-next:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 12px 20px rgba(15, 76, 129, 0.3); }
+
+        .overlay-backdrop {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 9999;
+            align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease;
+        }
+        .overlay-backdrop.show { display: flex; opacity: 1; }
+        .overlay-card {
+            background: #ffffff; width: 90%; max-width: 700px; max-height: 85vh;
+            border-radius: 20px; padding: 35px; overflow-y: auto;
+            transform: scale(0.9) translateY(20px); transition: transform 0.3s;
+        }
+        .overlay-backdrop.show .overlay-card { transform: scale(1) translateY(0); }
+        
+        .review-grid-list {
+            list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
+        }
+        .review-grid-list li {
+            background: #f8fafc; padding: 12px 15px; border-radius: 10px; border: 1px solid #e2e8f0; font-size: 14px; color: #334155;
+        }
+        .review-grid-list li strong { display: block; color: #94a3b8; font-size: 12px; text-transform: uppercase; margin-bottom: 4px; }
+        .overlay-actions { display: flex; justify-content: flex-end; gap: 15px; margin-top: 25px; border-top: 1px solid #e2e8f0; padding-top: 20px; }
+        .close-overlay-btn { background: none; border: none; cursor: pointer; color: #94a3b8; padding: 5px; border-radius: 8px; transition: all 0.2s; }
+        .close-overlay-btn:hover { background: #f1f5f9; color: #ef4444; }
+
+        @media (max-width: 768px) { .form-grid, .review-grid-list { grid-template-columns: 1fr; } }
+        
+        /* --- EXPANDED MULTI-COLUMN CREATE USER FORM --- */
+        .form-panel { 
+            background: #ffffff; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 24px; 
+            padding: 40px; 
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.02); 
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .fee-alert-box {
+            background-color: #fee2e2;
+            border-left: 4px solid #ef4444;
+            color: #991b1b;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .form-panel h3 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin-top: 0;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 15px;
+        }
+        
+        .form-grid { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px; 
+        }
+
+        .form-group { display: flex; flex-direction: column; gap: 8px; }
+        .form-group.full-width, .btn-portal { grid-column: span 2; }
+        .form-panel label { font-weight: 700; color: #334155; font-size: 0.95rem; }
+
+        .form-panel .form-control { 
+            border: 1.5px solid #cbd5e1; 
+            border-radius: 14px;
+            padding: 14px 16px; 
+            font-size: 1rem; 
+            color: #1e293b;
+            background-color: #f8fafc;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+            width: 100%;
+        }
+        .form-panel .form-control:focus { border-color: #6366f1; background: #ffffff; outline: none; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15); }
+        
+        .btn-portal { 
+            padding: 16px; font-size: 1.05rem; font-weight: 700; border-radius: 14px; color: white; border: none; cursor: pointer; background: linear-gradient(135deg, #0f4c81, #38bdf8); box-shadow: 0 8px 20px rgba(15, 76, 129, 0.18); transition: all 0.2s ease; margin-top: 10px;
+        }
+        .btn-portal:hover { background: linear-gradient(135deg, #1e3a8a, #0ea5e9); transform: translateY(-2px); }
+
+        /* --- STAT CARDS --- */
+        .stats-grid { 
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; 
+        }
+        .stat-card { 
+            background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 12px 28px rgba(15, 76, 129, 0.08);
+            border-top: 4px solid #0f4c81;
+            border-left: 1px solid #e8eef7;
+            border-right: 1px solid #e8eef7;
+            border-bottom: 1px solid #e8eef7;
+        }
+        .stat-card strong { display: block; font-size: 2.2rem; color: #0f172a; font-weight: 800; margin-bottom: 4px; }
+        .stat-card span { color: #64748b; font-size: 0.95rem; font-weight: 700; }
+        
+        /* --- COMPONENT PANELS --- */
+        .panel { 
+            background: linear-gradient(180deg, #ffffff 0%, #fdfefe 100%);
+            border-radius: 24px;
+            padding: 32px;
+            box-shadow: 0 14px 34px rgba(15, 76, 129, 0.07);
+            border: 1px solid #dbe5f0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .panel h3 { margin-top: 0; color: #0f172a; font-size: 1.5rem; font-weight: 800; margin-bottom: 20px; }
+        
+        /* --- EXPANDED VERTICAL USER LISTS --- */
+        .role-section-list { 
+            display: flex; flex-direction: column; gap: 14px; margin-top: 20px; 
+        }
+        
+        .user-list-row { 
+            display: grid;
+            grid-template-columns: 50px minmax(260px, 2.8fr) minmax(280px, 3.6fr) auto;
+            align-items: center;
+            gap: 18px;
+            border-left: 5px solid #e2e8f0; 
+            border-radius: 16px; 
+            padding: 20px 24px; 
+            background: #ffffff; 
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.01);
+            border-top: 1px solid #f1f5f9;
+            border-right: 1px solid #f1f5f9;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .user-list-row:hover { transform: translateX(6px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04); }
+        .row-number { font-weight: 800; color: #94a3b8; font-size: 1.1rem; }
+        .user-list-row h4 { margin: 0; color: #0f172a; font-size: 1.1rem; font-weight: 700; }
+        .user-list-row p { margin: 6px 0 0 0; color: #475569; font-size: 0.95rem; line-height: 1.5; }
+        .sub-info { color: #64748b; font-size: 0.88rem; }
+        .detail-column { display: grid; gap: 10px; }
+        .detail-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+        .detail-label { min-width: 90px; color: #475569; font-weight: 700; font-size: 0.82rem; }
+        .detail-value { color: #334155; font-size: 0.95rem; }
+        .status-container { display: flex; gap: 8px; align-items: center; }
+        .pill, .role-status { display: inline-block; padding: 5px 12px; border-radius: 8px; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        #students .user-list-row { border-left-color: #10b981; }
+        #students .pill { background: #d1fae5; color: #065f46; }
+        #students .role-status { background: #ecfdf5; color: #047857; }
+
+        #supervisors .user-list-row { border-left-color: #6366f1; }
+        #supervisors .pill { background: #e0e7ff; color: #3730a3; }
+        #supervisors .role-status { background: #f5f3ff; color: #6d28d9; }
+
+        #lecturers .user-list-row { border-left-color: #f59e0b; }
+        #lecturers .pill { background: #fef3c7; color: #92400e; }
+        #lecturers .role-status { background: #fffbeb; color: #b45309; }
+
+        #admins .user-list-row { border-left-color: #06b6d4; }
+        #admins .pill { background: #cffafe; color: #155e75; }
+        #admins .role-status { background: #ecfeff; color: #0891b2; }
+
+        .user-actions { display: flex; gap: 10px; }
+        .user-action-btn { text-decoration: none; font-size: 0.85rem; font-weight: 700; padding: 10px 16px; border-radius: 10px; border: none; cursor: pointer; transition: all 0.2s ease; color: white; }
+        .user-action-btn.edit-btn { background: #f1f5f9; color: #1e293b; border: 1px solid #cbd5e1; }
+        .user-action-btn.edit-btn:hover { background: #e2e8f0; transform: translateY(-1px); }
+        .user-action-btn.disable-btn { background: #334155; }
+        .user-action-btn.disable-btn:hover { background: #1e293b; transform: translateY(-1px); }
+        .user-action-btn.delete { background: #ef4444; }
+        .user-action-btn.delete:hover { background: #dc2626; transform: translateY(-1px); }
+
+        .action-row { display: flex; gap: 12px; margin-bottom: 20px; align-items: center; justify-content: space-between; }
+        .action-btn { text-decoration: none; font-size: 0.9rem; font-weight: 700; padding: 12px 20px; border-radius: 12px; color: white; border: none; cursor: pointer; transition: all 0.2s ease; }
+
+        #students .action-btn { background: #10b981; }
+        #supervisors .action-btn { background: #6366f1; }
+        #lecturers .action-btn { background: #f59e0b; }
+        #admins .action-btn { background: #06b6d4; }
+        .action-btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
+
+        .logout-link { 
+            margin-top: auto; color: #f8fafc !important; font-weight: 700; font-size: 0.95rem; padding: 14px 16px; background: rgba(239, 68, 68, 0.15); border-radius: 14px; text-decoration: none; text-align: center; transition: all 0.2s ease; border: 1px solid rgba(239, 68, 68, 0.1);
+        }
+        .logout-link:hover { background: #ef4444; color: white !important; box-shadow: 0 8px 16px rgba(239, 68, 68, 0.25); }
+        .mobile-logout-link {
+            display: none;
+            width: 100%;
+            margin-bottom: 20px;
+            padding: 14px 18px;
+            border-radius: 14px;
+            text-align: center;
+            text-decoration: none;
+            background: #ef4444;
+            color: #ffffff;
+            font-weight: 700;
+            box-shadow: 0 10px 25px rgba(239, 68, 68, 0.2);
+            transition: background 0.2s ease;
+        }
+        .mobile-logout-link:hover {
+            background: #dc2626;
+        }
+        .mobile-sidebar-select {
+            display: none;
+            width: 100%;
+            max-width: 100%;
+            margin-bottom: 22px;
+            padding: 14px 18px;
+            border-radius: 14px;
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            font-size: 0.95rem;
+            box-shadow: 0 10px 30px rgba(15, 76, 129, 0.05);
+        }
+        .mobile-nav-header {
+            display: none;
+            margin-bottom: 24px;
+        }
+        .mobile-nav-header h2 {
+            margin: 0;
+            font-size: 1.35rem;
+            color: #0f172a;
+        }
+        .mobile-nav-header p {
+            margin: 6px 0 0;
+            color: #64748b;
+            font-size: 0.92rem;
+        }
+        @media (max-width: 1200px) {
+            .admin-panel { grid-template-columns: 1fr; }
+            .sidebar { display: none; }
+            .mobile-nav-header { display: block; }
+            .content-area { width: 100%; }
+            .form-grid { grid-template-columns: 1fr; }
+            .form-group.full-width, .btn-portal { grid-column: span 1; }
+            .user-list-row { grid-template-columns: 40px 1fr 1fr; gap: 15px; }
+            .user-actions { grid-column: 1 / -1; margin-top: 10px; }
+            .mobile-sidebar-select { display: block; }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-shell">
+        <div class="admin-panel">
+            <div class="mobile-nav-header">
+                <h2>System Console</h2>
+                <p>Manage users, monitor activity, and control ecosystem metrics across your workspace application.</p>
+            </div>
+            <select id="mobileSidebarSelect" class="mobile-sidebar-select" aria-label="Select dashboard section">
+                <option value="overview">Overview</option>
+                <option value="create-user-section">Create User</option>
+                <option value="students">Students</option>
+                <option value="supervisors">Supervisors</option>
+                <option value="lecturers">Lecturers</option>
+                <option value="admins">Admins</option>
+                <option value="attachment-admins">Attachment Admins</option>
+                <option value="logout">Logout</option>
+            </select>
+            <a class="mobile-logout-link" href="{% url 'core:logout' %}">Logout</a>
+            <aside class="sidebar">
+                <h2>System Console</h2>
+                <p>Manage users, monitor activity, and control ecosystem metrics across your workspace application.</p>
+                <nav class="sidebar-nav">
+                    <a data-target="overview" class="nav-item active">
+                        <span style="display:inline-block; width:8px; height:8px; background:#2563eb; border-radius:50%;"></span>
+                        Overview
+                    </a>
+                    <a data-target="create-user-section" class="nav-item">
+                        <span style="display:inline-block; width:8px; height:8px; background:#7c3aed; border-radius:50%;"></span>
+                        Create User
+                    </a>
+                    <a data-target="students" class="nav-item" onclick="resetStudentSectionView()">
+                        <span style="display:inline-block; width:8px; height:8px; background:#10b981; border-radius:50%;"></span>
+                        Students
+                    </a>
+                    <a data-target="supervisors" class="nav-item">
+                        <span style="display:inline-block; width:8px; height:8px; background:#6366f1; border-radius:50%;"></span>
+                        Supervisors
+                    </a>
+                    <a data-target="lecturers" class="nav-item">
+                        <span style="display:inline-block; width:8px; height:8px; background:#f59e0b; border-radius:50%;"></span>
+                        Lecturers
+                    </a>
+                    <a data-target="admins" class="nav-item">
+                        <span style="display:inline-block; width:8px; height:8px; background:#06b6d4; border-radius:50%;"></span>
+                        Admins
+                    </a>
+                    <a data-target="attachment-admins" class="nav-item">
+                        <span style="display:inline-block; width:8px; height:8px; background:#ec4899; border-radius:50%;"></span>
+                        Attachment Admins
+                    </a>
+                </nav>
+                <a class="logout-link" href="{% url 'core:logout' %}">Logout</a>
+            </aside>
+
+            <div class="content-area">
+                {% if messages %}
+                    <div class="dashboard-alerts" role="status" aria-live="polite">
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                <!-- SPINNING LOADER ELEMENT -->
+                <div class="loading-overlay" id="loadingOverlay">
+                    <div class="spinner"></div>
+                    <p id="loaderText">Loading Workspace Section...</p>
+                </div>
+
+                <!-- OVERVIEW SECTION -->
+                <div id="overview" class="dashboard-section section-active">
+                    <div class="admin-hero">
+                        <h1>Admin Control Center</h1>
+                        <p>Manage the full SIST logbook ecosystem, create system users, oversee activity, and keep the platform secure.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card" style="border-top-color: #3b82f6;"><strong>{{ stats.total_users }}</strong><span>Total Users</span></div>
+                        <div class="stat-card" style="border-top-color: #10b981;"><strong>{{ stats.students }}</strong><span>Students</span></div>
+                        <div class="stat-card" style="border-top-color: #6366f1;"><strong>{{ stats.supervisors }}</strong><span>Supervisors</span></div>
+                        <div class="stat-card" style="border-top-color: #f59e0b;"><strong>{{ stats.lecturers }}</strong><span>Lecturers</span></div>
+                        <div class="stat-card" style="border-top-color: #06b6d4;"><strong>{{ stats.admins }}</strong><span>Admins</span></div>
+                        <div class="stat-card" style="border-top-color: #ec4899;"><strong>{{ stats.attachment_admins }}</strong><span>Attachment Admins</span></div>
+                    </div>
+                    <div class="panel">
+                        <h3>Registration Control</h3>
+                        <p style="margin: 0 0 16px; color: #475569;">
+                            {% if system_settings.registration_enabled %}
+                                Registration is currently open for new account signups.
+                            {% else %}
+                                Registration is currently closed and new users cannot self-register.
+                            {% endif %}
+                        </p>
+                        <form method="post" action="{% url 'core:admin_dashboard' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="toggle_registration">
+                            <button type="submit" class="btn-portal" style="width:auto; margin-top:0;">
+                                {% if system_settings.registration_enabled %}Lock registration{% else %}Open registration{% endif %}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- CREATE USER SECTION -->
+                <div id="create-user-section" class="dashboard-section">
+                    <div class="panel form-panel">
+                        <h3>Create a New User Profile</h3>
+
+                        {% if form.errors %}
+                        <div class="fee-alert-box" id="userFormErrorBox" style="display: block; margin-bottom: 24px; border-left: 4px solid #dc2626; background: #fef2f2; padding: 16px; border-radius: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                <div>
+                                    <strong style="color: #991b1b; font-size: 0.95rem;">Please correct the highlighted fields:</strong>
+                                    <ul style="margin: 8px 0 0 0; padding-left: 20px; font-size: 0.88rem; font-weight: normal; color: #991b1b;">
+                                        {% for field, errors in form.errors.items %}
+                                            {% for error in errors %}
+                                                <li><strong>{{ field|title }}:</strong> {{ error }}</li>
+                                            {% endfor %}
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                <button type="button" onclick="cancelAutoRefresh()" style="background: transparent; border: none; font-size: 1.2rem; cursor: pointer; color: #991b1b;" title="Close message">✕</button>
+                            </div>
+                            <div style="margin-top: 14px; padding-top: 10px; border-top: 1px solid #fecaca; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                                <span id="autoRefreshCountdownText" style="font-size: 0.85rem; color: #7f1d1d; font-weight: 600;">
+                                    ⏳ Page will automatically refresh in <span id="countdownSecs" style="font-size: 1rem; font-weight: bold; color: #dc2626;">5</span>s so you can enter new values...
+                                </span>
+                                <div style="display: flex; gap: 8px;">
+                                    <button type="button" class="btn-portal" style="width: auto; padding: 6px 14px; font-size: 0.82rem; background: #dc2626; color: white; border: none; margin: 0; cursor: pointer; border-radius: 6px; font-weight: 600;" onclick="refreshDashboardPage()">
+                                        🔄 Refresh Page Now
+                                    </button>
+                                    <button type="button" class="btn-portal" id="btnPauseRefresh" style="width: auto; padding: 6px 14px; font-size: 0.82rem; background: #475569; color: white; border: none; margin: 0; cursor: pointer; border-radius: 6px; font-weight: 600;" onclick="pauseAutoRefresh()">
+                                        ⏸️ Pause Auto-Refresh
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- === PROFILE SELECTOR LANDING === -->
+                        <div id="admin-profile-selector">
+                            <p style="font-size:0.95rem; color:#475569; margin-bottom:18px; font-weight:500;">Select the role of the user you want to create:</p>
+                            <div style="display:flex; flex-direction:column; gap:14px;">
+                                <button type="button" class="course-selection-card" onclick="selectAdminCreateProfile('STUDENT')">
+                                    <h4>🎓 Student / Attachee Node</h4>
+                                    <p>Register as an industrial attachment student</p>
+                                </button>
+                                <button type="button" class="course-selection-card" onclick="selectAdminCreateProfile('SUPERVISOR')">
+                                    <h4>🏢 External Industry Field Supervisor</h4>
+                                    <p>Register as an industry / company supervisor</p>
+                                </button>
+                                <button type="button" class="course-selection-card" onclick="selectAdminCreateProfile('LECTURER')">
+                                    <h4>📚 Internal Academic University Assessor</h4>
+                                    <p>Register as a university academic lecturer</p>
+                                </button>
+                                <button type="button" class="course-selection-card master-option" onclick="selectAdminCreateProfile('ADMIN')">
+                                    <h4>🛡️ System Administrator</h4>
+                                    <p>Create a new superuser or staff admin</p>
+                                </button>
+                                <button type="button" class="course-selection-card" onclick="selectAdminCreateProfile('ATTACHMENT_ADMIN')">
+                                    <h4>📦 Attachment Administrator</h4>
+                                    <p>Create the attachment control officer who manages users, roles, and access</p>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- === END PROFILE SELECTOR === -->
+
+                        <!-- Dynamic Wizard Wrappers -->
+                        <div id="admin_student_wizard" style="display:none;">
+                            <button type="button" class="btn-back" onclick="returnToAdminProfileSelector()" style="margin-bottom:15px; padding: 10px 20px;">← Back to Roles</button>
+                            <form method="POST" action="{% url 'core:admin_create_user' %}" id="student_registrationForm">
+                                {% csrf_token %}
+                                <input type="hidden" name="role" value="STUDENT">
+                                {% include 'core/studentdetails.html' %}
+                            </form>
+                        </div>
+
+                        <div id="admin_sup_wizard" style="display:none;">
+                            <button type="button" class="btn-back" onclick="returnToAdminProfileSelector()" style="margin-bottom:15px; padding: 10px 20px;">← Back to Roles</button>
+                            <form method="POST" action="{% url 'core:admin_create_user' %}" id="sup_registrationForm">
+                                {% csrf_token %}
+                                <input type="hidden" name="role" value="SUPERVISOR">
+                                {% include 'core/superviosorsdetails.html' %}
+                            </form>
+                        </div>
+
+                        <div id="admin_lec_wizard" style="display:none;">
+                            <button type="button" class="btn-back" onclick="returnToAdminProfileSelector()" style="margin-bottom:15px; padding: 10px 20px;">← Back to Roles</button>
+                            <form method="POST" action="{% url 'core:admin_create_user' %}" id="lec_registrationForm">
+                                {% csrf_token %}
+                                <input type="hidden" name="role" value="LECTURER">
+                                {% include 'core/lecturesdetails.html' %}
+                            </form>
+                        </div>
+
+                        <div id="admin_admin_wizard" style="display:none;">
+                            <button type="button" class="btn-back" onclick="returnToAdminProfileSelector()" style="margin-bottom:15px; padding: 10px 20px;">← Back to Roles</button>
+                            <form method="post" action="{% url 'core:admin_create_user' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="role" value="ADMIN">
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label for="id_full_name">Full Name</label>
+                                        <input type="text" name="full_name" class="form-control" required placeholder="e.g. John Doe">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="id_username">Username</label>
+                                        <input type="text" name="username" class="form-control" required placeholder="e.g. admin_johndoe">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="id_email">Email Address</label>
+                                        <input type="email" name="email" class="form-control" required placeholder="e.g. email@example.com">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="id_phone_number">Phone Number</label>
+                                        <input type="text" name="phone_number" class="form-control" placeholder="e.g. 0712345678">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="id_password">Account Password</label>
+                                        <input type="password" name="password" class="form-control" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="id_confirm_password">Confirm Password</label>
+                                        <input type="password" name="confirm_password" class="form-control" required>
+                                    </div>
+                                    <button type="submit" class="btn-portal" style="grid-column: 1 / -1;">Save Administrator Record</button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div id="admin_attachment_admin_wizard" style="display:none;">
+                            <button type="button" class="btn-back" onclick="returnToAdminProfileSelector()" style="margin-bottom:15px; padding: 10px 20px;">← Back to Roles</button>
+                            <form method="post" action="{% url 'core:admin_create_user' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="role" value="ATTACHMENT_ADMIN">
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label for="id_full_name_attachment_admin">Full Name</label>
+                                        <input type="text" name="full_name" class="form-control" required placeholder="e.g. Mary Attachment Officer">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="id_username_attachment_admin">Username</label>
+                                        <input type="text" name="username" class="form-control" required placeholder="e.g. attachment_admin_01">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="id_email_attachment_admin">Email Address</label>
+                                        <input type="email" name="email" class="form-control" required placeholder="e.g. attachment-admin@example.com">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="id_phone_number_attachment_admin">Phone Number</label>
+                                        <input type="text" name="phone_number" class="form-control" placeholder="e.g. 0712345678">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="id_password_attachment_admin">Account Password</label>
+                                        <input type="password" name="password" class="form-control" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="id_confirm_password_attachment_admin">Confirm Password</label>
+                                        <input type="password" name="confirm_password" class="form-control" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="id_school_attachment_admin">Designated School</label>
+                                        <select name="school" id="id_school_attachment_admin" class="form-control" required>
+                                            <option value="" disabled selected>Select school...</option>
+                                            {% for code, name in schools %}
+                                                <option value="{{ code }}">{{ name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn-portal" style="grid-column: 1 / -1;">Save Attachment Administrator Record</button>
+                                </div>
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- STUDENTS SECTION (WITH MATCHING SYSTEM COURSE ROUTING FLOW) -->
+<div id="students" class="dashboard-section">
+    <div class="panel">
+        <div class="action-row">
+            <h3 id="studentSectionTitle" style="margin:0;">Students Registry</h3>
+            <div>
+                <button id="backToCoursesBtn" class="back-to-courses-btn" style="display: none;" onclick="showCoursePickerMenu()">← Back to Courses</button>
+                <button class="action-btn" onclick="navigateToSection('create-user-section', 'STUDENT')">Add New Student</button>
+            </div>
+        </div>
+
+        <!-- STEP 1: SELECT COHORT BY SPECIFIC COURSE STREAM -->
+        <div id="coursePickerContainer">
+            <p style="color: #64748b; font-size: 1.05rem; margin-top:-10px; margin-bottom:25px;">Select a system course pathway to view registered candidates:</p>
+            <div class="course-picker-grid">
+                
+                <div class="course-selection-card" onclick="filterStudentsByCourse('Computer Science')">
+                    <h4>Computer Science</h4>
+                    <p>View active Computer Science profiles</p>
+                </div>
+
+                <div class="course-selection-card" onclick="filterStudentsByCourse('Applied Computer Science')">
+                    <h4>Applied Computer Science</h4>
+                    <p>View Applied Computer Science entries</p>
+                </div>
+
+                <div class="course-selection-card" onclick="filterStudentsByCourse('Software Engineering')">
+                    <h4>Software Engineering</h4>
+                    <p>View platform software engineering records</p>
+                </div>
+
+                <div class="course-selection-card" onclick="filterStudentsByCourse('Information Technology')">
+                    <h4>Information Technology</h4>
+                    <p>View registered Information Technology metrics</p>
+                </div>
+
+                <div class="course-selection-card" onclick="filterStudentsByCourse('Communication and Media Studies')">
+                    <h4>Communication and Media Studies</h4>
+                    <p>View Communication and Media attachés</p>
+                </div>
+
+                <div class="course-selection-card" onclick="filterStudentsByCourse('Business Information Technology')">
+                    <h4>Business Information Technology</h4>
+                    <p>View Business IT distributions</p>
+                </div>
+
+                <!-- ALL STUDENTS MASTER OPTION -->
+                <div class="course-selection-card master-option" onclick="filterStudentsByCourse('ALL')">
+                    <h4>All Students Master List</h4>
+                    <p>See all course profiles concurrently</p>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- STEP 2: VERTICAL ROW VIEWS -->
+        <div class="role-section-list" id="studentRowsContainer" style="display: none;">
+            {% for user in role_groups.students %}
+            <div id="user-row-{{ user.id }}" class="user-list-row student-data-row" data-user-id="{{ user.id }}" data-username="{{ user.username }}" data-full-name="{{ user.get_full_name|default:user.username }}" data-email="{{ user.email|default:'' }}" data-phone="{{ user.phone_number|default:'' }}" data-company="{{ user.institution_or_company|default:'' }}" data-course="{{ user.course|default:'' }}" data-role="{{ user.role }}" data-joined="{{ user.date_joined|date:'d M Y' }}">
+                <div class="row-number generated-index">1</div>
+                <div>
+                    <h4>{{ user.get_full_name|default:user.username }}</h4>
+                    <p class="sub-info">{{ user.username }} • {{ user.get_role_display }}</p>
+                    <p class="sub-info">Joined {{ user.date_joined|date:"d M Y" }}</p>
+                </div>
+                <div class="detail-column">
+                    <div class="detail-row"><span class="detail-label">Email:</span><span class="detail-value">{{ user.email|default:'Not set' }}</span></div>
+                    <div class="detail-row"><span class="detail-label">Phone:</span><span class="detail-value">{{ user.phone_number|default:'Not set' }}</span></div>
+                    <div class="detail-row"><span class="detail-label">Company:</span><span class="detail-value">{{ user.institution_or_company|default:'N/A' }}</span></div>
+                    <div class="detail-row"><span class="detail-label">Course:</span><span class="detail-value">{{ user.course|default:'General' }}</span></div>
+                    <div class="detail-row"><span class="detail-label">Reg No:</span><span class="detail-value">{{ user.username }}</span></div>
+                </div>
+                <div class="user-actions">
+                    <button type="button" class="user-action-btn edit-btn" onclick="openUserDetails('{{ user.id }}')">Details</button>
+                    <form method="post" action="{% url 'core:admin_manage_user' user.id %}" style="display:inline;" onsubmit="return confirm('Remove this user permanently?');">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="delete">
+                        <button type="submit" class="user-action-btn delete">Delete</button>
+                    </form>
+                </div>
+            </div>
+            {% empty %}
+            <div class="user-list-row empty-notice-row" style="grid-template-columns: 1fr; text-align: center;">
+                <p>No registered students found inside database records.</p>
+            </div>
+            {% endfor %}
+            
+            <!-- Fallback notice container if filtering matches zero records -->
+            <div class="user-list-row client-empty-row" style="grid-template-columns: 1fr; text-align: center; display: none;">
+                <p>No active workspace records matched this chosen system course pathway.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+                <!-- SUPERVISORS SECTION -->
+                <div id="supervisors" class="dashboard-section">
+                    <div class="panel">
+                        <h3>Industry Supervisors</h3>
+                        <div class="role-section-list">
+                            {% for user in role_groups.supervisors %}
+                            <div id="user-row-{{ user.id }}" class="user-list-row" data-user-id="{{ user.id }}" data-username="{{ user.username }}" data-full-name="{{ user.get_full_name|default:user.username }}" data-email="{{ user.email|default:'' }}" data-phone="{{ user.phone_number|default:'' }}" data-company="{{ user.institution_or_company|default:'' }}" data-course="{{ user.course|default:'' }}" data-role="{{ user.role }}" data-joined="{{ user.date_joined|date:'d M Y' }}">
+                                <div class="row-number">{{ forloop.counter }}</div>
+                                <div>
+                                    <h4>{{ user.get_full_name|default:user.username }}</h4>
+                                    <p class="sub-info">{{ user.username }} • {{ user.get_role_display }}</p>
+                                    <p class="sub-info">Joined {{ user.date_joined|date:"d M Y" }}</p>
+                                </div>
+                                <div class="detail-column">
+                                    <div class="detail-row"><span class="detail-label">Email:</span><span class="detail-value">{{ user.email|default:'Not set' }}</span></div>
+                                    <div class="detail-row"><span class="detail-label">Phone:</span><span class="detail-value">{{ user.phone_number|default:'Not set' }}</span></div>
+                                    <div class="detail-row"><span class="detail-label">Company:</span><span class="detail-value">{{ user.institution_or_company|default:'N/A' }}</span></div>
+                                    <div class="detail-row"><span class="detail-label">Assigned:</span><span class="detail-value">{{ user.course|default:'N/A' }}</span></div>
+                                </div>
+                                <div class="user-actions">
+                                    <button type="button" class="user-action-btn edit-btn" onclick="openUserDetails('{{ user.id }}')">Details</button>
+                                    <form method="post" action="{% url 'core:admin_manage_user' user.id %}" style="display:inline;" onsubmit="return confirm('Remove this user permanently?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete">
+                                        <button type="submit" class="user-action-btn delete">Delete</button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LECTURERS SECTION -->
+                <div id="lecturers" class="dashboard-section">
+                    <div class="panel">
+                        <h3>Faculty Lecturers</h3>
+                        <div class="role-section-list">
+                            {% for user in role_groups.lecturers %}
+                            <div id="user-row-{{ user.id }}" class="user-list-row" data-user-id="{{ user.id }}" data-username="{{ user.username }}" data-full-name="{{ user.get_full_name|default:user.username }}" data-email="{{ user.email|default:'' }}" data-phone="{{ user.phone_number|default:'' }}" data-company="{{ user.institution_or_company|default:'' }}" data-course="{{ user.course|default:'' }}" data-role="{{ user.role }}" data-joined="{{ user.date_joined|date:'d M Y' }}">
+                                <div class="row-number">{{ forloop.counter }}</div>
+                                <div>
+                                    <h4>{{ user.get_full_name|default:user.username }}</h4>
+                                    <p class="sub-info">{{ user.username }} • {{ user.get_role_display }}</p>
+                                    <p class="sub-info">Joined {{ user.date_joined|date:"d M Y" }}</p>
+                                </div>
+                                <div class="detail-column">
+                                    <div class="detail-row"><span class="detail-label">Email:</span><span class="detail-value">{{ user.email|default:'Not set' }}</span></div>
+                                    <div class="detail-row"><span class="detail-label">Phone:</span><span class="detail-value">{{ user.phone_number|default:'Not set' }}</span></div>
+                                    <div class="detail-row"><span class="detail-label">Campus:</span><span class="detail-value">{{ user.institution_or_company|default:'N/A' }}</span></div>
+                                    <div class="detail-row"><span class="detail-label">Department:</span><span class="detail-value">{{ user.course|default:'N/A' }}</span></div>
+                                </div>
+                                <div class="user-actions">
+                                    <button type="button" class="user-action-btn edit-btn" onclick="openUserDetails('{{ user.id }}')">Details</button>
+                                    <form method="post" action="{% url 'core:admin_manage_user' user.id %}" style="display:inline;" onsubmit="return confirm('Remove this user permanently?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete">
+                                        <button type="submit" class="user-action-btn delete">Delete</button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ADMINS SECTION -->
+                <div id="admins" class="dashboard-section">
+                    <div class="panel">
+                        <h3>Administrators</h3>
+                        <div class="role-section-list">
+                            {% for user in role_groups.admins %}
+                            <div id="user-row-{{ user.id }}" class="user-list-row" data-user-id="{{ user.id }}" data-username="{{ user.username }}" data-full-name="{{ user.get_full_name|default:user.username }}" data-email="{{ user.email|default:'' }}" data-phone="{{ user.phone_number|default:'' }}" data-company="{{ user.institution_or_company|default:'' }}" data-course="{{ user.course|default:'' }}" data-role="{{ user.role }}" data-joined="{{ user.date_joined|date:'d M Y' }}">
+                                <div class="row-number">{{ forloop.counter }}</div>
+                                <div>
+                                    <h4>{{ user.get_full_name|default:user.username }}</h4>
+                                    <p class="sub-info">{{ user.username }} • {{ user.get_role_display }}</p>
+                                    <p class="sub-info">Joined {{ user.date_joined|date:"d M Y" }}</p>
+                                </div>
+                                <div class="detail-column">
+                                    <div class="detail-row"><span class="detail-label">Email:</span><span class="detail-value">{{ user.email|default:'Not set' }}</span></div>
+                                    <div class="detail-row"><span class="detail-label">Phone:</span><span class="detail-value">{{ user.phone_number|default:'Not set' }}</span></div>
+                                    <div class="detail-row"><span class="detail-label">Office:</span><span class="detail-value">{{ user.institution_or_company|default:'N/A' }}</span></div>
+                                    <div class="detail-row"><span class="detail-label">Course:</span><span class="detail-value">{{ user.course|default:'N/A' }}</span></div>
+                                </div>
+                                <div class="user-actions">
+                                    <button type="button" class="user-action-btn edit-btn" onclick="openUserDetails('{{ user.id }}')">Details</button>
+                                    <form method="post" action="{% url 'core:admin_manage_user' user.id %}" style="display:inline;" onsubmit="return confirm('Remove this user permanently?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete">
+                                        <button type="submit" class="user-action-btn delete">Delete</button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ATTACHMENT ADMINS SECTION -->
+                <div id="attachment-admins" class="dashboard-section">
+                    <div class="panel">
+                        <h3>Attachment Administrators</h3>
+                        <div class="role-section-list">
+                            {% for user in role_groups.attachment_admins %}
+                            <div id="user-row-{{ user.id }}" class="user-list-row" data-user-id="{{ user.id }}" data-username="{{ user.username }}" data-full-name="{{ user.get_full_name|default:user.username }}" data-email="{{ user.email|default:'' }}" data-phone="{{ user.phone_number|default:'' }}" data-company="{{ user.institution_or_company|default:'' }}" data-course="{{ user.course|default:'' }}" data-role="{{ user.role }}" data-joined="{{ user.date_joined|date:'d M Y' }}">
+                                <div class="row-number">{{ forloop.counter }}</div>
+                                <div>
+                                    <h4>{{ user.get_full_name|default:user.username }}</h4>
+                                    <p class="sub-info">{{ user.username }} • {{ user.get_role_display }}</p>
+                                    <p class="sub-info">Joined {{ user.date_joined|date:"d M Y" }}</p>
+                                </div>
+                                <div class="detail-column">
+                                    <div class="detail-row"><span class="detail-label">Email:</span><span class="detail-value">{{ user.email|default:'Not set' }}</span></div>
+                                    <div class="detail-row"><span class="detail-label">Phone:</span><span class="detail-value">{{ user.phone_number|default:'Not set' }}</span></div>
+                                    <div class="detail-row"><span class="detail-label">Office:</span><span class="detail-value">{{ user.institution_or_company|default:'N/A' }}</span></div>
+                                    <div class="detail-row"><span class="detail-label">Role:</span><span class="detail-value">Attachment Control</span></div>
+                                </div>
+                                <div class="user-actions">
+                                    <button type="button" class="user-action-btn edit-btn" onclick="openUserDetails('{{ user.id }}')">Details</button>
+                                    <form method="post" action="{% url 'core:admin_manage_user' user.id %}" style="display:inline;" onsubmit="return confirm('Remove this user permanently?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete">
+                                        <button type="submit" class="user-action-btn delete">Delete</button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="user-list-row empty-notice-row" style="grid-template-columns:1fr; text-align:center;">
+                                <p>No attachment administrators have been created yet.</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay-backdrop" id="userDetailsOverlay">
+        <div class="overlay-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:20px;">
+                <div>
+                    <h3 id="detailName" style="margin:0;">User Details</h3>
+                    <p class="sub-info" id="detailRole" style="margin:6px 0 0 0;"></p>
+                </div>
+                <button type="button" class="close-overlay-btn" onclick="closeUserDetails()">Close ×</button>
+            </div>
+            <ul class="review-grid-list" style="margin-top:0;">
+                <li><strong>Username</strong><span id="detailUsername"></span></li>
+                <li><strong>Joined</strong><span id="detailJoined"></span></li>
+                <li><strong>Email</strong><span id="detailEmail"></span></li>
+                <li><strong>Phone</strong><span id="detailPhone"></span></li>
+                <li><strong>Organization</strong><span id="detailCompany"></span></li>
+                <li><strong>Course / Department</strong><span id="detailCourse"></span></li>
+                <li><strong>Role</strong><span id="detailRoleLabel"></span></li>
+            </ul>
+            <form id="userDetailsEditForm" method="post" style="margin-top:24px;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="edit">
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label for="detailFullNameInput">Full Name</label>
+                        <input type="text" id="detailFullNameInput" name="full_name" class="form-control" required>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="detailEmailInput">Email</label>
+                        <input type="email" id="detailEmailInput" name="email" class="form-control" required>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="detailPhoneInput">Phone</label>
+                        <input type="text" id="detailPhoneInput" name="phone_number" class="form-control">
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="detailCompanyInput">Organization</label>
+                        <input type="text" id="detailCompanyInput" name="institution_or_company" class="form-control">
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="detailCourseInput">Course / Department</label>
+                        <input type="text" id="detailCourseInput" name="course" class="form-control">
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="detailRoleInput">Role</label>
+                        <select id="detailRoleInput" name="role" class="form-control">
+                            <option value="STUDENT">Student</option>
+                            <option value="SUPERVISOR">Industry Supervisor</option>
+                            <option value="LECTURER">Lecturer</option>
+                            <option value="ADMIN">Admin</option>
+                            <option value="ATTACHMENT_ADMIN">Attachment Administrator</option>
+                        </select>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="detailPasswordInput">New Password (optional)</label>
+                        <input type="password" id="detailPasswordInput" name="new_password" class="form-control" placeholder="Leave blank to keep current password">
+                    </div>
+                </div>
+                <button type="submit" class="btn-portal" style="width:100%; margin-top:20px;">Save User Changes</button>
+            </form>
+            <form id="userDetailsDeleteForm" method="post" style="margin-top:18px; display:flex; justify-content:flex-end;" onsubmit="return confirm('Delete this user and all related access?');">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete">
+                <button type="submit" class="btn btn-gold" style="background:#ef4444; color:#ffffff; border:none; width:auto; padding:12px 18px;">Delete User</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function showDashboardSection(sectionId) {
+            const sections = document.querySelectorAll('.dashboard-section');
+            const navItems = document.querySelectorAll('.nav-item');
+            const mobileSidebarSelect = document.getElementById('mobileSidebarSelect');
+
+            sections.forEach(section => section.classList.remove('section-active'));
+            navItems.forEach(nav => nav.classList.toggle('active', nav.dataset.target === sectionId));
+
+            if (mobileSidebarSelect) {
+                mobileSidebarSelect.value = sectionId;
+            }
+
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) {
+                targetSection.classList.add('section-active');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const navItems = document.querySelectorAll('.nav-item');
+            const loader = document.getElementById('loadingOverlay');
+            const loaderText = document.getElementById('loaderText');
+            const mobileSidebarSelect = document.getElementById('mobileSidebarSelect');
+
+            navItems.forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    item.classList.add('active');
+
+                    const targetSectionId = item.getAttribute('data-target');
+                    loaderText.innerText = "Loading Workspace Section...";
+                    loader.style.display = 'block';
+
+                    setTimeout(() => {
+                        loader.style.display = 'none';
+                        showDashboardSection(targetSectionId);
+                    }, 400);
+                });
+            });
+
+            if (mobileSidebarSelect) {
+                mobileSidebarSelect.addEventListener('change', function() {
+                    const selectedTarget = this.value;
+                    if (selectedTarget === 'logout') {
+                        window.location.href = "{% url 'core:logout' %}";
+                        return;
+                    }
+
+                    loaderText.innerText = "Loading Workspace Section...";
+                    loader.style.display = 'block';
+
+                    setTimeout(() => {
+                        loader.style.display = 'none';
+                        showDashboardSection(selectedTarget);
+                    }, 350);
+                });
+            }
+        });
+
+        /* --- DETAILED STUDENT PATHWAY ROUTING CONTROLLERS --- */
+        
+        // Forces student panel view back to initial question flow step
+        function resetStudentSectionView() {
+            document.getElementById('coursePickerContainer').style.display = 'block';
+            document.getElementById('studentRowsContainer').style.display = 'none';
+            document.getElementById('backToCoursesBtn').style.display = 'none';
+            document.getElementById('studentSectionTitle').innerText = "Students Registry";
+        }
+
+        function showCoursePickerMenu() {
+            const loader = document.getElementById('loadingOverlay');
+            const loaderText = document.getElementById('loaderText');
+            
+            loaderText.innerText = "Returning to Course Streams...";
+            loader.style.display = 'block';
+            
+            setTimeout(() => {
+                loader.style.display = 'none';
+                resetStudentSectionView();
+            }, 300);
+        }
+
+        function filterStudentsByCourse(courseName) {
+            const loader = document.getElementById('loadingOverlay');
+            const loaderText = document.getElementById('loaderText');
+            
+            loaderText.innerText = `Filtering for ${courseName === 'ALL' ? 'All Students' : courseName}...`;
+            loader.style.display = 'block';
+
+            setTimeout(() => {
+                loader.style.display = 'none';
+                
+                // Toggle view boxes
+                document.getElementById('coursePickerContainer').style.display = 'none';
+                document.getElementById('studentRowsContainer').style.display = 'flex';
+                document.getElementById('backToCoursesBtn').style.display = 'inline-flex';
+                document.getElementById('studentSectionTitle').innerText = courseName === 'ALL' ? "All Registered Students" : `${courseName} Registry`;
+
+                const rows = document.querySelectorAll('.student-data-row');
+                const clientEmptyRow = document.querySelector('.client-empty-row');
+                let visibleCount = 0;
+
+                rows.forEach(row => {
+                    const rowCourse = row.getAttribute('data-course').trim().toLowerCase();
+                    const targetFilter = courseName.trim().toLowerCase();
+
+                    // Display calculation logic matches
+                    if (courseName === 'ALL' || rowCourse === targetFilter || (targetFilter === 'computer science' && rowCourse === '')) {
+                        row.style.display = 'grid';
+                        visibleCount++;
+                        // Dynamically update numbers linearly down (1, 2, 3, 4...) based on current filtered view state
+                        row.querySelector('.generated-index').innerText = visibleCount;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+
+                // Display custom notice if filter match yields an empty workspace context
+                if (visibleCount === 0) {
+                    if (clientEmptyRow) clientEmptyRow.style.display = 'grid';
+                } else {
+                    if (clientEmptyRow) clientEmptyRow.style.display = 'none';
+                }
+
+            }, 450);
+        }
+
+        function navigateToSection(sectionId, roleValue) {
+            const loader = document.getElementById('loadingOverlay');
+            const sections = document.querySelectorAll('.dashboard-section');
+            const navItems = document.querySelectorAll('.nav-item');
+
+            sections.forEach(section => section.classList.remove('section-active'));
+            navItems.forEach(nav => nav.classList.remove('active'));
+            
+            const targetLink = document.querySelector(`[data-target="${sectionId}"]`);
+            if(targetLink) targetLink.classList.add('active');
+
+            loader.style.display = 'block';
+
+            setTimeout(() => {
+                loader.style.display = 'none';
+                const formSection = document.getElementById(sectionId);
+                if(formSection) formSection.classList.add('section-active');
+                
+                const roleSelect = document.getElementById('id_role');
+                if(roleSelect) roleSelect.value = roleValue;
+            }, 350);
+        }
+
+        const adminManageUserUrlTemplate = "{% url 'core:admin_manage_user' 0 %}";
+
+        function openUserDetails(userId) {
+            const row = document.querySelector(`#user-row-${userId}`);
+            const overlay = document.getElementById('userDetailsOverlay');
+            if (!row || !overlay) return;
+
+            const name = row.dataset.fullName || row.dataset.username;
+            const role = row.dataset.role || 'STUDENT';
+            const email = row.dataset.email || '';
+            const phone = row.dataset.phone || '';
+            const company = row.dataset.company || '';
+            const course = row.dataset.course || '';
+            const joined = row.dataset.joined || '';
+
+            document.getElementById('detailName').innerText = name;
+            document.getElementById('detailRole').innerText = `${role} profile`;
+            document.getElementById('detailRoleLabel').innerText = role;
+            document.getElementById('detailUsername').innerText = row.dataset.username || '';
+            document.getElementById('detailJoined').innerText = joined;
+            document.getElementById('detailEmail').innerText = email || 'Not set';
+            document.getElementById('detailPhone').innerText = phone || 'Not set';
+            document.getElementById('detailCompany').innerText = company || 'Not set';
+            document.getElementById('detailCourse').innerText = course || 'Not set';
+
+            document.getElementById('detailFullNameInput').value = name;
+            document.getElementById('detailEmailInput').value = email;
+            document.getElementById('detailPhoneInput').value = phone;
+            document.getElementById('detailCompanyInput').value = company;
+            document.getElementById('detailCourseInput').value = course;
+            document.getElementById('detailRoleInput').value = role;
+            document.getElementById('detailPasswordInput').value = '';
+
+            const editForm = document.getElementById('userDetailsEditForm');
+            const deleteForm = document.getElementById('userDetailsDeleteForm');
+            const actionUrl = adminManageUserUrlTemplate.replace('/0/', `/${userId}/`);
+            editForm.action = actionUrl;
+            deleteForm.action = actionUrl;
+
+            overlay.classList.add('show');
+        }
+
+        function closeUserDetails() {
+            const overlay = document.getElementById('userDetailsOverlay');
+            if (overlay) {
+                overlay.classList.remove('show');
+            }
+        }
+    </script>
+    
+    <script>
+        let autoRefreshTimer = null;
+        let countdownValue = 5;
+
+        function refreshDashboardPage() {
+            window.location.href = "{% url 'core:admin_dashboard' %}?section=create-user-section";
+        }
+
+        function pauseAutoRefresh() {
+            if (autoRefreshTimer) {
+                clearInterval(autoRefreshTimer);
+                autoRefreshTimer = null;
+            }
+            const txt = document.getElementById('autoRefreshCountdownText');
+            if (txt) txt.innerHTML = '⏸️ Auto-refresh paused. Edit fields or click <strong>Refresh Page Now</strong> to reset.';
+            const btn = document.getElementById('btnPauseRefresh');
+            if (btn) btn.style.display = 'none';
+        }
+
+        function cancelAutoRefresh() {
+            pauseAutoRefresh();
+            const box = document.getElementById('userFormErrorBox');
+            if (box) box.style.display = 'none';
+        }
+
+        function startAutoRefreshCountdown() {
+            const errorBox = document.getElementById('userFormErrorBox');
+            if (!errorBox) return;
+
+            autoRefreshTimer = setInterval(() => {
+                countdownValue--;
+                const elem = document.getElementById('countdownSecs');
+                if (elem) elem.innerText = countdownValue;
+                if (countdownValue <= 0) {
+                    clearInterval(autoRefreshTimer);
+                    refreshDashboardPage();
+                }
+            }, 1000);
+        }
+
+        function selectAdminCreateProfile(role) {
+            document.getElementById('admin-profile-selector').style.display = 'none';
+            document.getElementById('admin_student_wizard').style.display = 'none';
+            document.getElementById('admin_sup_wizard').style.display = 'none';
+            document.getElementById('admin_lec_wizard').style.display = 'none';
+            document.getElementById('admin_admin_wizard').style.display = 'none';
+            document.getElementById('admin_attachment_admin_wizard').style.display = 'none';
+
+            if (role === 'STUDENT') {
+                document.getElementById('admin_student_wizard').style.display = 'block';
+            } else if (role === 'SUPERVISOR') {
+                document.getElementById('admin_sup_wizard').style.display = 'block';
+            } else if (role === 'LECTURER') {
+                document.getElementById('admin_lec_wizard').style.display = 'block';
+            } else if (role === 'ADMIN') {
+                document.getElementById('admin_admin_wizard').style.display = 'block';
+            } else if (role === 'ATTACHMENT_ADMIN') {
+                document.getElementById('admin_attachment_admin_wizard').style.display = 'block';
+            }
+        }
+
+        function returnToAdminProfileSelector() {
+            document.querySelectorAll('#create-user-section form').forEach(f => f.reset());
+            document.getElementById('admin_student_wizard').style.display = 'none';
+            document.getElementById('admin_sup_wizard').style.display = 'none';
+            document.getElementById('admin_lec_wizard').style.display = 'none';
+            document.getElementById('admin_admin_wizard').style.display = 'none';
+            document.getElementById('admin_attachment_admin_wizard').style.display = 'none';
+            document.getElementById('admin-profile-selector').style.display = 'block';
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const sectionParam = urlParams.get('section');
+            const selectedRole = "{{ selected_role }}";
+
+            if (sectionParam) {
+                navigateToSection(sectionParam, selectedRole || '');
+                if (selectedRole) {
+                    selectAdminCreateProfile(selectedRole);
+                }
+            } else if (selectedRole) {
+                navigateToSection('create-user-section', selectedRole);
+                selectAdminCreateProfile(selectedRole);
+            }
+
+            if (document.getElementById('userFormErrorBox')) {
+                startAutoRefreshCountdown();
+            }
+        });
+    </script>
+{% include 'core/ui_transitions.html' %}
+</body>
+</html>

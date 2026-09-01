@@ -1,0 +1,68 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIST Logbook - {{ title }}</title>
+    <link rel="icon" type="image/jpeg" href="{% static 'images/logo.jpeg' %}">
+    <link rel="stylesheet" href="{% static 'css/sist_style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8fafc;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .info-card {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            max-width: 600px;
+            text-align: center;
+            border-top: 4px solid #0f4c81;
+        }
+        .info-card h1 {
+            color: #0f4c81;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        .info-card p {
+            color: #475569;
+            line-height: 1.6;
+        }
+        .back-btn {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 10px 20px;
+            background: #0f4c81;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: background 0.3s ease;
+        }
+        .back-btn:hover {
+            background: #1d65a3;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="info-card">
+        <i class="fa-solid fa-file-lines" style="font-size: 3rem; color: #0f4c81; margin-bottom: 20px;"></i>
+        <h1>{{ title }}</h1>
+        <p>This page is currently a placeholder for the <strong>{{ title }}</strong> document.</p>
+        <p>The contents of this section will be updated by the administration soon. Please check back later.</p>
+        
+        <a href="{% url 'core:login' %}" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Portal</a>
+    </div>
+
+{% include 'core/ui_transitions.html' %}
+</body>
+</html>

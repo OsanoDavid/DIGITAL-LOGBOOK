@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Log - {{ role }}</title>
+    <link rel="stylesheet" href="/static/css/sist_style.css">
+    <style>
+        .approval-checkbox-wrapper {
+            background: #f0f7ff;
+            border: 2px solid #0284c7;
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-top: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 2px 8px rgba(2, 132, 199, 0.08);
+        }
+        .approval-checkbox-wrapper:hover {
+            background: #e0f2fe;
+            border-color: #0369a1;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.15);
+        }
+        .approval-checkbox-wrapper input[type="checkbox"] {
+            width: 24px !important;
+            height: 24px !important;
+            min-width: 24px;
+            cursor: pointer;
+            accent-color: #0284c7;
+            margin: 0 !important;
+        }
+        .approval-checkbox-wrapper label {
+            margin: 0 !important;
+            cursor: pointer;
+            font-weight: 700 !important;
+            font-size: 1.05rem;
+            color: #0f172a !important;
+            display: inline-block !important;
+        }
+        .btn-blue:disabled,
+        .btn-blue[disabled] {
+            opacity: 0.45 !important;
+            cursor: not-allowed !important;
+            filter: grayscale(40%);
+            box-shadow: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="log-page">
+        <div class="log-shell">
+            <div class="log-card">
+                <div class="log-card-header">
+                    <h2 class="page-title">{{ role }} Verification Workspace</h2>
+                    <p class="page-subtitle">Week {{ log.week_number }} · Review the submitted attachment activities and confirm the sign-off.</p>
+                </div>
+                <div class="log-card-body">
+                    <div class="log-summary-card">
+                        <p><strong>Attachee:</strong> {{ log.profile.student.get_full_name|default:log.profile.student.username }}</p>
+                        <p><strong>Monday:</strong> {{ log.monday_activity|default:"-" }}</p>
+                        <p><strong>Tuesday:</strong> {{ log.tuesday_activity|default:"-" }}</p>
+                        <p><strong>Wednesday:</strong> {{ log.wednesday_activity|default:"-" }}</p>
+                        <p><strong>Thursday:</strong> {{ log.thursday_activity|default:"-" }}</p>
+                        <p><strong>Friday:</strong> {{ log.friday_activity|default:"-" }}</p>
+                    </div>
+                    <form method="POST" id="reviewLogForm">
+                        {% csrf_token %}
+                        <div class="log-form-grid">
+                            {% for field in form %}
+                                {% if field.field.widget.input_type == 'checkbox' %}
+                                    <div class="approval-checkbox-wrapper" onclick="document.getElementById('{{ field.id_for_label }}').click();">
+                                        <input type="checkbox" 
+                                               name="{{ field.name }}" 
+                                               id="{{ field.id_for_label }}"
+                                               class="approval-toggle"
+                                               {% if field.value %}checked{% endif %}
+                                               onclick="event.stopPropagation();">
+                                        <label for="{{ field.id_for_label }}" onclick="event.stopPropagation();">
+                                            Approve & Sign-Off Attachment Activities for Week {{ log.week_number }}
+                                        </label>
+                                    </div>
+                                {% else %}
+                                    <div>
+                                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                        {{ field }}
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <div class="log-actions">
+                            <button type="submit" id="saveSignOffBtn" class="btn btn-blue">Save Evaluation Sign-Off</button>
+                            <a href="{% url 'core:dashboard' %}" class="btn btn-gold">Back to Dashboard</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleCb = document.querySelector('.approval-toggle');
+        const saveBtn = document.getElementById('saveSignOffBtn');
+
+        function syncButtonState() {
+            if (!saveBtn) return;
+            if (toggleCb && toggleCb.checked) {
+                saveBtn.disabled = false;
+                saveBtn.style.opacity = '1';
+                saveBtn.style.cursor = 'pointer';
+            } else {
+                saveBtn.disabled = true;
+                saveBtn.style.opacity = '0.45';
+                saveBtn.style.cursor = 'not-allowed';
+            }
+        }
+
+        if (toggleCb) {
+            toggleCb.addEventListener('change', syncButtonState);
+        }
+        syncButtonState();
+    });
+    </script>
+{% include 'core/ui_transitions.html' %}
+</body>
+</html>
