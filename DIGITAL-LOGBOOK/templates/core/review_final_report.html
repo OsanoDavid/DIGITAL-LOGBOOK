@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Final Report</title>
+    <link rel="stylesheet" href="/static/css/sist_style.css">
+    <style>
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f8fafc; color: #1f2937; margin: 0; }
+        .report-review-shell { max-width: 960px; margin: 28px auto; padding: 0 20px; }
+        .card { background: white; border-radius: 18px; padding: 24px; box-shadow: 0 18px 40px rgba(15, 76, 129, 0.08); margin-bottom: 24px; }
+        .card h1, .card h2 { margin: 0 0 16px; color: #0f4c81; }
+        .card p { margin: 0 0 16px; line-height: 1.8; }
+        .field-grid { display: grid; gap: 20px; }
+        .field-grid label { font-weight: 700; color: #334155; margin-bottom: 8px; display: block; }
+        .field-grid textarea, .field-grid select, .field-grid input[type="text"] { width: 100%; border: 1px solid #cbd5e1; border-radius: 12px; padding: 12px; font-family: inherit; font-size: 0.95rem; }
+        .field-grid textarea { min-height: 130px; resize: vertical; }
+        .btn-group { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
+        .btn { border: none; border-radius: 12px; padding: 12px 20px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; }
+        .btn-primary { background: #0f4c81; color: white; }
+        .btn-secondary { background: #f59e0b; color: white; }
+        .btn-link { background: transparent; color: #0f4c81; text-decoration: underline; }
+        .status-pill { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: #fef3c7; color: #b45309; font-weight: 700; }
+        .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 20px; }
+        .meta-block { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; }
+        .meta-block strong { display: block; margin-bottom: 8px; color: #0f172a; }
+        .muted { color: #475569; }
+        a.download-link { display: inline-flex; align-items: center; gap: 8px; color: #0f4c81; text-decoration: none; font-weight: 700; }
+    </style>
+</head>
+<body>
+    <div class="report-review-shell">
+        <div class="card">
+            <h1>Final Report Review</h1>
+            <p>Review the student's submitted final report and provide approval or a request for revisions.</p>
+
+            <div class="meta-grid">
+                <div class="meta-block">
+                    <strong>Student</strong>
+                    <div>{{ period.student.get_full_name|default:period.student.username }}</div>
+                    <div class="muted">{{ period.student.username }}</div>
+                    <div class="muted">{{ period.student.email|default:'No email provided' }}</div>
+                </div>
+                <div class="meta-block">
+                    <strong>Course</strong>
+                    <div>{{ period.student.course|default:'Unassigned' }}</div>
+                    <strong style="margin-top: 12px; display: block;">Company</strong>
+                    <div>{{ period.student.institution_or_company|default:'Not specified' }}</div>
+                </div>
+                <div class="meta-block">
+                    <strong>Current Status</strong>
+                    <span class="status-pill">{{ period.report_status|title|default:'Not Submitted' }}</span>
+                    {% if period.report_review_comment %}
+                    <div style="margin-top: 12px;"><strong>Last Comment</strong><p class="muted" style="margin: 6px 0 0; white-space: pre-wrap;">{{ period.report_review_comment }}</p></div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="field-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                <div style="background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                    <strong>Submitted Final Report Document</strong>
+                    {% if period.final_report %}
+                        <p style="margin: 8px 0 0 0;"><a href="{{ period.final_report.url }}" class="download-link" target="_blank">📄 Download Submitted Report PDF</a></p>
+                    {% else %}
+                        <p class="muted" style="margin: 8px 0 0 0;">No final report file uploaded yet.</p>
+                    {% endif %}
+                </div>
+                <div style="background: #f0f7ff; padding: 16px; border-radius: 12px; border: 1.5px solid #bae6fd;">
+                    <strong>Organization Recommendation Letter (Stamped)</strong>
+                    {% if period.recommendation_letter %}
+                        <p style="margin: 8px 0 0 0;"><a href="{{ period.recommendation_letter.url }}" class="download-link" target="_blank" style="color: #0284c7;">📜 View / Download Stamped Recommendation Letter</a></p>
+                    {% else %}
+                        <p class="muted" style="margin: 8px 0 0 0;">No recommendation letter uploaded yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+                <div class="field-grid">
+                    <label for="report_review_comment">Review comments (optional)</label>
+                    <textarea id="report_review_comment" name="report_review_comment" placeholder="Enter feedback or notes for the student...">{{ period.report_review_comment }}</textarea>
+                </div>
+                <div class="field-grid" style="grid-template-columns: 1fr; gap: 12px;">
+                    <label for="report_action">Review decision</label>
+                    <select id="report_action" name="report_action">
+                        <option value="approve">Approve report</option>
+                        <option value="return">Return for revision</option>
+                        <option value="pending_review">Keep pending</option>
+                    </select>
+                </div>
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-primary">Save Review</button>
+                    <a href="{% url 'core:dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+                </div>
+            </form>
+        </div>
+    </div>
+{% include 'core/ui_transitions.html' %}
+</body>
+</html>

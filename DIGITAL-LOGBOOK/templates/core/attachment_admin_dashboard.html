@@ -1,0 +1,1990 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attachment Administrator Dashboard</title>
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/jpeg" href="{% static 'images/logo.jpeg' %}">
+
+  <!-- Chart.js CDN for Interactive Beautiful Charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Styles -->
+  <style>
+    /* Reset & Base Layout */
+    * { box-sizing: border-box; }
+    body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #f8fafc; margin: 0; padding: 0; color: #0f172a; font-size: 0.88rem; }
+    .dashboard-container { max-width: 1440px; margin: 0 auto; padding: 16px; }
+
+    /* COMPACT MULTICOLOR HEADER WITH BLURRED LOGO WATERMARK */
+    .dashboard-header-compact {
+      position: relative;
+      /* Keep dropdown menus visible when they extend below the header. */
+      overflow: visible;
+      z-index: 10;
+      background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+      color: #ffffff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      margin-bottom: 20px;
+    }
+
+    /* Background Watermark Logo with Blur */
+    .header-bg-watermark {
+      position: absolute;
+      right: -20px;
+      top: -20px;
+      width: 180px;
+      height: 180px;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      opacity: 0.12;
+      filter: blur(4px) opacity(0.8);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      z-index: 2;
+    }
+
+    /* Sidebar Toggle Icon Button */
+    .sidebar-toggle-btn {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      color: #38bdf8;
+      font-size: 1.15rem;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .sidebar-toggle-btn:hover {
+      background: #38bdf8;
+      color: #0f172a;
+      transform: scale(1.05);
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
+    }
+
+    /* Institution Logo */
+    .header-institution-logo {
+      height: 42px;
+      width: auto;
+      border-radius: 6px;
+      background: white;
+      padding: 2px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Title & Subtitle */
+    .header-title-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header-main-title {
+      margin: 0;
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: -0.2px;
+      background: linear-gradient(90deg, #ffffff 0%, #38bdf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header-subheading {
+      margin: 2px 0 0;
+      color: #94a3b8;
+      font-size: 0.76rem;
+    }
+
+    .subheading-dark { color: #64748b; margin-top: 4px; margin-bottom: 0; }
+
+    /* SINGLE-LINE CONTROLS BAR */
+    /* Pending supervisor request row visibility */
+    tr[id^="pending-period-"], .pending-row {
+      background: #ecfdf5; /* pale green */
+      color: #0f172a !important; /* dark text for readability */
+    }
+    tr[id^="pending-period-"] td, .pending-row td {
+      color: #0f172a !important;
+    }
+    .header-controls-inline {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      white-space: nowrap;
+      z-index: 2;
+      position: relative;
+    }
+
+    /* Status Badge */
+    .status-badge-multicolor {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.76rem;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: #e2e8f0;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+    }
+
+    /* Multicolor Buttons */
+    .btn-multicolor {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.78rem;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+
+    .notification-wrapper {
+      display: inline-block;
+      position: relative;
+      margin-right: 8px;
+      z-index: 20;
+    }
+
+    .notification-toggle {
+      min-width: 82px;
+      min-height: 44px;
+      justify-content: center;
+      border: 1px solid #e6eef6;
+      background: #ffffff;
+      color: #0f172a;
+      cursor: pointer;
+      position: relative;
+      padding: 0 14px;
+      border-radius: 12px;
+    }
+
+    .notification-count {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      min-width: 22px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #dc2626;
+      color: #ffffff;
+      font-weight: 800;
+      line-height: 1.1;
+      text-align: center;
+      box-shadow: 0 4px 10px rgba(220, 38, 38, 0.28);
+    }
+
+    .notification-menu {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      width: min(440px, calc(100vw - 32px));
+      max-height: min(420px, calc(100vh - 120px));
+      overflow: hidden;
+      background: #ffffff;
+      border: 1px solid #e6eef6;
+      border-radius: 10px;
+      box-shadow: 0 12px 28px rgba(2, 6, 23, 0.2);
+      color: #0f172a;
+      z-index: 1000;
+    }
+
+    .notification-menu-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 1rem;
+    }
+
+    .notification-list {
+      max-height: 320px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      background: #f8fafc;
+    }
+
+    .notification-item {
+      display: block;
+      padding: 16px 18px;
+      border-bottom: 1px solid #e2e8f0;
+      background: #ffffff;
+      margin: 8px 12px;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+    }
+
+    .notification-item:last-child { border-bottom: 0; }
+
+    .notification-message {
+      display: block;
+      color: #0f172a;
+      font-size: 0.92rem;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+      text-decoration: none;
+    }
+
+    .notification-message:hover { color: #0369a1; }
+
+    .notification-time {
+      display: block;
+      margin-top: 6px;
+      color: #94a3b8;
+      font-size: 0.78rem;
+    }
+
+    .notification-action {
+      margin-top: 10px;
+    }
+
+    .notification-empty { padding: 18px 16px; color: #64748b; }
+
+    .admin-settings-btn {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: #0f172a;
+    }
+
+    .admin-settings-btn:hover {
+      background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
+    }
+
+    .pending-requests-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: #ffffff;
+      border: 1px solid #dc2626;
+      box-shadow: 0 8px 18px rgba(220, 38, 38, 0.22);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .pending-requests-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 24px rgba(220, 38, 38, 0.28);
+      text-decoration: none;
+    }
+
+    .pending-icon {
+      font-size: 1rem;
+    }
+
+    .pending-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 30px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #fff;
+      color: #dc2626;
+      font-weight: 800;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08);
+    }
+
+    .logout-btn {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: #ffffff;
+    }
+
+    .logout-btn:hover {
+      background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+    }
+
+    /* MULTICOLOR QUICK ACTION BUTTONS */
+    .action-btn-multicolor {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .action-btn-multicolor:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+    }
+
+    .btn-action-blue { background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); }
+    .btn-action-green { background: linear-gradient(135deg, #059669 0%, #047857 100%); }
+    .btn-action-orange { background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%); }
+    .btn-action-purple { background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); }
+
+    /* MULTICOLOR CHARTS & ANALYTICS CONTAINER */
+    .charts-grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 20px;
+      margin-top: 24px;
+    }
+
+    .chart-card-box {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 20px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chart-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px dashed #e2e8f0;
+    }
+
+    .chart-card-title {
+      font-size: 1rem;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .chart-badge-tag {
+      font-size: 0.72rem;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    .tag-blue { background: #e0f2fe; color: #0369a1; }
+    .tag-purple { background: #f3e8ff; color: #6d28d9; }
+
+    .chart-wrapper-body {
+      position: relative;
+      height: 250px;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .chart-wrapper-body canvas {
+      width: 100% !important;
+      height: 100% !important;
+      display: block;
+    }
+
+    /* OFF-CANVAS SIDEBAR DRAWER */
+    .sidebar-drawer { position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: #0f172a; color: white; z-index: 1050; transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 4px 0 25px rgba(0, 0, 0, 0.3); display: flex; flex-direction: column; }
+    .sidebar-drawer.open { transform: translateX(0); }
+    .sidebar-header { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+    .sidebar-brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.1rem; color: #38bdf8; }
+    .sidebar-close-btn { background: rgba(255, 255, 255, 0.1); border: none; color: #94a3b8; font-size: 1.1rem; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; }
+    .sidebar-close-btn:hover { background: #ef4444; color: white; }
+
+    /* Nav Links inside Drawer */
+    .sidebar-nav { padding: 16px; flex: 1; overflow-y: auto; }
+    .sidebar-nav ul { list-style: none; padding: 0; margin: 0; }
+    .sidebar-nav li { margin-bottom: 6px; }
+    .sidebar-nav li.separator { height: 1px; background: rgba(255, 255, 255, 0.1); margin: 14px 0; }
+    .sidebar-nav a { color: #94a3b8; text-decoration: none; font-weight: 600; font-size: 0.88rem; padding: 12px 14px; display: block; border-radius: 8px; transition: all 0.2s ease; }
+    .sidebar-nav a:hover, .sidebar-nav a.active { background: #1e293b; color: #38bdf8; border-left: 4px solid #38bdf8; }
+
+    /* Dark Backdrop Overlay */
+    .sidebar-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(2px); z-index: 1040; opacity: 0; visibility: hidden; transition: all 0.3s ease; }
+    .sidebar-backdrop.show { opacity: 1; visibility: visible; }
+
+    /* Workspace Panels */
+    .main-workspace { width: 100%; }
+    .view-panel { display: none; width: 100%; }
+    .view-panel.active-panel { display: block; }
+
+    /* Cards & Components */
+    .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px; }
+    .card { padding: 18px 22px; border-radius: 12px; color: white; font-weight: 600; font-size: 0.88rem; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); cursor: pointer; transition: transform 0.2s ease; }
+    .card:hover { transform: translateY(-3px); }
+    .card span { font-size: 1.8rem; font-weight: 800; display: block; margin-top: 4px; }
+    .card.settings-card { color: #0f172a; cursor: default; background: #ffffff; }
+    .card.settings-card * { color: inherit !important; }
+    .card.settings-card input,
+    .card.settings-card select,
+    .card.settings-card textarea,
+    .card.settings-card label { color: #0f172a !important; }
+    .card.settings-card input,
+    .card.settings-card select,
+    .card.settings-card textarea { width: 100%; background: #ffffff; border: 1px solid #cbd5e1; color: #0f172a; padding: 10px; border-radius: 6px; }
+    .card.settings-card select { appearance: none; }
+    .card.settings-card .status-pill { color: inherit !important; }
+    .blue { background: linear-gradient(135deg, #0f4c81, #0284c7); }
+    .green { background: linear-gradient(135deg, #059669, #10b981); }
+    .orange { background: linear-gradient(135deg, #ea580c, #f97316); }
+    .purple { background: linear-gradient(135deg, #7c3aed, #8b5cf6); }
+
+    .panel-box { background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03); padding: 24px; border: 1px solid #e2e8f0; width: 100%; }
+    .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .panel-box h2 { margin: 0; font-size: 1.25rem; color: #0f172a; }
+
+    /* Table Styles */
+    .table-responsive { width: 100%; overflow-x: auto; }
+    .data-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.88rem; }
+    .data-table th, .data-table td { padding: 12px 14px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+    .data-table th { background: #f8fafc; color: #475569; font-weight: 700; }
+
+    /* Buttons */
+    .btn { padding: 8px 14px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.8rem; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
+    .btn.back-btn { background: #1e293b; color: white; }
+    .btn.primary { background: #0f4c81; color: white; }
+    .table-action { background: #0284c7; color: white; border: none; border-radius: 5px; padding: 6px 12px; cursor: pointer; font-weight: 600; font-size: 0.78rem; }
+    .table-action.danger { background: #ef4444; }
+
+    /* Forms */
+    .create-form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    .create-form-grid label { display: flex; flex-direction: column; gap: 6px; font-weight: 600; font-size: 0.82rem; color: #334155; }
+    .create-form-grid input { width: 100%; padding: 10px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.88rem; }
+    
+    /* Overlay Modal */
+    .overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 1100; }
+    .overlay-card { background: white; border-radius: 12px; width: min(600px, 100%); padding: 24px; }
+    .overlay-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+    .overlay-close { border: none; background: #f1f5f9; font-size: 1.2rem; border-radius: 6px; cursor: pointer; padding: 2px 8px; }
+
+    /* STATS BADGE STRIP FOR REPORTS */
+    .stats-pill-strip { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+    .pill-badge { background: #f1f5f9; padding: 8px 16px; border-radius: 20px; font-weight: 700; color: #334155; font-size: 0.82rem; border: 1px solid #e2e8f0; }
+    .pill-badge span { color: #0284c7; font-weight: 800; }
+
+    /* Responsive adjustments */
+    @media (max-width: 900px) {
+      .dashboard-header-compact {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+      .header-controls-inline {
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+      }
+    }
+    /* Ensure outer container doesn't clip child elements */
+.header-controls-inline {
+  overflow: visible !important;
+  position: relative;
+}
+
+/* Dropdown Positioning & Styling */
+.status-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0; /* Align to right so it doesn't clip off the screen */
+  left: auto;
+  min-width: 240px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+  padding: 8px 0;
+  
+  /* HIGH Z-INDEX forces it to float ABOVE everything below it */
+  z-index: 99999 !important; 
+}
+
+.status-dropdown-menu .dropdown-header {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #64748b;
+  padding: 6px 16px;
+  margin: 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.status-dropdown-menu .dropdown-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 16px;
+  text-decoration: none;
+  color: #1e293b;
+  transition: background-color 0.2s ease;
+}
+
+.status-dropdown-menu .dropdown-item:hover {
+  background-color: #f8fafc;
+}
+
+/* Danger Option Styling */
+.status-dropdown-menu .danger-option:hover {
+  background-color: #fef2f2;
+}
+
+.danger-badge {
+  color: #dc2626;
+  font-weight: bold;
+  font-size: 0.75rem;
+}
+
+.success-badge {
+  color: #16a34a;
+  font-weight: bold;
+  font-size: 0.75rem;
+}
+
+.alert-message {
+  padding: 16px 18px;
+  border-radius: 14px;
+  margin-bottom: 20px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.alert-success {
+  background-color: #dcfce7;
+  border: 1px solid #86efac;
+  color: #166534;
+}
+
+.alert-error {
+  background-color: #fee2e2;
+  border: 1px solid #fca5a5;
+  color: #991b1b;
+}
+
+.alert-info {
+  background-color: #dbeafe;
+  border: 1px solid #93c5fd;
+  color: #1d4ed8;
+}
+
+.alert-message {
+  transition: opacity 0.4s ease, max-height 0.4s ease, margin 0.4s ease, padding 0.4s ease;
+}
+
+.alert-message.hide-alert {
+  opacity: 0;
+  max-height: 0;
+  margin: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  overflow: hidden;
+}
+  </style>
+</head>
+<body>
+  <!-- Dark Backdrop Overlay -->
+  <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
+
+  <!-- Off-Canvas Sidebar Drawer -->
+  <aside class="sidebar-drawer" id="sidebarDrawer">
+    <div class="sidebar-header">
+      <div class="sidebar-brand">
+        <span>⚙️</span>
+        <span>Admin Menu</span>
+      </div>
+      <!-- Dedicated Close Button -->
+      <button type="button" class="sidebar-close-btn" onclick="closeSidebar()" title="Close Sidebar">✕</button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <ul>
+        <li><a href="#" class="nav-link active" id="link-overview" onclick="showPanel('dashboard-overview', event)">🏠 Dashboard Overview</a></li>
+        <li><a href="#" class="nav-link" id="link-students" onclick="showPanel('students-panel', event)">🎓 Manage Students ({{ stats.students }})</a></li>
+        <li><a href="#" class="nav-link" id="link-supervisors" onclick="showPanel('supervisors-panel', event)">💼 Manage Supervisors ({{ stats.supervisors }})</a></li>
+        <li><a href="#" class="nav-link" id="link-lecturers" onclick="showPanel('lecturers-panel', event)">👨‍🏫 Manage Lecturers ({{ stats.lecturers }})</a></li>
+        <li><a href="#" class="nav-link" id="link-create" onclick="showPanel('create-user-panel', event)">➕ Create New User</a></li>
+        <li><a href="#" class="nav-link" id="link-academic-cycle" onclick="showPanel('academic-cycle-panel', event)">🔄 Academic Cycle & Export</a></li>
+        <li><a href="#" class="nav-link" id="link-settings" onclick="showPanel('settings-panel', event)">⚙️ System Settings</a></li>
+        <li><a href="#" class="nav-link" id="link-reports" onclick="showPanel('reports-panel', event)">📊 Activity Logs & Reports</a></li>
+        <li class="separator"></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- Page Layout -->
+  <div class="dashboard-container">
+    
+    <!-- Modernized Compact Header -->
+    <header class="dashboard-header-compact">
+      <!-- Blurred Watermark Logo in Background -->
+      <div class="header-bg-watermark" style="background-image: url('{% static "images/logo.jpeg" %}');"></div>
+
+      <div class="header-left">
+        <!-- Sidebar Toggle Icon Button -->
+        <button type="button" class="sidebar-toggle-btn" onclick="openSidebar()" title="Toggle Navigation Menu">
+          <span class="menu-icon">☰</span>
+        </button>
+
+        <!-- Institution Logo -->
+        <img src="{% static 'images/logo.jpeg' %}" alt="Logo" class="header-institution-logo">
+
+        <!-- Title & Subtitle -->
+        <div class="header-title-group">
+          <h1 class="header-main-title">Attachment Administrator Dashboard</h1>
+          <p class="header-subheading">Manage attachment operations, organization access, and user lifecycle from one control panel.</p>
+        </div>
+      </div>
+
+      <!-- Single-Line Control Bar -->
+      <div class="header-controls-inline">
+  <!-- System Status Dropdown Wrapper -->
+  <div class="status-dropdown-wrapper" style="position: relative; display: inline-block;">
+    
+    <!-- Trigger Badge (Click to open dropdown) -->
+    <button 
+      type="button" 
+      id="statusDropdownToggle" 
+      class="status-badge-multicolor {% if not system_settings.registration_enabled %}status-danger{% endif %}"
+      aria-expanded="false"
+      style="border: none; background: inherit; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: inherit;"
+    >
+      <span class="status-dot"></span>
+      System Status: 
+      <strong id="currentStatusText">
+        {% if system_settings.registration_enabled %}OPEN 🔓{% else %}CLOSED 🔒{% endif %}
+      </strong>
+      <!-- Down arrow indicator -->
+      <span class="arrow-icon" style="font-size: 0.8em; margin-left: 2px;">▼</span>
+    </button>
+
+    <!-- Dropdown Menu -->
+    <div id="statusDropdownMenu" class="status-dropdown-menu" style="display: none;">
+      <p class="dropdown-header">Change System Status</p>
+
+      {% if system_settings.registration_enabled %}
+        <!-- Active Option to Close -->
+        <a href="{% url 'core:admin_dashboard' %}" class="dropdown-item danger-option">
+          <span class="danger-badge">⚠️ DANGER</span>
+          <span class="action-text">Turn Off / Close Registration 🔒</span>
+        </a>
+      {% else %}
+        <!-- Active Option to Open -->
+        <a href="{% url 'core:admin_dashboard' %}" class="dropdown-item open-option">
+          <span class="success-badge">✅ ENABLE</span>
+          <span class="action-text">Turn On / Open Registration 🔓</span>
+        </a>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <a class="btn-multicolor admin-settings-btn" href="{% url 'core:admin_dashboard' %}?panel=settings-panel" onclick="showPanel('settings-panel', event)">
+    <span>⚙️</span> Admin Settings
+  </a>
+  <!-- Notification bell for admin in-app notifications -->
+  <div class="notification-wrapper">
+    <button id="notifToggle" type="button" onclick="toggleNotificationMenu(event)" class="btn-multicolor notification-toggle" aria-expanded="false" aria-controls="notifMenu" title="View notifications">
+      🔔
+      {% if admin_notifications and admin_notifications|length > 0 %}
+        <span class="notification-count">{{ admin_notifications|length }}</span>
+      {% endif %}
+    </button>
+    <div id="notifMenu" class="notification-menu" role="menu" aria-label="Notifications">
+      <div class="notification-menu-header"><strong>Notifications</strong></div>
+      <div class="notification-list">
+        {% if admin_notifications and admin_notifications|length > 0 %}
+          {% for n in admin_notifications %}
+            <div class="notification-item">
+              <div>
+                {% if n.action_url %}
+                  <a href="{{ n.action_url }}" class="notification-message notification-link" data-action-url="{{ n.action_url|escapejs }}">{{ n.message }}</a>
+                {% else %}
+                  <div class="notification-message">{{ n.message }}</div>
+                {% endif %}
+                <time class="notification-time">{{ n.created_at }}</time>
+              </div>
+              <div class="notification-action" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                {% if n.action_url %}
+                  <button type="button" class="table-action" onclick="handleNotificationClick(event, '{{ n.action_url|escapejs }}')">Open Request</button>
+                {% endif %}
+                <form method="post" action="{% url 'core:mark_admin_notification_read' n.id %}">{% csrf_token %}<button class="table-action" type="submit">Mark read</button></form>
+              </div>
+            </div>
+            {% if request.user.role in ['ATTACHMENT_ADMIN', 'ADMIN'] %}
+            <!-- Manual historic counts editor -->
+            <div style="margin-top:12px; border-top:1px dashed #e6eef6; padding-top:12px;">
+              <form method="post" action="{% url 'core:admin_update_historic_counts' %}" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                {% csrf_token %}
+                {% for stat in five_year_stats %}
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+                    <label style="font-size:0.78rem;color:#475569;font-weight:700;">{{ stat.year }}</label>
+                    <input type="number" name="manual_counts[{{ stat.year }}]" value="{% if stat.manual_value is not None %}{{ stat.manual_value }}{% else %}{{ stat.count }}{% endif %}" min="0" style="width:110px;padding:8px;border:1px solid #e2e8f0;border-radius:6px;text-align:center;" />
+                  </div>
+                {% endfor %}
+                <div style="align-self:flex-end;">
+                  <button type="submit" style="padding:8px 14px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;">Save Historic Counts</button>
+                </div>
+              </form>
+              <div style="color:#64748b;font-size:0.85rem;margin-top:8px;">Enter known completed counts for past years; these values override the computed totals.</div>
+            </div>
+            {% endif %}
+          {% endfor %}
+        {% else %}
+          <div class="notification-empty">No new notifications.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% if pending_supervisor_count and pending_supervisor_count > 0 %}
+  <a class="btn-multicolor notify-btn pending-requests-btn" href="{% url 'core:admin_dashboard' %}?panel=supervisors-panel">
+    <span class="pending-icon">⚠️</span> Pending Requests
+    <span class="pending-count">{{ pending_supervisor_count }}</span>
+  </a>
+  {% endif %}
+  <a class="btn-multicolor logout-btn" href="{% url 'core:logout' %}">
+    <span>🚪</span> Logout
+  </a>
+</div>
+    </header>
+
+    <!-- Main Workspace Area -->
+    <main class="main-workspace">
+
+      {% if messages %}
+      <div class="dashboard-alerts">
+        {% for message in messages %}
+          <div class="alert-message alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- 1. DASHBOARD OVERVIEW -->
+      <section class="view-panel active-panel" id="dashboard-overview">
+        <!-- Metric Cards -->
+        <div class="summary-cards">
+          <div class="card blue" onclick="showPanel('students-panel')">Total Students<span>{{ stats.students }}</span></div>
+          <div class="card green" onclick="showPanel('supervisors-panel')">Total Supervisors<span>{{ stats.supervisors }}</span></div>
+          <div class="card orange" onclick="showPanel('lecturers-panel')">Total Lecturers<span>{{ stats.lecturers }}</span></div>
+          <div class="card purple" onclick="showPanel('reports-panel')">Pending Reviews<span>{{ stats.pending_reviews }}</span></div>
+          <div class="card" style="background:linear-gradient(135deg,#14532d,#16a34a);cursor:pointer;" onclick="showPanel('academic-cycle-panel')">Completed (Archived)<span>{{ stats.completed_periods }}</span></div>
+        </div>
+
+        <!-- User Management Quick Actions with Multicolor Buttons -->
+        <div class="panel-box">
+          <h2>User Management Quick Actions</h2>
+          <p class="subheading-dark">Select a section below or open the menu sidebar (☰) to switch views:</p>
+
+          <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px;">
+            <button type="button" class="action-btn-multicolor btn-action-blue" onclick="showPanel('students-panel')">
+              <span>🎓</span> View / Manage Students ({{ stats.students }})
+            </button>
+            <button type="button" class="action-btn-multicolor btn-action-green" onclick="showPanel('supervisors-panel')">
+              <span>💼</span> View / Manage Supervisors ({{ stats.supervisors }})
+            </button>
+            <button type="button" class="action-btn-multicolor btn-action-orange" onclick="showPanel('lecturers-panel')">
+              <span>👨‍🏫</span> View / Manage Lecturers ({{ stats.lecturers }})
+            </button>
+            <button type="button" class="action-btn-multicolor btn-action-purple" onclick="showPanel('create-user-panel')">
+              <span>➕</span> Create New User
+            </button>
+            <div style="width:100%; color:#475569; font-size:0.95rem; margin-top:12px;">Click to open the new user form, choose a role, enter details, then create the account.</div>
+            <div style="width:100%;border-top:1px solid #e2e8f0;margin-top:16px;padding-top:16px;">
+              <a href="{% url 'core:admin_export_attachment_data' %}?academic_year={{ selected_academic_year|default:current_academic_year }}"
+                 style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#065f46,#059669);color:#fff;padding:10px 20px;border-radius:8px;font-weight:700;font-size:0.88rem;text-decoration:none;box-shadow:0 2px 8px rgba(5,150,105,0.3);">
+                📥 Download Attachment Data (CSV)
+              </a>
+              <button type="button" onclick="showPanel('academic-cycle-panel')"
+                style="margin-left:10px;display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;padding:10px 20px;border-radius:8px;font-weight:700;font-size:0.88rem;border:none;cursor:pointer;box-shadow:0 2px 8px rgba(37,99,235,0.3);">
+                🔄 Manage Academic Cycle
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- BEAUTIFUL MULTICOLOR CHARTS ANALYTICS SECTION DOWN HERE -->
+        <div class="charts-grid-container">
+          <!-- Pie/Doughnut Chart Box -->
+          <div class="chart-card-box">
+            <div class="chart-card-header">
+              <div class="chart-card-title">
+                <span style="font-size: 1.2rem;">📊</span> User Role Demographics
+              </div>
+              <span class="chart-badge-tag tag-blue">Live System Metrics</span>
+            </div>
+            <div class="chart-wrapper-body">
+              <canvas id="userRolesPieChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Activity & Progress Chart Box -->
+          <div class="chart-card-box">
+            <div class="chart-card-header">
+              <div class="chart-card-title">
+                <span style="font-size: 1.2rem;">📈</span> Attachment Operations Overview
+              </div>
+              <span class="chart-badge-tag tag-purple">Weekly Performance</span>
+            </div>
+            <div class="chart-wrapper-body">
+              <canvas id="systemActivityBarChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. STUDENTS VIEW -->
+      <section class="view-panel" id="students-panel">
+        <div class="panel-box">
+          <div class="panel-header">
+            <div>
+              <h2>Students Register</h2>
+              <p class="subheading-dark">Viewing all active student records</p>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button type="button" class="btn primary" onclick="openCreateForRole('STUDENT')">+ Add Student</button>
+              <button type="button" class="btn back-btn" onclick="showPanel('dashboard-overview')">← Back to Overview</button>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr><th>Name</th><th>Reg No. / Username</th><th>Course / Department</th><th>Actions</th></tr>
+              </thead>
+              <tbody>
+                {% for user in role_groups.students %}
+                <tr data-user-id="{{ user.id }}" data-username="{{ user.username }}" data-full-name="{{ user.get_full_name|default:user.username }}" data-email="{{ user.email|default:'' }}" data-phone="{{ user.phone_number|default:'' }}" data-company="{{ user.institution_or_company|default:'' }}" data-course="{{ user.course|default:'' }}" data-role="{{ user.role }}">
+                  <td><strong>{{ user.get_full_name|default:user.username }}</strong></td>
+                  <td><code>{{ user.username }}</code></td>
+                  <td>{{ user.course|default:'Not set' }}</td>
+                  <td>
+                    <button type="button" class="table-action" onclick="openAttachmentUserDetails('{{ user.id }}')">Edit</button>
+                    <form method="post" action="{% url 'core:admin_manage_user' user.id %}" style="display:inline;">
+                      {% csrf_token %}
+                      <input type="hidden" name="action" value="resend_invite">
+                      <button type="submit" class="table-action">Resend Invite</button>
+                    </form>
+                    <form method="post" action="{% url 'core:admin_manage_user' user.id %}" style="display:inline;" onsubmit="return confirm('Delete this student account?');">
+                      {% csrf_token %}
+                      <input type="hidden" name="action" value="delete">
+                      <button type="submit" class="table-action danger">Delete</button>
+                    </form>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" style="text-align: center; color: #94a3b8; padding: 24px;">No students registered yet.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. SUPERVISORS VIEW -->
+      <section class="view-panel" id="supervisors-panel">
+        <div class="panel-box">
+          <div class="panel-header">
+            <div>
+              <h2>Supervisors Register</h2>
+              <p class="subheading-dark">Viewing all industry supervisors</p>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button type="button" class="btn primary" onclick="openCreateForRole('SUPERVISOR')">+ Add Supervisor</button>
+              <button type="button" class="btn back-btn" onclick="showPanel('dashboard-overview')">← Back to Overview</button>
+            </div>
+          </div>
+
+          {% if pending_supervisor_requests %}
+          <div class="card" style="margin-bottom: 20px; background: #f8fafc; border: 1px solid #cbd5e1;">
+            <h3 style="margin-bottom: 12px;">Pending Supervisor Registration Requests</h3>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr><th>Student</th><th>Supervisor Name</th><th>Email</th><th>Organisation</th><th>Action</th></tr>
+                </thead>
+                <tbody>
+                  {% for period in pending_supervisor_requests %}
+                  <tr id="pending-period-{{ period.id }}" class="pending-row" data-period-id="{{ period.id }}" data-student="{{ period.student.get_full_name|default:period.student.username }}" data-supervisor="{{ period.field_supervisor_name }}" data-email="{{ period.field_supervisor_email }}" data-phone="{{ period.field_supervisor_phone|default:'' }}" data-organisation="{{ period.field_supervisor_organization|default:period.student.institution_or_company }}"{% if period.existing_supervisor %} style="background: #fef2f2;"{% endif %}>
+                    <td>{{ period.student.get_full_name|default:period.student.username }}</td>
+                    <td>{{ period.field_supervisor_name }}</td>
+                    <td>{{ period.field_supervisor_email }}</td>
+                    <td>{{ period.field_supervisor_organization|default:period.student.institution_or_company }}</td>
+                    <td>
+                      {% if period.existing_supervisor %}
+                        <div style="margin-bottom: 6px; color: #991b1b; font-weight: 700;">Existing supervisor account detected.</div>
+                      {% endif %}
+                      <button type="button" class="table-action" onclick="openSupervisorRequestReview('{{ period.id }}')">{% if period.existing_supervisor %}Review & Send Link{% else %}Review & Send Link{% endif %}</button>
+                      <form method="post" action="{% url 'core:admin_create_supervisor_from_request' %}" style="display:inline; margin:0;" onsubmit="return confirm('Remove this pending supervisor request?');">
+                        {% csrf_token %}
+                        <input type="hidden" name="period_id" value="{{ period.id }}">
+                        <input type="hidden" name="action" value="delete_request">
+                        <button type="submit" class="table-action danger">Delete Request</button>
+                      </form>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          {% endif %}
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr><th>Name</th><th>Email Address</th><th>Organization / Company</th><th>Actions</th></tr>
+              </thead>
+              <tbody>
+                {% for user in role_groups.supervisors %}
+                <tr data-user-id="{{ user.id }}" data-username="{{ user.username }}" data-full-name="{{ user.get_full_name|default:user.username }}" data-email="{{ user.email|default:'' }}" data-phone="{{ user.phone_number|default:'' }}" data-company="{{ user.institution_or_company|default:'' }}" data-course="{{ user.course|default:'' }}" data-role="{{ user.role }}">
+                  <td><strong>{{ user.get_full_name|default:user.username }}</strong></td>
+                  <td>{{ user.email|default:'Not set' }}</td>
+                  <td>{{ user.institution_or_company|default:'Not set' }}</td>
+                  <td>
+                    <button type="button" class="table-action" onclick="openAttachmentUserDetails('{{ user.id }}')">Edit</button>
+                    <form method="post" action="{% url 'core:admin_manage_user' user.id %}" style="display:inline;">
+                      {% csrf_token %}
+                      <input type="hidden" name="action" value="resend_invite">
+                      <button type="submit" class="table-action">Resend Invite</button>
+                    </form>
+                    <form method="post" action="{% url 'core:admin_manage_user' user.id %}" style="display:inline;" onsubmit="return confirm('Delete this supervisor account?');">
+                      {% csrf_token %}
+                      <input type="hidden" name="action" value="delete">
+                      <button type="submit" class="table-action danger">Delete</button>
+                    </form>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" style="text-align: center; color: #94a3b8; padding: 24px;">No supervisors registered yet.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. LECTURERS VIEW -->
+      <section class="view-panel" id="lecturers-panel">
+        <div class="panel-box">
+          <div class="panel-header">
+            <div>
+              <h2>Lecturers Register</h2>
+              <p class="subheading-dark">Viewing academic assessors</p>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button type="button" class="btn primary" onclick="openCreateForRole('LECTURER')">+ Add Lecturer</button>
+              <button type="button" class="btn back-btn" onclick="showPanel('dashboard-overview')">← Back to Overview</button>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr><th>Name</th><th>Department / Course</th><th>Institution</th><th>Actions</th></tr>
+              </thead>
+              <tbody>
+                {% for user in role_groups.lecturers %}
+                <tr data-user-id="{{ user.id }}" data-username="{{ user.username }}" data-full-name="{{ user.get_full_name|default:user.username }}" data-email="{{ user.email|default:'' }}" data-phone="{{ user.phone_number|default:'' }}" data-company="{{ user.institution_or_company|default:'' }}" data-course="{{ user.course|default:'' }}" data-role="{{ user.role }}">
+                  <td><strong>{{ user.get_full_name|default:user.username }}</strong></td>
+                  <td>{{ user.course|default:'Not set' }}</td>
+                  <td>{{ user.institution_or_company|default:'Not set' }}</td>
+                  <td>
+                    <button type="button" class="table-action" onclick="openAttachmentUserDetails('{{ user.id }}')">Edit</button>
+                    <form method="post" action="{% url 'core:admin_manage_user' user.id %}" style="display:inline;">
+                      {% csrf_token %}
+                      <input type="hidden" name="action" value="resend_invite">
+                      <button type="submit" class="table-action">Resend Invite</button>
+                    </form>
+                    <form method="post" action="{% url 'core:admin_manage_user' user.id %}" style="display:inline;" onsubmit="return confirm('Delete this lecturer account?');">
+                      {% csrf_token %}
+                      <input type="hidden" name="action" value="delete">
+                      <button type="submit" class="table-action danger">Delete</button>
+                    </form>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" style="text-align: center; color: #94a3b8; padding: 24px;">No lecturers registered yet.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. CREATE USER VIEW -->
+      <section class="view-panel" id="create-user-panel">
+        <div class="panel-box">
+          <div class="panel-header">
+            <h2>Create New User Account</h2>
+            <p class="subheading-dark" style="margin: 4px 0 0 0;">Choose the role, fill in the account details below, then click Save & Create Account to create the user.</p>
+            <p class="subheading-dark" style="margin: 6px 0 0 0; color: #0f172a; font-weight: 600;">Tip: use the Create New User button on the overview to open this form at any time.</p>
+            <button type="button" class="btn back-btn" onclick="showPanel('dashboard-overview')">← Back to Overview</button>
+          </div>
+
+          {% if form.errors %}
+          <div class="alert-message danger" id="attachmentUserFormErrorBox" style="margin-bottom: 20px; border-left: 4px solid #dc2626; background: #fef2f2; padding: 16px; border-radius: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <div>
+                <strong style="color: #991b1b; font-size: 0.95rem;">Please correct the highlighted fields:</strong>
+                <ul style="margin: 8px 0 0 0; padding-left: 20px; font-size: 0.88rem; font-weight: normal; color: #991b1b;">
+                  {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                      <li><strong>{{ field|title }}:</strong> {{ error }}</li>
+                    {% endfor %}
+                  {% endfor %}
+                </ul>
+              </div>
+              <button type="button" onclick="cancelAttachmentAutoRefresh()" style="background: transparent; border: none; font-size: 1.2rem; cursor: pointer; color: #991b1b;" title="Close message">✕</button>
+            </div>
+            <div style="margin-top: 14px; padding-top: 10px; border-top: 1px solid #fecaca; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+              <span id="attAutoRefreshCountdownText" style="font-size: 0.85rem; color: #7f1d1d; font-weight: 600;">
+                ⏳ Page will automatically refresh in <span id="attCountdownSecs" style="font-size: 1rem; font-weight: bold; color: #dc2626;">5</span>s so you can enter new values...
+              </span>
+              <div style="display: flex; gap: 8px;">
+                <button type="button" class="btn" style="padding: 6px 14px; font-size: 0.82rem; background: #dc2626; color: white; border: none; cursor: pointer; border-radius: 6px; font-weight: 600;" onclick="refreshAttachmentDashboardPage()">
+                  🔄 Refresh Page Now
+                </button>
+                <button type="button" class="btn" id="btnPauseAttRefresh" style="padding: 6px 14px; font-size: 0.82rem; background: #475569; color: white; border: none; cursor: pointer; border-radius: 6px; font-weight: 600;" onclick="pauseAttachmentAutoRefresh()">
+                  ⏸️ Pause Auto-Refresh
+                </button>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
+          <form method="post" action="{% url 'core:admin_create_user' %}">
+            {% csrf_token %}
+            <div style="margin-bottom: 18px; display: flex; align-items: center; gap: 12px;">
+              <label for="create_role_select"><strong>Select User Role:</strong></label>
+              <select name="role" id="create_role_select" onchange="toggleLecturerDetails()" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                <option value="STUDENT">Student</option>
+                <option value="SUPERVISOR">Supervisor</option>
+                <option value="LECTURER">Lecturer</option>
+              </select>
+            </div>
+
+            <div class="create-form-grid">
+              <label>Full Name<input type="text" name="full_name" required placeholder="John Doe"></label>
+              <label id="username_label_container">Username / Reg No.<input type="text" name="username" id="create_username_input" required placeholder="IN14/00000/22"></label>
+              <label>Email Address<input type="email" name="email" required placeholder="user@example.com"></label>
+              <label>Phone Number<input type="text" name="phone_number" required placeholder="+254..."></label>
+              <label>Organization / Institution
+                <input type="text" name="institution_or_company" list="admin_org_options" placeholder="Type to search or enter an organization" autocomplete="organization">
+                <datalist id="admin_org_options">
+                  <option value="Kisii University — Main Campus">
+                  <option value="ABNO Softwares International — Nairobi">
+                  <option value="Safaricom PLC — Nairobi">
+                  <option value="Equity Bank Kenya — Nairobi">
+                  <option value="Co-operative Bank of Kenya">
+                  <option value="KCB Bank Group">
+                  <option value="County Government of Kisii">
+                  <option value="County Government of Nyamira">
+                  <option value="County Government of Kisumu">
+                  <option value="County Government of Nairobi">
+                  <option value="Kisii Teaching and Referral Hospital">
+                  <option value="Kenya Power and Lighting Company (KPLC)">
+                  <option value="Kenya Revenue Authority (KRA)">
+                  <option value="Kenya Ports Authority (KPA)">
+                  <option value="ICT Authority Kenya">
+                  <option value="Huawei Technologies Kenya">
+                  <option value="Microsoft Africa Development Centre">
+                </datalist>
+              </label>
+              <label>Course / Programme
+                <select name="course" id="create_course_select" required style="padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                  <option value="" disabled selected>Select Course / Programme</option>
+                  <option value="Computer Science">Computer Science</option>
+                  <option value="Applied Computer Science">Applied Computer Science</option>
+                  <option value="Software Engineering">Software Engineering</option>
+                  <option value="Information Technology">Information Technology</option>
+                  <option value="Business Information Technology">Business Information Technology</option>
+                  <option value="Communication and Media Studies">Communication and Media Studies</option>
+                  <option value="All Courses">All Courses (Department Wide)</option>
+                </select>
+              </label>
+              <label>Password<input type="password" name="password" id="create_password_input" autocomplete="new-password"></label>
+              <label>Confirm Password<input type="password" name="confirm_password" id="create_confirm_password_input" autocomplete="new-password"></label>
+            </div>
+            <p id="temporaryPasswordNote" style="display:none; margin:0; color:#0f5a8a; font-size:0.85rem;">A temporary password has been generated for this lecturer. You may replace it before creating the account. The lecturer will be required to change it after signing in.</p>
+
+            <fieldset id="lecturer-details" style="display:none; margin:20px 0 0; padding:18px; border:1px solid #cbd5e1; border-radius:8px;">
+              <legend style="padding:0 6px; font-weight:700;">Lecturer professional details</legend>
+              <p class="subheading-dark" style="margin:0 0 14px;">These details are saved with the lecturer account. The invitation email will be sent to the Email Address entered above.</p>
+              <div class="create-form-grid">
+                <label>Workspace Role
+                  <select data-lecturer-detail name="workspace_role" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                    <option value="Internal Academic University Assessor" selected>Internal Academic University Assessor</option>
+                    <option value="External University Representative">External University Representative</option>
+                    <option value="Department Administrator">Department Administrator</option>
+                  </select>
+                </label>
+                <label>National ID Number<input data-lecturer-detail type="text" name="national_id" placeholder="Enter ID Number"></label>
+                <label>Academic Specialization
+                  <select data-lecturer-detail name="specialization" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                    <option value="" disabled selected>Select academic specialization</option>
+                    <option value="Computer Science">Computer Science</option>
+                    <option value="Applied Computer Science">Applied Computer Science</option>
+                    <option value="Software Engineering">Software Engineering</option>
+                    <option value="Information Technology">Information Technology</option>
+                    <option value="Communication and Media Studies">Communication and Media Studies</option>
+                    <option value="Business Information Technology">Business Information Technology</option>
+                  </select>
+                </label>
+                <label>Faculty / School
+                  <select data-lecturer-detail name="faculty" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                    <option value="School of Information Sciences & Technology" selected>School of Information Sciences & Technology (SIST)</option>
+                    <option value="School of Arts and Social Sciences">School of Arts and Social Sciences (SASS)</option>
+                    <option value="School of Business and Economics">School of Business and Economics (SOBE)</option>
+                    <option value="School of Education and Human Resource Development">School of Education and Human Resource Development (SEDHURED)</option>
+                    <option value="School of Health Sciences">School of Health Sciences (SHS)</option>
+                    <option value="School of Law">School of Law (SLAW)</option>
+                    <option value="School of Pure and Applied Sciences">School of Pure and Applied Sciences (SPAS)</option>
+                    <option value="School of Agriculture and Natural Resources Management">School of Agriculture and Natural Resources Management (SANRM)</option>
+                  </select>
+                </label>
+                <label>Department
+                  <select data-lecturer-detail name="department" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                    <option value="" disabled selected>Select Department</option>
+                    <option value="Computing Sciences">Computing Sciences</option>
+                    <option value="Information Systems & Technology">Information Systems & Technology</option>
+                    <option value="Media and Communications">Media and Communications</option>
+                    <option value="Software Engineering">Software Engineering</option>
+                    <option value="Mathematics & Computer Science">Mathematics & Computer Science</option>
+                  </select>
+                </label>
+              </div>
+            </fieldset>
+
+            <div style="margin-top: 20px; display: flex; gap: 12px;">
+              <button type="submit" class="btn primary">Save & Create Account</button>
+              <button type="button" class="btn logout-btn" style="border:none; cursor:pointer;" onclick="showPanel('dashboard-overview')">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- 6. SYSTEM SETTINGS VIEW -->
+      <section class="view-panel" id="settings-panel" style="display:none;">
+        <div class="panel-box">
+          <div class="panel-header">
+            <div>
+              <h2>System Settings</h2>
+              <p class="subheading-dark">Manage portal access, academic terms, roles, industry placement and system alerts.</p>
+            </div>
+            <button type="button" class="btn back-btn" onclick="showPanel('dashboard-overview')">← Back to Overview</button>
+          </div>
+
+          <form method="post" action="{% url 'core:admin_dashboard' %}" id="system-settings-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="save_system_settings">
+
+            <div class="card settings-card" style="margin-bottom: 20px; background: #f8fafc; border: 1px solid #cbd5e1; color: #0f172a !important;">
+              <h3 style="margin-bottom: 12px; color: #0f172a !important;">1. System Status & Portal Access Control</h3>
+              <p style="margin: 0 0 12px; line-height: 1.6; color: #475569 !important;">Toggle the logbook registration portal and enable read-only maintenance mode for upgrades or database maintenance.</p>
+              <div style="display:flex; flex-wrap:wrap; gap: 12px; align-items:center; color: #0f172a !important;">
+                <div style="min-width:240px;">
+                  <span style="display:block; font-weight:700; margin-bottom:5px;">Current portal status</span>
+                  <span class="status-pill {% if system_settings.registration_enabled %}open{% else %}closed{% endif %}">
+                    {% if system_settings.registration_enabled %}OPEN 🔓{% else %}CLOSED 🔒{% endif %}
+                  </span>
+                </div>
+                <button type="submit" class="btn primary" style="min-width:180px;" formaction="{% url 'core:admin_dashboard' %}" formmethod="post" name="action" value="toggle_registration" {% if request.user.role not in 'ADMIN,ATTACHMENT_ADMIN' %}disabled{% endif %}>
+                  {% if system_settings.registration_enabled %}Close Registration{% else %}Open Registration{% endif %}
+                </button>
+              </div>
+              {% if request.user.role not in 'ADMIN,ATTACHMENT_ADMIN' %}
+              <div style="margin-top: 10px; color:#92400e; font-size:0.92rem;">Only administrators may change the portal registration state.</div>
+              {% endif %}
+            </div>
+
+            <div class="card settings-card" style="margin-bottom: 20px; background: #ffffff; border: 1px solid #e2e8f0;">
+              <h3 style="margin-bottom: 12px;">2. Academic Period & Schedule Management</h3>
+              <p style="margin: 0 0 12px; color: #475569; line-height: 1.6;">Define attachment term dates, submission deadlines, and logbook lock policies.</p>
+              <div style="display:grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
+                <div style="padding: 14px; border: 1px solid #cbd5e1; border-radius: 12px;">Attachment Term Configuration</div>
+                <div style="padding: 14px; border: 1px solid #cbd5e1; border-radius: 12px;">Submission Deadlines</div>
+                <div style="padding: 14px; border: 1px solid #cbd5e1; border-radius: 12px;">Logbook Lock Policy</div>
+              </div>
+              <div class="overlay-grid" style="margin-top: 16px;">
+                <label>Term Start Date<input type="date" name="term_start_date" value="{{ system_settings.term_start_date|date:'Y-m-d' }}"></label>
+                <label>Term End Date<input type="date" name="term_end_date" value="{{ system_settings.term_end_date|date:'Y-m-d' }}"></label>
+                <label>Submission Deadline<input type="date" name="submission_deadline_date" value="{{ system_settings.submission_deadline_date|date:'Y-m-d' }}"></label>
+                <label class="full-width">Logbook Lock Date<input type="date" name="logbook_lock_date" value="{{ system_settings.logbook_lock_date|date:'Y-m-d' }}"></label>
+              </div>
+            </div>
+
+            <div class="card settings-card" style="margin-bottom: 20px; background: #ffffff; border: 1px solid #e2e8f0;">
+              <h3 style="margin-bottom: 12px;">3. User Roles & Access Control</h3>
+              <p style="margin: 0 0 12px; color: #475569; line-height: 1.6;">Manage role assignments, account activation, and security policy rules.</p>
+              <div style="display:grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
+                <div style="padding: 14px; border: 1px solid #cbd5e1; border-radius: 12px;">Role Management</div>
+                <div style="padding: 14px; border: 1px solid #cbd5e1; border-radius: 12px;">Account Provisioning</div>
+                <div style="padding: 14px; border: 1px solid #cbd5e1; border-radius: 12px;">Password & Security Policies</div>
+              </div>
+              <div class="overlay-grid" style="margin-top: 16px;">
+                <label>Default New Account Role<select name="default_new_account_role">
+                  <option value="STUDENT" {% if system_settings.default_new_account_role == 'STUDENT' %}selected{% endif %}>STUDENT</option>
+                  <option value="SUPERVISOR" {% if system_settings.default_new_account_role == 'SUPERVISOR' %}selected{% endif %}>SUPERVISOR</option>
+                  <option value="LECTURER" {% if system_settings.default_new_account_role == 'LECTURER' %}selected{% endif %}>LECTURER</option>
+                </select></label>
+                <label>Require Password Reset<select name="require_password_reset">
+                  <option value="Yes" {% if system_settings.require_password_reset %}selected{% endif %}>Yes</option>
+                  <option value="No" {% if not system_settings.require_password_reset %}selected{% endif %}>No</option>
+                </select></label>
+              </div>
+            </div>
+
+            <div class="card settings-card" style="margin-bottom: 20px; background: #ffffff; border: 1px solid #e2e8f0;">
+              <h3 style="margin-bottom: 12px;">4. Organization & Industry Placement Settings</h3>
+              <p style="margin: 0 0 12px; color: #475569; line-height: 1.6;">Manage approved host organizations and supervisor allocation capacities.</p>
+              <div style="display:grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
+                <div style="padding: 14px; border: 1px solid #cbd5e1; border-radius: 12px;">Organization Registry</div>
+                <div style="padding: 14px; border: 1px solid #cbd5e1; border-radius: 12px;">Supervisor Allocation Rules</div>
+              </div>
+              <div class="overlay-grid" style="margin-top: 16px;">
+                <label>Placement Approval<select name="placement_approval">
+                  <option value="AUTO" {% if system_settings.placement_approval == 'AUTO' %}selected{% endif %}>Auto</option>
+                  <option value="MANUAL" {% if system_settings.placement_approval == 'MANUAL' %}selected{% endif %}>Manual</option>
+                </select></label>
+              </div>
+            </div>
+
+            <div class="card settings-card" style="margin-bottom: 20px; background: #ffffff; border: 1px solid #e2e8f0;">
+              <h3 style="margin-bottom: 12px;">5. System Notifications & Alert Configuration</h3>
+              <p style="margin: 0 0 12px; color: #475569; line-height: 1.6;">Configure notification templates and reminders for pending approvals and overdue submissions.</p>
+              <div style="display:grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
+                <div style="padding: 14px; border: 1px solid #cbd5e1; border-radius: 12px;">Notification Preferences</div>
+                <div style="padding: 14px; border: 1px solid #cbd5e1; border-radius: 12px;">Trigger Thresholds</div>
+              </div>
+              <div class="overlay-grid" style="margin-top: 16px;">
+                <label>Notification Frequency<select name="notification_frequency">
+                  <option value="DAILY" {% if system_settings.notification_frequency == 'DAILY' %}selected{% endif %}>Daily</option>
+                  <option value="WEEKLY" {% if system_settings.notification_frequency == 'WEEKLY' %}selected{% endif %}>Weekly</option>
+                  <option value="MONTHLY" {% if system_settings.notification_frequency == 'MONTHLY' %}selected{% endif %}>Monthly</option>
+                </select></label>
+              </div>
+            </div>
+
+            <div class="card settings-card" style="margin-bottom: 20px; background: #ffffff; border: 1px solid #e2e8f0;">
+              <h3 style="margin-bottom: 12px;">6. Audit & System Configuration</h3>
+              <p style="margin: 0 0 12px; color: #475569; line-height: 1.6;">View audit logs, backup settings, and export controls for university reporting.</p>
+              <div style="display:grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
+                <div style="padding: 14px; border: 1px solid #cbd5e1; border-radius: 12px;">Audit Logs</div>
+                <div style="padding: 14px; border: 1px solid #cbd5e1; border-radius: 12px;">Backup & Export</div>
+              </div>
+              <div class="overlay-grid" style="margin-top: 16px;">
+                <label>Audit Retention<select name="audit_retention">
+                  <option value="30 days" {% if system_settings.audit_retention == '30 days' %}selected{% endif %}>30 days</option>
+                  <option value="90 days" {% if system_settings.audit_retention == '90 days' %}selected{% endif %}>90 days</option>
+                  <option value="180 days" {% if system_settings.audit_retention == '180 days' %}selected{% endif %}>180 days</option>
+                </select></label>
+              </div>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:12px; flex-wrap:wrap; margin-top:20px; padding-top:14px; border-top:1px solid #e2e8f0;">
+              <button type="button" class="btn logout-btn" onclick="document.getElementById('system-settings-form').reset();">Cancel</button>
+              <button type="submit" class="btn primary">Save Changes</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- 6. REPORTS VIEW -->
+      <section class="view-panel" id="reports-panel">
+        <div class="panel-box">
+          <div class="panel-header">
+            <div>
+              <h2>Activity Logs & Reports</h2>
+              <p class="subheading-dark">Audit log records, system performance metrics, and activity trends.</p>
+            </div>
+            <button type="button" class="btn back-btn" onclick="showPanel('dashboard-overview')">← Back to Overview</button>
+          </div>
+
+          <!-- Interactive Tab Badges -->
+          <div class="stats-pill-strip">
+            <div class="pill-badge">Pending Reviews: <span>{{ stats.pending_reviews }}</span></div>
+            <div class="pill-badge">Active Periods: <span>4</span></div>
+            <div class="pill-badge">Attachment Admins: <span>1</span></div>
+          </div>
+
+          <!-- Pending Reviews List -->
+          <div style="margin-top:18px; margin-bottom:18px;">
+            <h4 style="margin:6px 0 8px 0; color:#0f172a;">Pending Weekly Logs</h4>
+            {% if pending_reviews_list and pending_reviews_list|length > 0 %}
+              <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px;">
+                {% for log in pending_reviews_list %}
+                  <li style="background:#ffffff; border:1px solid #e6eef6; padding:10px 14px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+                    <div style="color:#0f172a; font-weight:700;">{{ log.profile.student.get_full_name|default:log.profile.student.username }} — Week {{ log.week_number }}</div>
+                    <div style="display:flex; gap:8px;">
+                      <a href="{{ '/portal/admins/dashboard/?panel=supervisors-panel' }}" class="btn" onclick="showPanel('supervisors-panel')" style="background:#2563eb;color:#fff;padding:6px 12px;border-radius:6px;text-decoration:none;">Open Student</a>
+                      <form method="post" action="{% url 'core:mark_admin_notification_read' 0 %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="button" class="btn" onclick="alert('Open the supervisor review panel to approve logs.');" style="background:#10b981;color:#fff;padding:6px 12px;border-radius:6px;border:none;">Review</button>
+                      </form>
+                    </div>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <div style="color:#64748b;">No pending weekly logs requiring supervisor approval.</div>
+            {% endif %}
+          </div>
+
+          <!-- Charts in Reports Section -->
+          <div class="charts-grid-container">
+            <div class="chart-card-box">
+              <div class="chart-card-header">
+                <div class="chart-card-title">📌 System Demographics Breakdown</div>
+              </div>
+              <div class="chart-wrapper-body">
+                <canvas id="reportsPieChart"></canvas>
+              </div>
+            </div>
+
+            <div class="chart-card-box">
+              <div class="chart-card-header">
+                <div class="chart-card-title">📈 System Logbook Submissions</div>
+              </div>
+              <div class="chart-wrapper-body">
+                <canvas id="reportsBarChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 7. ACADEMIC CYCLE & EXPORT PANEL -->
+      <section class="view-panel" id="academic-cycle-panel">
+        <div class="panel-box">
+          <div class="panel-header">
+            <div>
+              <h2>🔄 Academic Cycle Management</h2>
+              <p class="subheading-dark">Current active cycle: <strong style="color:#2563eb;">{{ current_academic_year }}</strong> &nbsp;|&nbsp; Archived/Completed periods: <strong style="color:#16a34a;">{{ stats.completed_periods }}</strong></p>
+            </div>
+            <button type="button" class="btn back-btn" onclick="showPanel('dashboard-overview')">← Back to Overview</button>
+          </div>
+
+          <!-- Year Filter Bar -->
+          <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:18px 20px;margin-bottom:24px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+            <span style="font-weight:700;color:#334155;">📅 Filter by Academic Year:</span>
+            <form method="get" action="{% url 'core:admin_dashboard' %}" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+              <input type="hidden" name="panel" value="academic-cycle-panel">
+              <select name="academic_year" onchange="this.form.submit()" style="padding:8px 14px;border-radius:7px;border:1.5px solid #cbd5e1;font-size:0.9rem;">
+                <option value="">-- All Years --</option>
+                {% for yr in available_academic_years %}
+                <option value="{{ yr }}" {% if yr == selected_academic_year %}selected{% endif %}>{{ yr }}</option>
+                {% endfor %}
+              </select>
+              <button type="submit" style="padding:8px 16px;background:#2563eb;color:#fff;border:none;border-radius:7px;font-weight:700;cursor:pointer;">Apply Filter</button>
+              {% if selected_academic_year %}
+              <a href="{% url 'core:admin_dashboard' %}?panel=academic-cycle-panel" style="padding:8px 14px;background:#e2e8f0;color:#475569;border-radius:7px;font-weight:700;text-decoration:none;">Clear</a>
+              {% endif %}
+            </form>
+          </div>
+
+          <!-- 5-Year Historical Chart -->
+          <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:24px;margin-bottom:24px;">
+            <h3 style="margin-bottom:6px;color:#1e293b;">📊 Attachment Completions — Last 5 Academic Years</h3>
+            <p style="color:#94a3b8;font-size:0.85rem;margin-bottom:20px;">Archived student attachment records per academic year for this school</p>
+            <div style="display:flex;align-items:flex-end;gap:16px;height:160px;">
+              {% for stat in five_year_stats %}
+              <div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex:1;">
+                <div style="font-size:1rem;font-weight:800;color:#1e293b;">{{ stat.count }}</div>
+                <div data-year-count="{{ stat.count }}" style="width:100%;background:linear-gradient(to top,#2563eb,#60a5fa);border-radius:6px 6px 0 0;height:10px;"></div>
+                <div style="font-size:0.68rem;color:#64748b;font-weight:700;text-align:center;">{{ stat.year }}</div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- Download Attachment Data CSV -->
+          <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:22px;margin-bottom:24px;">
+            <h3 style="color:#15803d;margin-bottom:6px;">📥 Export Attachment Data to CSV / Excel</h3>
+            <p style="color:#4ade80;font-size:0.85rem;margin-bottom:16px;">Download a full spreadsheet of all student attachment records, grades, supervisors, and organizations.</p>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;">
+              <a href="{% url 'core:admin_export_attachment_data' %}"
+                 style="display:inline-flex;align-items:center;gap:8px;background:#16a34a;color:#fff;padding:11px 22px;border-radius:8px;font-weight:700;font-size:0.9rem;text-decoration:none;">
+                📥 All Records (All Years)
+              </a>
+              {% if selected_academic_year %}
+              <a href="{% url 'core:admin_export_attachment_data' %}?academic_year={{ selected_academic_year }}"
+                 style="display:inline-flex;align-items:center;gap:8px;background:#065f46;color:#fff;padding:11px 22px;border-radius:8px;font-weight:700;font-size:0.9rem;text-decoration:none;">
+                📥 Export {{ selected_academic_year }} Only
+              </a>
+              {% else %}
+              <a href="{% url 'core:admin_export_attachment_data' %}?academic_year={{ current_academic_year }}"
+                 style="display:inline-flex;align-items:center;gap:8px;background:#065f46;color:#fff;padding:11px 22px;border-radius:8px;font-weight:700;font-size:0.9rem;text-decoration:none;">
+                📥 Export Current Year ({{ current_academic_year }})
+              </a>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Refresh / Archive Academic Cycle Form -->
+          <div style="background:#fff7ed;border:1.5px solid #fed7aa;border-radius:12px;padding:24px;">
+            <h3 style="color:#c2410c;margin-bottom:6px;">🔄 Start New Academic Attachment Cycle</h3>
+            <p style="color:#9a3412;font-size:0.85rem;margin-bottom:6px;">
+              When a new attachment intake begins, use this action to:
+            </p>
+            <ul style="color:#9a3412;font-size:0.84rem;margin:0 0 16px 18px;line-height:1.8;">
+              <li>Archive all <strong>{{ stats.active_periods }}</strong> currently active attachment record(s) under <strong>{{ current_academic_year }}</strong></li>
+              <li>All student data, logs, grades and documents are <strong>permanently preserved</strong></li>
+              <li>Students can still log in and view their records — no data is deleted</li>
+              <li>The dashboard resets to show a fresh view for the new academic year</li>
+            </ul>
+
+            <form method="post" action="{% url 'core:admin_reset_academic_cycle' %}" id="cycleResetForm"
+                  onsubmit="return confirmCycleReset(event)">
+              {% csrf_token %}
+              <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+                <div>
+                  <label style="font-size:0.85rem;font-weight:700;color:#7c2d12;display:block;margin-bottom:5px;">New Academic Year Label</label>
+                  <input type="text" name="new_academic_year" id="new_academic_year"
+                         placeholder="e.g. 2026/2027"
+                         style="padding:10px 14px;border:1.5px solid #fdba74;border-radius:8px;font-size:0.95rem;width:180px;"
+                         required pattern="\d{4}/\d{4}" title="Format: YYYY/YYYY e.g. 2026/2027">
+                </div>
+                <div style="padding-top:24px;">
+                  <button type="submit"
+                          style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#c2410c,#ea580c);color:#fff;padding:11px 24px;border-radius:8px;font-weight:800;font-size:0.92rem;border:none;cursor:pointer;box-shadow:0 3px 10px rgba(194,65,12,0.35);">
+                    🔄 Archive Current &amp; Start New Cycle
+                  </button>
+                </div>
+              </div>
+              <p style="color:#9a3412;font-size:0.78rem;margin-top:10px;">⚠️ This action cannot be undone. Make sure to <strong>export a CSV backup</strong> before proceeding.</p>
+            </form>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Edit User Modal -->
+  <div class="overlay" id="attachmentUserOverlay" style="display:none;">
+    <div class="overlay-card">
+      <div class="overlay-top">
+        <div>
+          <h3 id="attachmentDetailName">User Details</h3>
+          <p id="attachmentDetailRole" style="color: #64748b; margin: 2px 0 0; font-size: 0.8rem;"></p>
+        </div>
+        <button type="button" class="overlay-close" onclick="closeAttachmentUserDetails()">×</button>
+      </div>
+      <form id="attachmentEditForm" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="edit">
+        <div class="create-form-grid">
+          <label>Full Name<input type="text" name="full_name" id="attachmentFullNameInput" required></label>
+          <label>Email Address<input type="email" name="email" id="attachmentEmailInput" required></label>
+          <label>Phone Number<input type="text" name="phone_number" id="attachmentPhoneInput"></label>
+          <label>Organization<input type="text" name="institution_or_company" id="attachmentCompanyInput"></label>
+          <label>Course / Department<input type="text" name="course" id="attachmentCourseInput"></label>
+          <label>Role<select name="role" id="attachmentRoleInput" style="padding: 10px 12px; border-radius: 6px; border: 1px solid #cbd5e1;">
+            <option value="STUDENT">Student</option>
+            <option value="SUPERVISOR">Supervisor</option>
+            <option value="LECTURER">Lecturer</option>
+            <option value="ATTACHMENT_ADMIN">Attachment Administrator</option>
+          </select></label>
+          <label style="grid-column: span 2;">New Password<input type="password" name="new_password" id="attachmentPasswordInput" placeholder="Leave blank to keep current password"></label>
+        </div>
+        <div style="margin-top: 20px; display: flex; gap: 12px;">
+          <button type="submit" class="btn primary">Save Changes</button>
+          <button type="button" class="btn logout-btn" style="border:none; cursor:pointer;" onclick="closeAttachmentUserDetails()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Review a student's submitted supervisor request before sending an invitation. -->
+  <div class="overlay" id="supervisorRequestOverlay" style="display:none;">
+    <div class="overlay-card" style="width:min(680px, 100%);">
+      <div class="overlay-top">
+        <div>
+          <h3 style="margin:0;">Review Supervisor Request</h3>
+          <p style="color:#64748b; margin:4px 0 0;">Confirm these student-submitted details before sending the invitation.</p>
+        </div>
+        <button type="button" class="overlay-close" onclick="closeSupervisorRequestReview()" aria-label="Close">×</button>
+      </div>
+      <dl style="display:grid; grid-template-columns:150px 1fr; gap:10px 16px; margin:20px 0;">
+        <dt style="font-weight:700; color:#475569;">Student</dt><dd id="reviewStudent" style="margin:0;"></dd>
+        <dt style="font-weight:700; color:#475569;">Supervisor</dt><dd id="reviewSupervisor" style="margin:0;"></dd>
+        <dt style="font-weight:700; color:#475569;">Email</dt><dd id="reviewEmail" style="margin:0;"></dd>
+        <dt style="font-weight:700; color:#475569;">Phone</dt><dd id="reviewPhone" style="margin:0;"></dd>
+        <dt style="font-weight:700; color:#475569;">Organisation</dt><dd id="reviewOrganisation" style="margin:0;"></dd>
+      </dl>
+      <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:12px 14px; color:#1e3a5f; line-height:1.5;">
+        The supervisor will receive a Kisii University invitation and a secure one-time link to create their own password.
+      </div>
+      <form method="post" action="{% url 'core:admin_create_supervisor_from_request' %}" style="margin-top:20px; display:flex; gap:12px;">
+        {% csrf_token %}
+        <input type="hidden" name="period_id" id="reviewPeriodId">
+        <button type="submit" class="btn primary">Confirm & Send Invitation</button>
+        <button type="button" class="btn logout-btn" style="border:none; cursor:pointer;" onclick="closeSupervisorRequestReview()">Cancel</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- JavaScript for Navigation & Chart.js Rendering -->
+  <script>
+    const attachmentManageUserUrlTemplate = "{% url 'core:admin_manage_user' 0 %}";
+
+    function openSidebar() {
+      document.getElementById('sidebarDrawer').classList.add('open');
+      document.getElementById('sidebarBackdrop').classList.add('show');
+    }
+
+    function closeSidebar() {
+      document.getElementById('sidebarDrawer').classList.remove('open');
+      document.getElementById('sidebarBackdrop').classList.remove('show');
+    }
+
+    function showPanel(panelId, event) {
+      if (event) event.preventDefault();
+
+      document.querySelectorAll('.view-panel').forEach(panel => {
+        panel.style.display = 'none';
+        panel.classList.remove('active-panel');
+      });
+
+      const targetPanel = document.getElementById(panelId);
+      if (targetPanel) {
+        targetPanel.style.display = 'block';
+        targetPanel.classList.add('active-panel');
+      }
+
+      document.querySelectorAll('.sidebar-drawer .nav-link').forEach(link => {
+        link.classList.remove('active');
+      });
+
+      if (panelId === 'dashboard-overview') document.getElementById('link-overview')?.classList.add('active');
+      if (panelId === 'students-panel') document.getElementById('link-students')?.classList.add('active');
+      if (panelId === 'supervisors-panel') document.getElementById('link-supervisors')?.classList.add('active');
+      if (panelId === 'lecturers-panel') document.getElementById('link-lecturers')?.classList.add('active');
+      if (panelId === 'create-user-panel') document.getElementById('link-create')?.classList.add('active');
+      if (panelId === 'academic-cycle-panel') document.getElementById('link-academic-cycle')?.classList.add('active');
+      if (panelId === 'settings-panel') document.getElementById('link-settings')?.classList.add('active');
+      if (panelId === 'reports-panel') document.getElementById('link-reports')?.classList.add('active');
+
+      // Animate year bars when academic-cycle-panel is shown
+      if (panelId === 'academic-cycle-panel') {
+        setTimeout(() => {
+          const bars = document.querySelectorAll('[data-year-count]');
+          if (!bars.length) return;
+          const maxVal = Math.max(...Array.from(bars).map(b => parseInt(b.dataset.yearCount) || 0));
+          bars.forEach(bar => {
+            const pct = maxVal > 0 ? parseInt(bar.dataset.yearCount) / maxVal : 0;
+            bar.style.transition = 'height 0.6s cubic-bezier(0.34,1.56,0.64,1)';
+            bar.style.height = Math.round(pct * 120) + 'px';
+          });
+        }, 50);
+      }
+
+      closeSidebar();
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+
+    let attAutoRefreshTimer = null;
+    let attCountdownValue = 5;
+
+    function confirmCycleReset(event) {
+      const yearInput = document.getElementById('new_academic_year');
+      const newYear = yearInput ? yearInput.value.trim() : '';
+      if (!newYear) { event.preventDefault(); return false; }
+      return confirm(
+        '⚠️ IMPORTANT: Academic Cycle Refresh\n\n' +
+        'You are about to archive all active attachment records under the current cycle.\n\n' +
+        '✅ Student data, logs, and grades are PRESERVED permanently.\n' +
+        '✅ Students can still log in and access their records.\n' +
+        '✅ Admins can view archived records at any time.\n\n' +
+        'New cycle will be initialized as: ' + newYear + '\n\n' +
+        'Have you downloaded a CSV backup? Proceed?'
+      );
+    }
+
+    function refreshAttachmentDashboardPage() {
+      window.location.href = "{% url 'core:admin_dashboard' %}?panel=create-user-panel";
+    }
+
+    function pauseAttachmentAutoRefresh() {
+      if (attAutoRefreshTimer) {
+        clearInterval(attAutoRefreshTimer);
+        attAutoRefreshTimer = null;
+      }
+      const txt = document.getElementById('attAutoRefreshCountdownText');
+      if (txt) txt.innerHTML = '⏸️ Auto-refresh paused. Edit fields or click <strong>Refresh Page Now</strong> to reset.';
+      const btn = document.getElementById('btnPauseAttRefresh');
+      if (btn) btn.style.display = 'none';
+    }
+
+    function cancelAttachmentAutoRefresh() {
+      pauseAttachmentAutoRefresh();
+      const box = document.getElementById('attachmentUserFormErrorBox');
+      if (box) box.style.display = 'none';
+    }
+
+    function startAttachmentAutoRefreshCountdown() {
+      const errorBox = document.getElementById('attachmentUserFormErrorBox');
+      if (!errorBox) return;
+
+      attAutoRefreshTimer = setInterval(() => {
+        attCountdownValue--;
+        const elem = document.getElementById('attCountdownSecs');
+        if (elem) elem.innerText = attCountdownValue;
+        if (attCountdownValue <= 0) {
+          clearInterval(attAutoRefreshTimer);
+          refreshAttachmentDashboardPage();
+        }
+      }, 1000);
+    }
+
+    function activateRequestedPanel() {
+      const params = new URLSearchParams(window.location.search);
+      const panel = params.get('panel');
+      const periodId = params.get('period_id');
+      if (panel) {
+        showPanel(panel);
+      } else if (document.getElementById('attachmentUserFormErrorBox')) {
+        showPanel('create-user-panel');
+      }
+
+      if (document.getElementById('attachmentUserFormErrorBox')) {
+        startAttachmentAutoRefreshCountdown();
+      }
+
+      if (periodId) {
+        const row = document.getElementById(`pending-period-${periodId}`);
+        if (row) {
+          row.style.boxShadow = '0 0 0 2px rgba(34, 197, 94, 0.45)';
+          row.style.background = '#ecfdf5';
+          row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          if (panel === 'supervisors-panel') {
+            openSupervisorRequestReview(periodId);
+          }
+        }
+      }
+    }
+
+    function openCreateForRole(role) {
+      showPanel('create-user-panel');
+      const select = document.getElementById('create_role_select');
+      if (select) {
+        select.value = role;
+        toggleLecturerDetails();
+      }
+    }
+
+    function toggleLecturerDetails() {
+      const select = document.getElementById('create_role_select');
+      const details = document.getElementById('lecturer-details');
+      const usernameContainer = document.getElementById('username_label_container');
+      const usernameInput = document.getElementById('create_username_input');
+      const passwordInput = document.getElementById('create_password_input');
+      const confirmPasswordInput = document.getElementById('create_confirm_password_input');
+      const temporaryPasswordNote = document.getElementById('temporaryPasswordNote');
+      if (!select || !details) return;
+      const isLecturer = select.value === 'LECTURER';
+      
+      details.style.display = isLecturer ? 'block' : 'none';
+      if (usernameContainer) {
+        usernameContainer.style.display = isLecturer ? 'none' : 'block';
+      }
+      if (usernameInput) {
+        usernameInput.required = !isLecturer;
+      }
+      if (passwordInput) {
+        passwordInput.required = !isLecturer;
+      }
+      if (confirmPasswordInput) {
+        confirmPasswordInput.required = !isLecturer;
+      }
+      if (isLecturer && passwordInput && confirmPasswordInput && !passwordInput.value) {
+        const temporaryPassword = generateTemporaryPassword();
+        passwordInput.value = temporaryPassword;
+        confirmPasswordInput.value = temporaryPassword;
+      }
+      if (temporaryPasswordNote) {
+        temporaryPasswordNote.style.display = isLecturer ? 'block' : 'none';
+      }
+      
+      details.querySelectorAll('[data-lecturer-detail]').forEach(input => {
+        input.required = isLecturer;
+      });
+    }
+
+    function generateTemporaryPassword() {
+      const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%';
+      const values = new Uint32Array(16);
+      window.crypto.getRandomValues(values);
+      return Array.from(values, value => alphabet[value % alphabet.length]).join('');
+    }
+
+    function openAttachmentUserDetails(userId) {
+      const row = document.querySelector(`tr[data-user-id="${userId}"]`);
+      const overlay = document.getElementById('attachmentUserOverlay');
+      if (!row || !overlay) return;
+
+      const fullName = row.dataset.fullName || row.dataset.username;
+      const role = row.dataset.role || 'STUDENT';
+      const email = row.dataset.email || '';
+      const phone = row.dataset.phone || '';
+      const company = row.dataset.company || '';
+      const course = row.dataset.course || '';
+
+      document.getElementById('attachmentDetailName').textContent = fullName;
+      document.getElementById('attachmentDetailRole').textContent = `${role} Profile View`;
+      document.getElementById('attachmentFullNameInput').value = fullName;
+      document.getElementById('attachmentEmailInput').value = email;
+      document.getElementById('attachmentPhoneInput').value = phone;
+      document.getElementById('attachmentCompanyInput').value = company;
+      document.getElementById('attachmentCourseInput').value = course;
+      document.getElementById('attachmentRoleInput').value = role;
+      document.getElementById('attachmentPasswordInput').value = '';
+
+      const editForm = document.getElementById('attachmentEditForm');
+      editForm.action = attachmentManageUserUrlTemplate.replace('/0/', `/${userId}/`);
+      overlay.style.display = 'flex';
+    }
+
+    function closeAttachmentUserDetails() {
+      document.getElementById('attachmentUserOverlay').style.display = 'none';
+    }
+
+    function openSupervisorRequestReview(periodId) {
+      const row = document.getElementById(`pending-period-${periodId}`);
+      const overlay = document.getElementById('supervisorRequestOverlay');
+      if (!row || !overlay) return;
+
+      document.getElementById('reviewPeriodId').value = periodId;
+      document.getElementById('reviewStudent').textContent = row.dataset.student || 'Not provided';
+      document.getElementById('reviewSupervisor').textContent = row.dataset.supervisor || 'Not provided';
+      document.getElementById('reviewEmail').textContent = row.dataset.email || 'Not provided';
+      document.getElementById('reviewPhone').textContent = row.dataset.phone || 'Not provided';
+      document.getElementById('reviewOrganisation').textContent = row.dataset.organisation || 'Not provided';
+      overlay.style.display = 'flex';
+    }
+
+    function closeSupervisorRequestReview() {
+      document.getElementById('supervisorRequestOverlay').style.display = 'none';
+    }
+
+    function toggleNotificationMenu(event) {
+      const menu = document.getElementById('notifMenu');
+      if (!menu) return;
+      event.stopPropagation();
+      const isOpen = menu.style.display === 'block';
+      menu.style.display = isOpen ? 'none' : 'block';
+      event.currentTarget.setAttribute('aria-expanded', String(!isOpen));
+    }
+
+    function handleNotificationClick(event, actionUrl) {
+      try {
+        const url = new URL(actionUrl, window.location.origin);
+        const panel = url.searchParams.get('panel');
+        const periodId = url.searchParams.get('period_id');
+        if (panel === 'supervisors-panel') {
+          event.preventDefault();
+          closeNotificationMenu();
+          showPanel(panel);
+          if (periodId) {
+            const row = document.getElementById(`pending-period-${periodId}`);
+            if (row) {
+              row.style.boxShadow = '0 0 0 2px rgba(34, 197, 94, 0.45)';
+              row.style.background = '#ecfdf5';
+              row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            openSupervisorRequestReview(periodId);
+          }
+          return false;
+        }
+      } catch (err) {
+        // If the URL cannot be parsed, allow the link to proceed.
+      }
+      return true;
+    }
+
+    function closeNotificationMenu() {
+      const menu = document.getElementById('notifMenu');
+      if (menu) menu.style.display = 'none';
+      const toggle = document.getElementById('notifToggle');
+      if (toggle) toggle.setAttribute('aria-expanded', 'false');
+    }
+
+    document.addEventListener('click', function (event) {
+      const menu = document.getElementById('notifMenu');
+      const toggle = document.getElementById('notifToggle');
+      if (!menu || !toggle) return;
+      if (!toggle.contains(event.target) && !menu.contains(event.target)) {
+        closeNotificationMenu();
+      }
+    });
+
+    /* INITIALIZE VIBRANT CHARTS */
+    document.addEventListener("DOMContentLoaded", function () {
+      activateRequestedPanel();
+      const notificationLinks = document.querySelectorAll('a.notification-link');
+      notificationLinks.forEach(link => {
+        link.addEventListener('click', function (event) {
+          handleNotificationClick(event, this.dataset.actionUrl);
+        });
+      });
+      const studentCount = parseInt("{{ stats.students|default:0 }}") || 0;
+      const supervisorCount = parseInt("{{ stats.supervisors|default:0 }}") || 0;
+      const lecturerCount = parseInt("{{ stats.lecturers|default:0 }}") || 0;
+
+      // Config 1: Doughnut / Pie Chart
+      const pieData = {
+        labels: ['Students', 'Supervisors', 'Lecturers'],
+        datasets: [{
+          data: [studentCount, supervisorCount, lecturerCount],
+          backgroundColor: ['#0284c7', '#10b981', '#f97316'],
+          hoverOffset: 8,
+          borderWidth: 2,
+          borderColor: '#ffffff'
+        }]
+      };
+
+      const pieOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { font: { family: 'Segoe UI', size: 12, weight: 'bold' } } }
+        }
+      };
+
+      // Render Overview Pie Chart
+      const ctxPie = document.getElementById('userRolesPieChart')?.getContext('2d');
+      if (ctxPie) new Chart(ctxPie, { type: 'doughnut', data: pieData, options: pieOptions });
+
+      // Render Reports Pie Chart
+      const ctxReportsPie = document.getElementById('reportsPieChart')?.getContext('2d');
+      if (ctxReportsPie) new Chart(ctxReportsPie, { type: 'pie', data: pieData, options: pieOptions });
+
+      // Config 2: Activity Bar Chart
+      const barData = {
+        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6'],
+        datasets: [
+          {
+            label: 'Logbook Submissions',
+            data: [12, 19, 15, 25, 22, 30],
+            backgroundColor: '#0284c7',
+            borderRadius: 6
+          },
+          {
+            label: 'Supervisor Approvals',
+            data: [8, 15, 12, 20, 18, 26],
+            backgroundColor: '#10b981',
+            borderRadius: 6
+          }
+        ]
+      };
+
+      const barOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { font: { family: 'Segoe UI', size: 11, weight: 'bold' } } }
+        },
+        scales: {
+          y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+          x: { grid: { display: false } }
+        }
+      };
+
+      // Render Overview Bar Chart
+      const ctxBar = document.getElementById('systemActivityBarChart')?.getContext('2d');
+      if (ctxBar) new Chart(ctxBar, { type: 'bar', data: barData, options: barOptions });
+
+      // Render Reports Bar Chart
+      const ctxReportsBar = document.getElementById('reportsBarChart')?.getContext('2d');
+      if (ctxReportsBar) new Chart(ctxReportsBar, { type: 'bar', data: barData, options: barOptions });
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const toggleBtn = document.getElementById('statusDropdownToggle');
+      const dropdownMenu = document.getElementById('statusDropdownMenu');
+
+      if (toggleBtn && dropdownMenu) {
+        toggleBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+
+          const isVisible = dropdownMenu.style.display === 'block';
+
+          if (!isVisible) {
+            // Move dropdown to <body> to bypass overflow: hidden on header/parents
+            document.body.appendChild(dropdownMenu);
+
+            // Calculate precise positioning relative to the trigger button
+            const rect = toggleBtn.getBoundingClientRect();
+            
+            dropdownMenu.style.position = 'fixed';
+            dropdownMenu.style.top = (rect.bottom + 6) + 'px';
+            dropdownMenu.style.left = (rect.right - 240) + 'px'; // aligns right side of dropdown
+            dropdownMenu.style.display = 'block';
+            dropdownMenu.style.zIndex = '999999';
+
+            toggleBtn.setAttribute('aria-expanded', 'true');
+          } else {
+            dropdownMenu.style.display = 'none';
+            toggleBtn.setAttribute('aria-expanded', 'false');
+          }
+        });
+
+        // Close dropdown when clicking anywhere outside
+        document.addEventListener('click', function (e) {
+          if (!toggleBtn.contains(e.target) && !dropdownMenu.contains(e.target)) {
+            dropdownMenu.style.display = 'none';
+            toggleBtn.setAttribute('aria-expanded', 'false');
+          }
+        });
+
+        // Hide menu on window resize or scroll so it doesn't get detached from the button
+        window.addEventListener('resize', function () { 
+          dropdownMenu.style.display = 'none'; 
+        });
+        window.addEventListener('scroll', function () { 
+          dropdownMenu.style.display = 'none'; 
+        }, true);
+      }
+
+      const alertElements = document.querySelectorAll('.alert-message');
+      if (alertElements.length > 0) {
+        setTimeout(() => {
+          alertElements.forEach(alert => {
+            alert.classList.add('hide-alert');
+            setTimeout(() => alert.remove(), 450);
+          });
+        }, 5000);
+      }
+    });
+  </script>
+</body>
+</html>

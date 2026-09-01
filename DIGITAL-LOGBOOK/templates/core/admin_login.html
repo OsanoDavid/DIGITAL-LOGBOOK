@@ -1,0 +1,163 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administrator Portal | SIST Logbook</title>
+    <link rel="icon" type="image/jpeg" href="{% static 'images/logo.jpeg' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/portal.css' %}">
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0f172a 0%, #0f4c81 50%, #1e3a5f 100%);
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .admin-card {
+            width: 100%;
+            max-width: 460px;
+            background: rgba(255,255,255,0.97);
+            border-radius: 24px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.1);
+            padding: 44px 40px;
+            box-sizing: border-box;
+            animation: slideUp 0.5s cubic-bezier(0.4,0,0.2,1);
+        }
+        @keyframes slideUp {
+            from { opacity:0; transform: translateY(30px); }
+            to   { opacity:1; transform: translateY(0);    }
+        }
+        .admin-logo-area {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+        .admin-logo-area img {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            object-fit: cover;
+        }
+        .admin-logo-area .brand {
+            display: flex;
+            flex-direction: column;
+        }
+        .admin-logo-area .brand strong {
+            font-size: 1rem;
+            font-weight: 800;
+            color: #0f4c81;
+            line-height: 1.2;
+        }
+        .admin-logo-area .brand span {
+            font-size: 0.78rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+        .admin-card h2 {
+            margin: 0 0 6px 0;
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #0f172a;
+        }
+        .admin-card .subtitle {
+            margin: 0 0 28px 0;
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+        .shield-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1d4ed8;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+        }
+        .error-box {
+            background: #fee2e2;
+            border-left: 4px solid #ef4444;
+            color: #991b1b;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .admin-back {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.85rem;
+            color: #64748b;
+            text-decoration: none;
+        }
+        .admin-back:hover { color: #0f4c81; }
+    </style>
+</head>
+<body>
+    <div class="admin-card">
+        <div class="admin-logo-area">
+            <img src="{% static 'images/logo.jpeg' %}" alt="SIST Logo">
+            <div class="brand">
+                <strong>KISII UNIVERSITY</strong>
+                <span>School of Information Sciences & Technology</span>
+            </div>
+        </div>
+
+        <div class="shield-badge">🛡️ Restricted Access Zone</div>
+
+        <h2>Administrator Portal</h2>
+        <p class="subtitle">This access point is restricted to system administrators only. Enter your credentials below.</p>
+
+        {% if error %}
+        <div class="error-box">⚠️ {{ error }}</div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="username">Admin Username</label>
+                <input type="text" name="username" id="username" class="form-control" placeholder="Enter admin username" required autofocus>
+            </div>
+            <div class="form-group">
+                <label for="password">Admin Password</label>
+                <div class="password-container">
+                    <input type="password" name="password" id="password" class="form-control" placeholder="Enter admin password" required>
+                    <button type="button" class="toggle-eye-btn" onclick="togglePasswordVisibilityAdmin(this)">👁️</button>
+                </div>
+            </div>
+            <button type="submit" class="btn-portal" style="width:100%; margin-top: 8px;">
+                <span>🔐 Enter Administrator Dashboard</span>
+            </button>
+        </form>
+
+        <a href="{% url 'core:login' %}" class="admin-back">← Back to Main Login Portal</a>
+    </div>
+    <script>
+        function togglePasswordVisibilityAdmin(button) {
+            const input = document.getElementById('password');
+            if (input.type === 'password') {
+                input.type = 'text';
+                button.textContent = '🙈';
+            } else {
+                input.type = 'password';
+                button.textContent = '👁️';
+            }
+        }
+    </script>
+{% include 'core/ui_transitions.html' %}
+</body>
+</html>

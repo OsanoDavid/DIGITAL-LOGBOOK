@@ -1,0 +1,379 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIST Logbook - Industry Supervisor Dashboard</title>
+    <link rel="icon" type="image/jpeg" href="{% static 'images/logo.jpeg' %}">
+    <link rel="stylesheet" href="{% static 'css/sist_style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* Custom enhancements for the profile section and color picker */
+        .color-picker-section {
+            margin: 15px 0;
+            text-align: center;
+            width: 100%;
+        }
+        .color-label {
+            font-size: 0.8rem;
+            color: #64748b;
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .color-options {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 4px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 20px;
+        }
+        .color-dot {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid #ffffff;
+            box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .color-dot:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 0 1px rgba(0,0,0,0.3);
+        }
+        .color-dot.active {
+            transform: scale(1.1);
+            box-shadow: 0 0 0 2px #0f172a;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="supervisor-navbar">
+        <div class="brand-block">
+            <div class="brand-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+            <div>
+                <div class="brand-title">SIST PORTAL</div>
+                <div class="brand-subtitle">Industry Supervisor Workspace</div>
+            </div>
+        </div>
+        <div class="nav-actions">
+            <div class="mini-pill"><i class="fa-solid fa-shield-halved"></i> Verified Access</div>
+            <a href="{% url 'core:logout' %}" class="btn btn-danger"><i class="fa-solid fa-right-from-bracket"></i> Sign Out</a>
+        </div>
+    </nav>
+
+    <div class="dashboard-layout">
+        
+        <aside class="profile-panel">
+            <div class="avatar-container">
+                {% if request.user.profile_photo %}
+                    <img src="{{ request.user.profile_photo.url }}" alt="Supervisor Avatar" class="avatar-image" id="profile-avatar-img">
+                {% else %}
+                    <img src="https://ui-avatars.com/api/?name={{ request.user.get_full_name|default:request.user.username|urlencode }}&background={{ request.user.avatar_color|default:'0284c7' }}&color=fff&size=128" alt="Supervisor Avatar" class="avatar-image" id="profile-avatar-img">
+                {% endif %}
+                
+                <label class="photo-upload-label" title="Upload Photo">
+                    <i class="fa-solid fa-camera"></i>
+                    <input type="file" id="avatar-file-input" accept="image/*" class="visually-hidden" data-csrf="{{ csrf_token }}" />
+                </label>
+            </div>
+            
+            <div class="color-picker-section">
+                <span class="color-label"><i class="fa-solid fa-palette"></i> Theme Color</span>
+                <div class="color-options" id="color-palette" data-csrf="{{ csrf_token }}">
+                    <div class="color-dot" style="background-color: #0284c7;" data-color="0284c7"></div>
+                    <div class="color-dot" style="background-color: #059669;" data-color="059669"></div>
+                    <div class="color-dot" style="background-color: #7c3aed;" data-color="7c3aed"></div>
+                    <div class="color-dot" style="background-color: #ea580c;" data-color="ea580c"></div>
+                    <div class="color-dot" style="background-color: #e11d48;" data-color="e11d48"></div>
+                    <div class="color-dot" style="background-color: #2563eb;" data-color="2563eb"></div>
+                </div>
+            </div>
+            
+            <h3>{{ request.user.get_full_name|default:"Industry Supervisor" }}</h3>
+            <p class="muted-text">Industry Supervisor Workspace</p>
+            
+            <div class="profile-stats">
+                <div><strong>Company</strong><span>{{ request.user.institution_or_company|default:'Not provided' }}</span></div>
+                <div><strong>Course</strong><span>{{ request.user.course|default:'All courses' }}</span></div>
+                <div><strong>Attachés</strong><span>{{ students|length }}</span></div>
+            </div>
+        </aside>
+
+        <main>
+            <div class="page-header">
+                <div>
+                    <h2>Industry Supervisor Review Dashboard</h2>
+                    <p>Manage, check and digitally sign industrial attachment logs efficiently.</p>
+                </div>
+                <div class="header-badge"><i class="fa-solid fa-sparkles"></i> Live Review Queue</div>
+            </div>
+
+            <section class="analytics-row">
+                <div class="kpi-card kpi-card-warn">
+                    <div class="kpi-icon"><i class="fa-solid fa-clock"></i></div>
+                    <div>
+                        <div class="kpi-value">{{ pending_count|default:"0" }}</div>
+                        <div class="kpi-label">Pending Review</div>
+                    </div>
+                </div>
+                <div class="kpi-card kpi-card-success">
+                    <div class="kpi-icon"><i class="fa-solid fa-circle-check"></i></div>
+                    <div>
+                        <div class="kpi-value">{{ verified_count|default:"0" }}</div>
+                        <div class="kpi-label">Total Verified Logs</div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="section-heading">
+                <h3><i class="fa-solid fa-folder-tree"></i> Structural Attachment Weeks (1 - 14)</h3>
+                <span class="section-pill">Weekly log review</span>
+            </div>
+
+            <div class="week-list">
+                {% for week_group in week_groups %}
+                <div class="week-container">
+                    <div class="week-header" onclick="toggleWeekAccordion('week-container-{{ week_group.week_number }}')">
+                        <span><i class="fa-solid fa-calendar-week"></i> Week {{ week_group.week_number }} Submissions</span>
+                        <div class="week-badge-row">
+                            {% if week_group.has_pending %}
+                            <span class="alert-badge">New Entries</span>
+                            {% else %}
+                            <span class="clear-badge">All clear</span>
+                            {% endif %}
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="week-records-content" id="week-container-{{ week_group.week_number }}" style="display: none;">
+                        {% for entry in week_group.entries %}
+                            <div class="attachee-list-row">
+                                <div class="student-info">
+                                    <h4>{{ entry.period.student.get_full_name|default:entry.period.student.username }}</h4>
+                                    <p><i class="fa-solid fa-id-card"></i> {{ entry.period.student.username|default:"SIST/001/2026" }} | <i class="fa-solid fa-building"></i> {{ entry.period.student.institution_or_company|default:"Kisii University (SIST)" }}</p>
+                                    <div class="log-preview">
+                                        {% if entry.log %}
+                                            {% if entry.log.monday_activity or entry.log.tuesday_activity or entry.log.wednesday_activity or entry.log.thursday_activity or entry.log.friday_activity %}
+                                                <span><i class="fa-solid fa-clipboard-list"></i> Weekly log available</span>
+                                            {% else %}
+                                                <span class="empty-log"><i class="fa-solid fa-circle-exclamation"></i> No detailed log yet</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="empty-log"><i class="fa-solid fa-circle-exclamation"></i> Awaiting weekly submission</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="action-stack">
+                                    {% if entry.log and not entry.log.supervisor_approved %}
+                                        <a href="{% url 'core:supervisor_review' entry.log.id %}" class="btn-sign">
+                                            <i class="fa-solid fa-pen-nib"></i> Sign & Approve
+                                        </a>
+                                    {% elif entry.log %}
+                                        <span class="btn-verified">
+                                            <i class="fa-solid fa-check-double"></i> Signed
+                                        </span>
+                                    {% else %}
+                                        <span class="empty-log"><i class="fa-solid fa-clock"></i> Pending entry</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="empty-state">
+                                No attachés allocated.
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-state">
+                    No attachés allocated.
+                </div>
+                {% endfor %}
+
+            </div>
+            </div>
+
+            <div class="section-heading" style="margin-top: 40px;">
+                <h3><i class="fa-solid fa-file-contract"></i> Academic Assessments & Final Comments</h3>
+                <span class="section-pill">Lecturer visits & evaluations</span>
+            </div>
+            
+            <div class="table-card" style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 40px; overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; min-width: 600px;">
+                    <thead>
+                        <tr>
+                            <th style="text-align: left; padding: 12px; border-bottom: 2px solid #e5ecf4; font-size: 0.85rem; color: #475569;">Attachee</th>
+                            <th style="text-align: left; padding: 12px; border-bottom: 2px solid #e5ecf4; font-size: 0.85rem; color: #475569;">Lecturer Wk 7 Doc</th>
+                            <th style="text-align: left; padding: 12px; border-bottom: 2px solid #e5ecf4; font-size: 0.85rem; color: #475569;">Lecturer Wk 12 Doc</th>
+                            <th style="text-align: left; padding: 12px; border-bottom: 2px solid #e5ecf4; font-size: 0.85rem; color: #475569;">Final Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for period in students %}
+                        <tr>
+                            <td style="padding: 12px; border-bottom: 1px solid #f1f5f9;">
+                                <strong>{{ period.student.get_full_name|default:period.student.username }}</strong><br>
+                                <span style="font-size: 0.85rem; color: #64748b;">{{ period.student.username }}</span>
+                            </td>
+                            <td style="padding: 12px; border-bottom: 1px solid #f1f5f9; vertical-align: top;">
+                                {% if period.week_7_grading_doc %}
+                                    <a href="{{ period.week_7_grading_doc.url }}" style="color: #0f4c81; font-size: 0.85rem; display: block; margin-bottom: 8px;"><i class="fa-solid fa-download"></i> View Doc</a>
+                                    {% if period.week_7_returned_doc %}
+                                        <span style="color: #16a34a; font-size: 0.85rem;">✓ Graded ({{ period.week_7_supervisor_marks|default:"-" }})</span>
+                                    {% else %}
+                                        <form method="POST" action="{% url 'core:submit_assessment_form' period.id %}" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 6px;">
+                                            {% csrf_token %}
+                                            <input type="file" name="week_7_returned_doc" accept=".pdf,.doc,.docx" required style="font-size: 0.75rem; width: 140px;">
+                                            <input type="number" step="0.1" name="week_7_supervisor_marks" placeholder="Marks" required style="width: 80px; padding: 4px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.8rem;">
+                                            <button type="submit" style="padding: 4px 8px; font-size: 0.75rem; background: #0f4c81; color: white; border: none; border-radius: 4px; cursor: pointer;">Upload</button>
+                                        </form>
+                                    {% endif %}
+                                {% else %}
+                                    <span style="color: #94a3b8; font-size: 0.85rem;">Pending</span>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 12px; border-bottom: 1px solid #f1f5f9; vertical-align: top;">
+                                {% if period.week_12_grading_doc %}
+                                    <a href="{{ period.week_12_grading_doc.url }}" style="color: #0f4c81; font-size: 0.85rem; display: block; margin-bottom: 8px;"><i class="fa-solid fa-download"></i> View Doc</a>
+                                    {% if period.week_12_returned_doc %}
+                                        <span style="color: #16a34a; font-size: 0.85rem;">✓ Graded ({{ period.week_12_supervisor_marks|default:"-" }})</span>
+                                    {% else %}
+                                        <form method="POST" action="{% url 'core:submit_assessment_form' period.id %}" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 6px;">
+                                            {% csrf_token %}
+                                            <input type="file" name="week_12_returned_doc" accept=".pdf,.doc,.docx" required style="font-size: 0.75rem; width: 140px;">
+                                            <input type="number" step="0.1" name="week_12_supervisor_marks" placeholder="Marks" required style="width: 80px; padding: 4px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.8rem;">
+                                            <button type="submit" style="padding: 4px 8px; font-size: 0.75rem; background: #0f4c81; color: white; border: none; border-radius: 4px; cursor: pointer;">Upload</button>
+                                        </form>
+                                    {% endif %}
+                                {% else %}
+                                    <span style="color: #94a3b8; font-size: 0.85rem;">Pending</span>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 12px; border-bottom: 1px solid #f1f5f9; vertical-align: top;">
+                                {% if period.weekly_logs.all|length >= 12 %}
+                                    {% if period.industry_supervisor_final_comment %}
+                                        <span style="color: #16a34a; font-size: 0.85rem;">✓ Remarks submitted</span>
+                                    {% else %}
+                                        <form method="POST" action="{% url 'core:submit_assessment_form' period.id %}" style="display: flex; flex-direction: column; gap: 6px;">
+                                            {% csrf_token %}
+                                            <textarea name="industry_supervisor_final_comment" rows="2" placeholder="Overall review..." required style="width: 140px; padding: 4px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.8rem;"></textarea>
+                                            <button type="submit" style="padding: 4px 8px; font-size: 0.75rem; background: #0f4c81; color: white; border: none; border-radius: 4px; cursor: pointer;">Submit</button>
+                                        </form>
+                                    {% endif %}
+                                {% else %}
+                                    <span style="color: #94a3b8; font-size: 0.85rem;">Locked</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" style="text-align: center; padding: 20px; color: #94a3b8;">No attachés available.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        function toggleWeekAccordion(elementId) {
+            const container = document.getElementById(elementId);
+            const headerTrigger = container.previousElementSibling;
+            const arrowIcon = headerTrigger.querySelector('.fa-chevron-down, .fa-chevron-up');
+            
+            if (container.style.display === "none" || container.style.display === "") {
+                container.style.display = "block";
+                if(arrowIcon) {
+                    arrowIcon.classList.replace('fa-chevron-down', 'fa-chevron-up');
+                }
+            } else {
+                container.style.display = "none";
+                if(arrowIcon) {
+                    arrowIcon.classList.replace('fa-chevron-up', 'fa-chevron-down');
+                }
+            }
+        }
+
+        // --- ASYNC IMAGE HANDLING AND PREVIEW ---
+        function getCookie(name) {
+            const cookieValue = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith(name + '='));
+            return cookieValue ? decodeURIComponent(cookieValue.split('=')[1]) : null;
+        }
+
+        document.getElementById('avatar-file-input').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const csrfToken = this.getAttribute('data-csrf') || getCookie('csrftoken');
+            const formData = new FormData();
+            formData.append('profile_photo', file);
+
+            // Instant UI image replacement logic
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('profile-avatar-img').src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+
+            // Fetch request sends to the handling URL endpoint asynchronously
+            fetch("{% url 'core:update_profile_meta' %}", {
+                method: "POST",
+                headers: { "X-CSRFToken": csrfToken },
+                body: formData,
+                credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.status !== 'success') console.log("Note: Add backend view 'update_profile_meta' to permanently save files.");
+            })
+            .catch(err => console.log("AJAX request context ready. Connect backend view routing to catch payload."));
+        });
+
+        // --- ASYNC SOLID COLOR MANAGEMENT ---
+        const activeColor = "{{ request.user.avatar_color|default:'0284c7' }}";
+        const dots = document.querySelectorAll('.color-dot');
+        
+        dots.forEach(dot => {
+            if(dot.getAttribute('data-color') === activeColor) dot.classList.add('active');
+            
+            dot.addEventListener('click', function() {
+                dots.forEach(d => d.classList.remove('active'));
+                this.classList.add('active');
+                
+                const selectedColor = this.getAttribute('data-color');
+                const csrfToken = document.getElementById('color-palette').getAttribute('data-csrf');
+
+                // Dynamic UI background color change fallback string
+                {% if not request.user.profile_photo %}
+                document.getElementById('profile-avatar-img').src = `https://ui-avatars.com/api/?name={{ request.user.get_full_name|default:request.user.username|urlencode }}&background=${selectedColor}&color=fff&size=128`;
+                {% endif %}
+
+                fetch("{% url 'core:update_profile_meta' %}", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": csrfToken,
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: `avatar_color=${selectedColor}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if(data.status !== 'success') console.log("Color selection cached locally.");
+                })
+                .catch(err => console.log("Color selection saved locally. Waiting for view url mapping setup."));
+            });
+        });
+    </script>
+{% include 'core/ui_transitions.html' %}
+</body>
+</html>

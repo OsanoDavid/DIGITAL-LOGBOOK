@@ -1,0 +1,435 @@
+{% load static %}
+
+
+
+  <div class="container">
+    <h2>Lecturer Details Form</h2>
+    <p class="subtitle">Please update your professional academic credentials profile.</p>
+
+    <!-- Progress Tracking Indicator -->
+    <div class="progress-container">
+      <div class="progress-bar" id="lec_progressBar"></div>
+    </div>
+
+    <!-- Step 1: Personal Information & Credentials Setup -->
+    <div id="lec_step1" class="step active">
+      <div class="form-grid">
+        <!-- Full Name spanning full width -->
+        <div class="form-group full-width">
+          <label for="lec_full_name">Full Name</label>
+          <input type="text" id="lec_full_name" name="full_name" placeholder="Enter your Full Name" required>
+        </div>
+        <div class="form-group">
+          <label for="lec_email">Official Email Address</label>
+          <input type="email" id="lec_email" name="email" placeholder="name@example.com" required>
+        </div>
+        <div class="form-group">
+          <label for="lec_phone">Phone Number</label>
+          <input type="tel" id="lec_phone" name="phone_number" placeholder="e.g., +2547..." required>
+        </div>
+        
+        <!-- System Workspace Profile Assignment Role (Full Width Select) -->
+        <div class="form-group full-width">
+          <label for="lec_workspace_role">System Workspace Profile Assignment Role</label>
+          <select id="lec_workspace_role" name="workspace_role" required>
+            <option value="Internal Academic University Assessor" selected>Internal Academic University Assessor</option>
+            <option value="External University Representative">External University Representative</option>
+            <option value="Department Administrator">Department Administrator</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="lec_national_id">National ID Number</label>
+          <input type="text" id="lec_national_id" name="national_id" placeholder="Enter ID Number" required>
+        </div>
+        
+        <!-- Academic Specialization Menu Dropdown -->
+        <div class="form-group">
+          <label for="lec_specialization">Academic Specialization</label>
+          <select id="lec_specialization" name="specialization" required>
+            <option value="" disabled selected hidden>Select academic specialization</option>
+            <option value="Computer Science">Computer Science</option>
+            <option value="Applied Computer Science">Applied Computer Science</option>
+            <option value="Software Engineering">Software Engineering</option>
+            <option value="Information Technology">Information Technology</option>
+            <option value="Communication and Media Studies">Communication and Media Studies</option>
+            <option value="Business Information Technology">Business Information Technology</option>
+          </select>
+        </div>
+
+        <!-- Lecturer Employee Number (Optional) -->
+        <div class="form-group full-width">
+          <label for="lec_employee_number">Lecturer Employee Number <span style="font-weight:400; color:#64748b; font-size:0.85em;">(Optional)</span></label>
+          <input type="text" id="lec_employee_number" name="username" placeholder="e.g., KSU-PF-1024">
+          <div class="helper-text">
+            Leave blank if the lecturer does not have an employee number. The system will use their email as their login username.
+          </div>
+        </div>
+
+        <!-- Create Password Field with dynamic Visibility Eye Icon -->
+        <div class="form-group">
+          <label for="lec_password">Create Password</label>
+          <div class="password-wrapper">
+            <input type="password" id="lec_password" name="password" placeholder="Minimum 8 characters">
+            <button type="button" class="toggle-eye-btn" onclick="lec_toggleFieldPassword('lec_password', this)">👁️</button>
+          </div>
+        </div>
+
+        <!-- Confirm Password Field with dynamic Visibility Eye Icon -->
+        <div class="form-group">
+          <label for="lec_confirm_password">Confirm Password</label>
+          <div class="password-wrapper">
+            <input type="password" id="lec_confirm_password" name="confirm_password" placeholder="Retype your password">
+            <button type="button" class="toggle-eye-btn" onclick="lec_toggleFieldPassword('lec_confirm_password', this)">👁️</button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="nav-buttons">
+        <button type="button" class="btn btn-back" disabled>Back</button>
+        <button type="button" class="btn btn-next" onclick="lec_nextStep(1)">
+          Next <div class="spinner" id="lec_spinner1"></div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 2: University Information -->
+    <div id="lec_step2" class="step">
+      <div class="form-grid">
+
+        <!-- Organisation / Institution (full width, with system datalist) -->
+        <div class="form-group full-width">
+          <label for="lec_organisation">Organisation / Institution</label>
+          <input type="text" id="lec_organisation" name="institution_or_company" list="lec_org_options"
+                 placeholder="Type to search or enter an organisation name..." required>
+          <datalist id="lec_org_options">
+            <option value="ABNO Softwares International — P.O BOX 19892-00100, Nairobi — 020 3573210">
+            <option value="AccessKenya Group — Nairobi">
+            <option value="Amref Health Africa — P.O BOX 30125-00100, Nairobi — +254 20 6994000">
+            <option value="Amica Savings and Credit — P.O BOX 816-10200, Muranga — 060 2030254">
+            <option value="Aura Safira Consulting — P.O BOX 16298-00100, Nairobi — 254 20 4400450">
+            <option value="BackSpace Software Developers — P.O BOX 57742-00200, Nairobi">
+            <option value="Belgut Technical Training Institute — P.O BOX 205-20200, Kericho — 254 701566195">
+            <option value="Bunifu Technologies Ltd — P.O BOX 41064-00100, Nairobi — 254 758592949">
+            <option value="Capacity Spring Africa — P.O BOX 4344-30100, Eldoret — 254 741500091">
+            <option value="Chemelil Sugar Company Limited — P.O BOX 177-40107, Muhoroni — 020 2031883">
+            <option value="Co-operative Bank of Kenya — Nairobi">
+            <option value="Communications Authority of Kenya — Nairobi">
+            <option value="County Commissioner's Office, Busia County — P.O BOX 14-50400, Busia">
+            <option value="County Government of Bomet — P.O BOX 19-20400, Bomet — 202084068">
+            <option value="County Government of Bungoma — P.O BOX 437, Bungoma — 725393939">
+            <option value="County Government of Embu — P.O BOX 126-60100, Embu — 31181">
+            <option value="County Government of Kericho — P.O BOX 112-20200, Kericho — 254 522021100">
+            <option value="County Government of Kisii — P.O BOX 4550-40200, Kisii — 709727038">
+            <option value="County Government of Migori — P.O BOX 195-40400, Suna Migori — 254 0592092">
+            <option value="County Government of Nandi — P.O BOX 802-30300, Kapsabet — 053 5252355">
+            <option value="County Government of Nakuru — P.O BOX 2870-20100, Nakuru — 254 721278798">
+            <option value="County Government of Nyandarua — P.O BOX 701-20303, Ol Kalou — 202660859">
+            <option value="County Government of Siaya — P.O BOX 803-40600, Siaya">
+            <option value="County Government of Uasin Gishu — P.O BOX 40-30100, Eldoret — 254 0532016153">
+            <option value="County Government of Vihiga — P.O BOX 344-50300, Maragoli">
+            <option value="Craft Silicon — Nairobi">
+            <option value="Deloitte East Africa — Nairobi">
+            <option value="Directline Assurance Company — P.O BOX 40863-00100, GPO Kenya — 711030000">
+            <option value="Eldoret International Airport — P.O BOX 2323-30100, Eldoret — 053 2063377">
+            <option value="Equity Bank Kenya — Nairobi">
+            <option value="EY Kenya — Nairobi">
+            <option value="Faiba (Jamii Telecommunications) — Nairobi">
+            <option value="Flaxem System Enterprises Limited — P.O BOX 3885-00100, Nairobi — 254 20 2305051">
+            <option value="Gicatech Enterprise Solutions — P.O BOX 775, Kisii — 724563348">
+            <option value="Garissa Law Courts — P.O BOX 68-70100, Garissa — 254 702687542">
+            <option value="Getembe Television Network — P.O BOX 3345-40200, Kisii — 254 726547363">
+            <option value="Google Kenya — Nairobi">
+            <option value="Government of Makueni County — P.O BOX 78-90300, Makueni">
+            <option value="Huawei Technologies Kenya — Nairobi">
+            <option value="IBM East Africa — Nairobi">
+            <option value="ICT Authority Kisumu County — P.O BOX 1912-40100, Kisumu — +254 20 2089061">
+            <option value="ICT Authority Nairobi — P.O BOX 27150-00100, Nairobi — 254 20 2089061">
+            <option value="iProcure — Nairobi">
+            <option value="Jaramogi Oginga Odinga Referral Hospital — P.O BOX 849-40100, Kisumu — 057 2020801">
+            <option value="Juhudi Kilimo Ltd — P.O BOX 25441-00100, Nairobi — 254 709692030">
+            <option value="Kakamega County General Hospital — P.O BOX 15-50100, Kakamega — 720295739">
+            <option value="Kenya Airports Authority (KAA) — Nairobi">
+            <option value="Kenya Bureau of Standards (KEBS) — P.O BOX 54974-00200, Nairobi — 254 20 6948000">
+            <option value="Kenya Broadcasting Corporation (KBC) — P.O BOX 30456-00100, Nairobi — 254 2223757">
+            <option value="Kenya Civil Aviation Authority — P.O BOX 30163-00100, Nairobi — 254 020 827470">
+            <option value="Kenya Connect — P.O BOX 223-90103, Wamunyu">
+            <option value="Kenya Film Classification Board — P.O BOX 44226-00100, Nairobi — 020 2250600">
+            <option value="Kenya Industrial Research and Development — P.O BOX 30650-00100, Nairobi — +254 (20) 2388216">
+            <option value="Kenya Meteorological Department — P.O BOX 30259-00100, Nairobi — 254 020 3867880">
+            <option value="Kenya National Bureau of Statistics (KNBS) — Nairobi">
+            <option value="Kenya National Library Services — P.O BOX 30573-00100, Nairobi — 254 20 2739893">
+            <option value="Kenya National Archives — P.O BOX 49210, Nairobi — 722509212">
+            <option value="Kenya Ports Authority (KPA) — P.O BOX 20072-00200, Nairobi — 254 20 6931000">
+            <option value="Kenya Power and Lighting Company (KPLC) Kisii Branch — P.O BOX 5-40200, Kisii — 95551">
+            <option value="Kenya Power Coast Region — P.O BOX 90104-80100, Mombasa — 254 041 2225564">
+            <option value="Kenya Power Kisumu Branch — P.O BOX 151-40100, Kisumu — 254 057 2020536">
+            <option value="Kenya Railways Corporation — Nairobi">
+            <option value="Kenya Revenue Authority (KRA) — Nairobi">
+            <option value="Kenya Television Network Kisii — P.O BOX 4103-40200, Kisii — 727883074">
+            <option value="Kenya Wildlife Service — Nairobi">
+            <option value="Kisii County Government — P.O BOX 4550-40200, Kisii — 709727038">
+            <option value="Kisii Huduma Center — P.O BOX 590-40200, Kisii">
+            <option value="Kisii Impact Institute of Science and Technology — P.O BOX 3628, Kisii — 254 784663693">
+            <option value="Kisii Law Courts — P.O BOX 69-40200, Kisii — 111431147">
+            <option value="Kisii Municipality — P.O BOX 406-40200, Kisii — 730184301">
+            <option value="Kisii National Polytechnic — P.O BOX 222-40200, Kisii — 752031300">
+            <option value="Kisii Teaching and Referral Hospital — Kisii">
+            <option value="Konza Technopolis Development Authority — Nairobi">
+            <option value="KPMG Kenya — Nairobi">
+            <option value="Liquid Telecommunications Kenya — Nairobi">
+            <option value="LISH AI Labs — P.O BOX 16412-20100, Nairobi — 254 722575169">
+            <option value="Masinde Muliro University — P.O BOX 190-50100, Kakamega — 254 702597360">
+            <option value="Microsoft Africa Development Centre — Nairobi">
+            <option value="Ministry of Energy and Petroleum — P.O BOX 30582-00100, Nairobi — 254 20 310112">
+            <option value="Ministry of Health — P.O BOX 30016-00100, Nairobi — 254 20 2717077">
+            <option value="Ministry of ICT and Digital Economy — P.O BOX 8053, Nairobi — 020 3340659">
+            <option value="Ministry of Roads and Transport — P.O BOX 52692-00100, Nairobi — 020 2729200">
+            <option value="Nairobi City County — P.O BOX 30075-00100, Nairobi — 254 725624489">
+            <option value="Nandi County Assembly — P.O BOX 673-30300, Kapsabet — 780000029">
+            <option value="Nakuru Town West Subcounty — P.O BOX 2870-20100, Nakuru — 254 721278798">
+            <option value="Narok County Government — P.O BOX 898-20500, Narok — 020 2688929">
+            <option value="National Hospital Insurance Fund (NHIF) Eldoret Branch — P.O BOX 3091-30100, Eldoret — 053 2030749">
+            <option value="NHIF Kisii Branch — P.O BOX 898-40200, Kisii — 582030206">
+            <option value="Newton Institute of Technology — P.O BOX 4275-40200, Kisii — 790805493">
+            <option value="NIFTECS Company Ltd — P.O BOX 3506-40200, Kisii">
+            <option value="NITA-K (National IT Authority Kenya) — Nairobi">
+            <option value="Nyamira County Referral Hospital — P.O BOX 3-40500, Nyamira — 254 738344009">
+            <option value="Nyandaru County Assembly — P.O BOX 720-20303, Ol Kalou — 743079333">
+            <option value="Nyandaru County Government — P.O BOX 701-20303, Ol Kalou — 202660859">
+            <option value="Nyandaru National Polytechnic — P.O BOX 2033-20300, Nyahururu — 727256001">
+            <option value="Nyangena Hospital — P.O BOX 3492-40200, Kisii — 254 732749146">
+            <option value="Oracle Kenya — Nairobi">
+            <option value="PwC Kenya — Nairobi">
+            <option value="Radio Lake Victoria — P.O BOX 4580-40103, Kisumu — 7572022937">
+            <option value="RAM Hospital Ltd — P.O BOX 81, Kisii — 705239281">
+            <option value="Royal Media Services Limited — P.O BOX 7468-00300, Nairobi — 719060000">
+            <option value="Safaricom PLC — Nairobi">
+            <option value="Siaya County Referral Hospital — P.O BOX 144-40600, Siaya — 757955067">
+            <option value="Smart Applications International Ltd — P.O BOX 57776-00200, Nairobi — 254 20 3206000">
+            <option value="Standard Chartered Bank Kenya — Nairobi">
+            <option value="Tamnet Systems Limited — P.O BOX 2564-40200, Kisii — 254 707445991">
+            <option value="Telkom Kenya — Nairobi">
+            <option value="The Kisii National Polytechnic — P.O BOX 222-40200, Kisii — 058-20319558">
+            <option value="The Kisumu National Polytechnic — P.O BOX 143-40100, Kisumu — 057 2501501">
+            <option value="The Mawego National Polytechnic — P.O BOX 289-40222, Oyogis — 0725050033">
+            <option value="TV Magharibi — P.O BOX 1138-50200, Bungoma — 790497090">
+            <option value="TV Oyominto — P.O BOX 34786-00100, Nairobi — 254 781891372">
+            <option value="TV47 Kenya — Nairobi">
+            <option value="Twitter (X) Kenya — Nairobi">
+            <option value="UAP Insurance Holdings — Nairobi">
+            <option value="Ukulima Sacco Society Ltd — P.O BOX 35369, Nairobi — 020 3310371">
+            <option value="Unilever Kenya — Nairobi">
+            <option value="Universal College of Technology — P.O BOX 712-40200, Kisii — 254 725928065">
+            <option value="USAID — Nairobi">
+            <option value="USIU-Africa — P.O BOX 14208-00800, Nairobi — 254 730116000">
+            <option value="Veeress Technologies Ltd — P.O BOX 11247-20100, Nakuru — 757621770">
+            <option value="Vihiga County Assembly — P.O BOX 350-50300, Maseno — 056 21417">
+            <option value="Vihiga County Meteorological Service — P.O BOX 183-50307, Luanda — 254 710602712">
+            <option value="Vivo Energy Kenya — Nairobi">
+            <option value="Walk Through Africa Expeditions — P.O BOX 12531-00100, Nairobi — 254 722779470">
+            <option value="Western Kenya Eye Care Centre — P.O BOX 2549-40100, Kisumu — 057 2022172">
+            <option value="West Kenya Sugar Company Limited — P.O BOX 2101-50100, Kakamega — 254 20 2036320">
+            <option value="WyMore IT Solutions — P.O BOX 3729-00100, Nairobi — 254 716297960">
+            <option value="Zitron Labs Computing Group — P.O BOX 2327-00100, Nairobi — 724857835">
+            <option value="ZTE Kenya — Nairobi">
+          </datalist>
+          <div class="helper-text">Type to search from the system's organisation list or enter a new one.</div>
+        </div>
+
+        <div class="form-group">
+          <label for="lec_faculty">Faculty / School</label>
+          <select id="lec_faculty" name="faculty" required>
+            <option value="" disabled selected>Select Faculty</option>
+            <option value="School of Information Sciences & Technology">School of Information Sciences &amp; Technology (SIST)</option>
+            <option value="Faculty of Computing">Faculty of Computing</option>
+            <option value="School of Engineering">School of Engineering</option>
+            <option value="Faculty of Science">Faculty of Science</option>
+            <option value="School of Business">School of Business</option>
+            <option value="Faculty of Education">Faculty of Education</option>
+            <option value="School of Pure and Applied Sciences">School of Pure and Applied Sciences</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="lec_school">University School Code</label>
+          <select id="lec_school" name="school" required>
+            <option value="" disabled selected>Select School Code</option>
+            <option value="SIST">SIST (School of Information Sciences &amp; Technology)</option>
+            <option value="SASS">SASS (School of Arts and Social Sciences)</option>
+            <option value="SOBE">SOBE (School of Business and Economics)</option>
+            <option value="SEDHURED">SEDHURED (School of Education and Human Resource Development)</option>
+            <option value="SHS">SHS (School of Health Sciences)</option>
+            <option value="SLAW">SLAW (School of Law)</option>
+            <option value="SPAS">SPAS (School of Pure and Applied Sciences)</option>
+            <option value="SANRM">SANRM (School of Agriculture and Natural Resources Management)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="lec_department">Department</label>
+          <select id="lec_department" name="department" required>
+            <option value="" disabled selected>Select Department</option>
+            <option value="Computing Sciences">Computing Sciences</option>
+            <option value="Information Systems & Technology">Information Systems &amp; Technology</option>
+            <option value="Media and Communications">Media and Communications</option>
+            <option value="Software Engineering">Software Engineering</option>
+            <option value="Mathematics & Computer Science">Mathematics &amp; Computer Science</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="lec_programme">Course / Programme Assignment</label>
+          <select id="lec_programme" name="course" required>
+            <option value="" disabled selected>Select Course</option>
+            <option value="Computer Science">Computer Science</option>
+            <option value="Applied Computer Science">Applied Computer Science</option>
+            <option value="Software Engineering">Software Engineering</option>
+            <option value="Information Technology">Information Technology</option>
+            <option value="Business Information Technology">Business Information Technology</option>
+            <option value="Communication and Media Studies">Communication and Media Studies</option>
+            <option value="Mathematics">Mathematics</option>
+            <option value="All Courses">All Courses (Department Wide)</option>
+          </select>
+        </div>
+      </div>
+      <div class="nav-buttons">
+        <button type="button" class="btn btn-back" onclick="lec_prevStep(1)">Back</button>
+        <button type="button" class="btn btn-next" onclick="lec_nextStep(2)">
+          Next <div class="spinner" id="lec_spinner2"></div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 3: Review & Submit -->
+    <div id="lec_step3" class="step">
+      <div class="review-box">
+        <h3>Verify Your Information</h3>
+        <div id="lec_reviewContent"></div>
+      </div>
+      <div class="nav-buttons">
+        <button type="button" class="btn btn-back" onclick="lec_prevStep(2)">Back</button>
+        <button type="button" class="btn btn-next btn-submit" onclick="lec_submitForm()">Complete Account Registration <div class="spinner"></div></button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Toggle field visibility functionality
+    function lec_toggleFieldPassword(inputId, triggerBtn) {
+      const passInput = document.getElementById(inputId);
+      passInput.type = passInput.type === 'password' ? 'text' : 'password';
+      triggerBtn.textContent = passInput.type === 'password' ? '👁️' : '🙈';
+    }
+
+    function lec_validateStep(step) {
+      const stepDiv = document.getElementById("lec_step" + step);
+      const inputs = stepDiv.querySelectorAll("input[required], select[required]");
+      for (let input of inputs) {
+        if (!input.value.trim()) {
+          input.style.borderColor = "#e74c3c";
+          setTimeout(() => { input.style.borderColor = "#e2e8f0"; }, 2500);
+          input.focus();
+          return false;
+        }
+      }
+
+      // Password match check in Step 1
+      if (step === 1) {
+        const pass = document.getElementById('lec_password').value;
+        const confirmPass = document.getElementById('lec_confirm_password').value;
+        if (pass.length < 8) { alert('Password must be at least 8 characters long.'); return false; }
+        if (pass !== confirmPass) { alert('Passwords do not match!'); return false; }
+      }
+      return true;
+    }
+
+    function lec_updateProgress(step) {
+      const progressBar = document.getElementById('lec_progressBar');
+      if (step === 1) progressBar.style.width = "33.33%";
+      if (step === 2) progressBar.style.width = "66.66%";
+      if (step === 3) progressBar.style.width = "100%";
+    }
+
+    function lec_nextStep(step) {
+      if (!lec_validateStep(step)) return;
+
+      const spinner = document.getElementById("lec_spinner" + step);
+      if(spinner) spinner.style.display = "inline-block";
+
+      setTimeout(() => {
+        if(spinner) spinner.style.display = "none";
+        document.getElementById("lec_step" + step).classList.remove("active");
+        document.getElementById("lec_step" + (step + 1)).classList.add("active");
+        lec_updateProgress(step + 1);
+
+        if(step === 2) {
+          const fields = [
+            { id: "lec_full_name", label: "Full Name" },
+            { id: "lec_email", label: "Email Address" },
+            { id: "lec_phone", label: "Phone Number" },
+            { id: "lec_workspace_role", label: "System Role" },
+            { id: "lec_national_id", label: "National ID Number" },
+            { id: "lec_specialization", label: "Specialization" },
+            { id: "lec_employee_number", label: "Employee Number" },
+            { id: "lec_organisation", label: "Organisation" },
+            { id: "lec_faculty", label: "Faculty / School" },
+            { id: "lec_school", label: "School Code" },
+            { id: "lec_department", label: "Department" },
+            { id: "lec_programme", label: "Course / Programme" },
+          ];
+          
+          let reviewHTML = "<ul>";
+          fields.forEach(field => {
+            const el = document.getElementById(field.id);
+            const val = el ? (el.value.trim() || "Not provided") : "Not provided";
+            reviewHTML += `<li><strong>${field.label}</strong> ${val}</li>`;
+          });
+          reviewHTML += "</ul>";
+          reviewHTML += `<p style="margin-top:12px; color:#475569; font-size:0.9rem;">
+            📧 A welcome email will be sent to <strong>${document.getElementById('lec_email').value}</strong> with login instructions.
+          </p>`;
+          document.getElementById('lec_reviewContent').innerHTML = reviewHTML;
+        }
+      }, 400); 
+    }
+
+    function lec_prevStep(step) {
+      document.getElementById("lec_step" + (step + 1)).classList.remove("active");
+      document.getElementById("lec_step" + step).classList.add("active");
+      lec_updateProgress(step);
+    }
+
+    function lec_submitForm() {
+      document.getElementById('lec_registrationForm').requestSubmit();
+    }
+  </script>
+  <script>
+    // If this include is used in the admin create-user wizard, auto-generate
+    // a temporary password for lecturer accounts so admins can leave the
+    // password fields blank (server will generate one). This keeps the
+    // password editable before creation.
+    (function(){
+      try {
+        const roleInput = document.querySelector('input[name="role"]');
+        const pw = document.getElementById('lec_password');
+        const cpw = document.getElementById('lec_confirm_password');
+        function generateTemporaryPassword() {
+          const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%';
+          const values = new Uint32Array(16);
+          if (window.crypto && window.crypto.getRandomValues) window.crypto.getRandomValues(values);
+          return Array.from(values, v => alphabet[v % alphabet.length]).join('');
+        }
+        if (roleInput && roleInput.value === 'LECTURER' && pw && cpw && !pw.value) {
+          const tmp = generateTemporaryPassword();
+          pw.value = tmp;
+          cpw.value = tmp;
+          pw.required = false;
+          cpw.required = false;
+        }
+      } catch (e) {
+        // non-fatal
+        console && console.debug && console.debug('lec include init error', e);
+      }
+    })();
+  </script>

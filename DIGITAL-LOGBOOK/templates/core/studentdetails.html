@@ -1,0 +1,305 @@
+{% load static %}
+
+
+
+
+
+  <div class="container">
+    <h2>Student Attachment Form</h2>
+    <p class="subtitle">Complete your student attachment profile registration below.</p>
+
+    <!-- Progress Bar -->
+    <div class="progress-container">
+      <div class="progress-bar" id="student_progressBar"></div>
+    </div>
+
+    <!-- Step 1: Personal & Account Information -->
+    <div id="student_step1" class="step active">
+      <div class="form-grid">
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label for="student_full_name">Full Name</label>
+          <input type="text" id="student_full_name" name="full_name" placeholder="Enter Full Name" required>
+        </div>
+        <div class="form-group">
+          <label for="student_reg_number">Registration Number</label>
+          <input type="text" id="student_reg_number" name="username" placeholder="e.g., IN14/00000/22" required>
+        </div>
+        <div class="form-group">
+          <label for="student_email">Email Address</label>
+          <input type="email" id="student_email" name="email" placeholder="name@example.com" required>
+        </div>
+        <div class="form-group">
+          <label for="student_phone">Phone Number</label>
+          <input type="tel" id="student_phone" name="phone_number" placeholder="e.g., +2547..." required>
+        </div>
+        <div class="form-group">
+          <label for="student_year">Year of Study</label>
+          <input type="number" id="student_year" name="year_of_study" placeholder="e.g., 3" min="1" max="6" required>
+        </div>
+
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label for="student_organization">Organization Name</label>
+          <input type="text" id="student_organization" name="institution_or_company" list="organization_options" placeholder="Type to search or enter an organization" autocomplete="organization" required>
+          {% include "core/organization_options.html" %}
+        </div>
+
+        <!-- Fees Clearance Status Dropdown Option -->
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label for="student_fees_status">Fees Clearance Status</label>
+          <select id="student_fees_status" name="fees_cleared" onchange="student_evaluateFeesClearance()" required>
+            <option value="" selected>-- Select Status --</option>
+            <option value="cleared">Yes, I have fully cleared fees</option>
+            <option value="balance">No, I have outstanding balance</option>
+          </select>
+        </div>
+
+        <!-- Create Password Field -->
+        <div class="form-group">
+          <label for="student_password">Create Password</label>
+          <div class="password-wrapper">
+            <input type="password" id="student_password" name="password" placeholder="Minimum 8 characters" required>
+            <button type="button" class="toggle-eye-btn" onclick="student_toggleFieldPassword('student_password', this)">👁️</button>
+          </div>
+        </div>
+
+        <!-- Confirm Password Field -->
+        <div class="form-group">
+          <label for="student_confirm_password">Confirm Password</label>
+          <div class="password-wrapper">
+            <input type="password" id="student_confirm_password" name="confirm_password" placeholder="Retype your password" required>
+            <button type="button" class="toggle-eye-btn" onclick="student_toggleFieldPassword('student_confirm_password', this)">👁️</button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="nav-buttons">
+        <button type="button" class="btn btn-back" disabled>Back</button>
+        <!-- The Next Button is disabled explicitly until Fees Status switches to Cleared -->
+        <button type="button" class="btn btn-next" id="student_step1NextBtn" onclick="student_nextStep(1)" disabled>
+          Next <div class="spinner" id="student_spinner1"></div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 2: Institution & Academic Details -->
+    <div id="student_step2" class="step">
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label for="student_faculty">Faculty</label>
+          <input type="text" id="student_faculty" name="faculty" placeholder="Enter Faculty" required>
+        </div>
+        <div class="form-group">
+          <label for="student_school">University School Code</label>
+          <select id="student_school" name="school" required>
+            <option value="" disabled selected>Select School Code</option>
+            <option value="SIST" {% if school_code == 'SIST' %}selected{% endif %}>SIST (School of Information Sciences & Technology)</option>
+            <option value="SASS" {% if school_code == 'SASS' %}selected{% endif %}>SASS (School of Arts and Social Sciences)</option>
+            <option value="SOBE" {% if school_code == 'SOBE' %}selected{% endif %}>SOBE (School of Business and Economics)</option>
+            <option value="SEDHURED" {% if school_code == 'SEDHURED' %}selected{% endif %}>SEDHURED (School of Education and Human Resource Development)</option>
+            <option value="SHS" {% if school_code == 'SHS' %}selected{% endif %}>SHS (School of Health Sciences)</option>
+            <option value="SLAW" {% if school_code == 'SLAW' %}selected{% endif %}>SLAW (School of Law)</option>
+            <option value="SPAS" {% if school_code == 'SPAS' %}selected{% endif %}>SPAS (School of Pure and Applied Sciences)</option>
+            <option value="SANRM" {% if school_code == 'SANRM' %}selected{% endif %}>SANRM (School of Agriculture and Natural Resources Management)</option>
+          </select>
+        </div>
+        
+        <!-- Department Dropdown Configuration -->
+        <div class="form-group">
+          <label for="student_department">Department</label>
+          <select id="student_department" name="department" required>
+            <option value="" disabled selected>Select your Department</option>
+            <option value="Computing Sciences">Computing Sciences</option>
+            <option value="Information Systems & Technology">Information Systems & Technology</option>
+            <option value="Media and Communications">Media and Communications</option>
+            <option value="Engineering & Mathematics">Engineering & Mathematics</option>
+          </select>
+        </div>
+
+        <!-- Course / Programme Dropdown Configuration -->
+        <div class="form-group">
+          <label for="student_programme">Course / Programme</label>
+          <select id="student_programme" name="course" required>
+            <option value="" disabled selected>Select your Course</option>
+            <option value="Computer Science">Computer Science</option>
+            <option value="Applied Computer Science">Applied Computer Science</option>
+            <option value="Information Technology">Information Technology</option>
+            <option value="Software Engineering">Software Engineering</option>
+            <option value="Business Information Systems">Business Information Systems</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="student_unit_name">Unit Name</label>
+          <input type="text" id="student_unit_name" name="unit_name" placeholder="Enter Unit Name" required>
+        </div>
+        <div class="form-group">
+          <label for="student_unit_code">Unit Code</label>
+          <input type="text" id="student_unit_code" name="unit_code" placeholder="Enter Unit Code" required>
+        </div>
+      </div>
+      <div class="nav-buttons">
+        <button type="button" class="btn btn-back" onclick="student_prevStep(1)">Back</button>
+        <button type="button" class="btn btn-next" onclick="student_openReviewOverlay()">
+          Review Details <div class="spinner" id="student_spinner2"></div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3: MODAL POPUP OVERLAY WINDOW -->
+  <div class="overlay-backdrop" id="student_reviewOverlay">
+    <div class="overlay-card">
+      <div class="overlay-header">
+        <h3>Verify Registration Details</h3>
+        <button type="button" class="close-overlay-btn" onclick="student_closeReviewOverlay()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      
+      <div id="student_reviewOverlayContent">
+        <!-- Filled out dynamically via javascript grid metrics layout -->
+      </div>
+      
+      <div class="overlay-actions">
+        <button type="button" class="btn btn-back" style="padding: 12px 25px;" onclick="student_closeReviewOverlay()">Make Corrections</button>
+        <button type="button" class="btn btn-next btn-submit" style="padding: 12px 35px;" onclick="student_submitForm()">Confirm & Submit <div class="spinner"></div></button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Evaluates fee balance to dynamically unlock or lock the Next button
+    function student_evaluateFeesClearance() {
+      const feesStatus = document.getElementById('student_fees_status').value;
+      const nextBtn = document.getElementById('student_step1NextBtn');
+      
+      if (feesStatus === "cleared") {
+        nextBtn.removeAttribute("disabled");
+      } else {
+        nextBtn.setAttribute("disabled", "true");
+      }
+    }
+
+    function student_prepareOrganizationValue() {
+      // The searchable input already submits the selected or typed value.
+    }
+
+    // Visibility toggle functionality logic
+    function student_toggleFieldPassword(inputId, triggerBtn) {
+      const passInput = document.getElementById(inputId);
+      passInput.type = passInput.type === 'password' ? 'text' : 'password';
+      triggerBtn.textContent = passInput.type === 'password' ? '👁️' : '🙈';
+    }
+
+    // Validates inputs within the active container step card
+    function student_validateStep(step) {
+      student_prepareOrganizationValue();
+      const stepDiv = document.getElementById("student_step" + step);
+      const inputs = stepDiv.querySelectorAll("input[required], select[required]");
+      for (let input of inputs) {
+        if (!input.value.trim()) {
+          input.style.borderColor = "#e74c3c";
+          setTimeout(() => { input.style.borderColor = "#e2e8f0"; }, 2500);
+          input.focus();
+          return false;
+        }
+      }
+
+      const yearInput = document.getElementById('student_year');
+      if (yearInput && (Number(yearInput.value) < 1 || Number(yearInput.value) > 6)) {
+        yearInput.setCustomValidity('Year of study must be between 1 and 6.');
+        yearInput.reportValidity();
+        yearInput.focus();
+        return false;
+      }
+      if (yearInput) yearInput.setCustomValidity('');
+
+      // Password checks inside step 1 
+      if (step === 1) {
+        const pass = document.getElementById('student_password').value;
+        const confirmPass = document.getElementById('student_confirm_password').value;
+        if (pass.length < 8) { alert('Password must be at least 8 characters long.'); return false; }
+        if (pass !== confirmPass) { alert('Passwords do not match!'); return false; }
+      }
+      return true;
+    }
+
+    // Handles layout progress indicators
+    function student_updateProgress(percent) {
+      document.getElementById('student_progressBar').style.width = percent + "%";
+    }
+
+    // Navigates application form flow layers forwards
+    function student_nextStep(step) {
+      if (!student_validateStep(step)) return;
+
+      const spinner = document.getElementById("student_spinner" + step);
+      if(spinner) spinner.style.display = "inline-block";
+
+      setTimeout(() => {
+        if(spinner) spinner.style.display = "none";
+        document.getElementById("student_step" + step).classList.remove("active");
+        document.getElementById("student_step" + (step + 1)).classList.add("active");
+        student_updateProgress(100);
+      }, 400); 
+    }
+
+    // Navigates application form flow layers backwards
+    function student_prevStep(step) {
+      document.getElementById("student_step" + (step + 1)).classList.remove("active");
+      document.getElementById("student_step" + step).classList.add("active");
+      student_updateProgress(50);
+    }
+
+    // Compiles information and opens the overlay card interface
+    function student_openReviewOverlay() {
+      if (!student_validateStep(2)) return;
+
+      const fields = [
+        { id: "student_full_name", label: "Full Name" },
+        { id: "student_reg_number", label: "Registration Number" },
+        { id: "student_email", label: "Email Address" },
+        { id: "student_phone", label: "Phone Number" },
+        { id: "student_year", label: "Year of Study" },
+        { id: "student_organization", label: "Organization Name" },
+        { id: "student_fees_status", label: "Fees Status" },
+
+        { id: "student_faculty", label: "Faculty" },
+        { id: "student_school", label: "School Code" },
+        { id: "student_department", label: "Department" },
+        { id: "student_programme", label: "Course / Programme" },
+        { id: "student_unit_name", label: "Unit Name" },
+        { id: "student_unit_code", label: "Unit Code" }
+      ];
+      
+      let reviewHTML = "<ul class='review-grid-list'>";
+      fields.forEach(field => {
+        const element = document.getElementById(field.id);
+        let val = element ? element.value.trim() : "Not provided";
+        if (!val) val = "Not provided";
+        
+        // Formatting readable value output for fees status dropdown
+        if (field.id === "student_fees_status" && element) {
+          val = element.value === "cleared" ? "Fully Cleared" : "Outstanding Balance";
+        }
+
+        reviewHTML += `<li><strong>${field.label}</strong> ${val}</li>`;
+      });
+      reviewHTML += "</ul>";
+      
+      document.getElementById('student_reviewOverlayContent').innerHTML = reviewHTML;
+      document.getElementById('student_reviewOverlay').classList.add("show");
+    }
+
+    // Closes the overlay view modal
+    function student_closeReviewOverlay() {
+      document.getElementById('student_reviewOverlay').classList.remove("show");
+    }
+
+    // Submission configuration entry point
+    function student_submitForm() {
+      student_closeReviewOverlay();
+      document.getElementById('student_registrationForm').requestSubmit();
+    }
+  </script>

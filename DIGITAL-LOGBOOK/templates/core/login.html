@@ -1,0 +1,450 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIST Digital Attachment Logbook - Kisii University</title>
+    
+    <link rel="icon" type="image/jpeg" href="{% static 'images/logo.jpeg' %}">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="{% static 'css/portal.css' %}">
+    <style>
+        nav { position: sticky; top: 0; z-index: 1000; transition: box-shadow 0.3s ease; }
+        nav.scrolled { box-shadow: 0 4px 20px rgba(15, 76, 129, 0.18); }
+        .back-home-btn { display:inline-flex;align-items:center;gap:4px;font-weight:700;color:#0f4c81 !important;font-size:0.88rem;text-decoration:none;border:1.5px solid rgba(15,76,129,0.25);padding:5px 12px;border-radius:8px;transition:all 0.2s;background:rgba(15,76,129,0.06); }
+        .back-home-btn:hover { background:rgba(15,76,129,0.12);border-color:#0f4c81;color:#0f4c81 !important; }
+        .mobile-nav-toggle {
+            display: none;
+            position: fixed;
+            top: 18px;
+            right: 18px;
+            width: 50px;
+            height: 50px;
+            border: 1px solid rgba(15,76,129,0.18);
+            background: rgba(255, 255, 255, 0.96);
+            color: #0f172a;
+            border-radius: 50%;
+            padding: 0;
+            cursor: pointer;
+            font-weight: 700;
+            box-shadow: 0 14px 34px rgba(15,76,129,0.16);
+            align-items: center;
+            justify-content: center;
+            z-index: 2200;
+            transition: transform 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease;
+        }
+        .mobile-nav-toggle.open {
+            transform: rotate(90deg);
+            background: #0f172a;
+            color: #ffffff;
+        }
+        .mobile-nav-menu {
+            display: none;
+            position: fixed;
+            top: 80px;
+            right: 18px;
+            width: min(280px, calc(100vw - 36px));
+            max-height: calc(100vh - 104px);
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 18px;
+            border: 1px solid rgba(226, 232, 240, 0.95);
+            box-shadow: 0 24px 60px rgba(15,76,129,0.16);
+            overflow: hidden;
+            z-index: 2150;
+            opacity: 0;
+            transform: translateY(-14px) scale(0.96);
+            transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+        .mobile-nav-menu.show {
+            display: block;
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        .mobile-nav-menu a {
+            display: block;
+            padding: 14px 18px;
+            color: #0f172a;
+            text-decoration: none;
+            border-bottom: 1px solid #f1f5f9;
+            font-weight: 600;
+        }
+        .mobile-nav-menu a:last-child { border-bottom: none; }
+        .mobile-nav-menu a:hover { background: #f8fbff; }
+        .btn-portal { position: relative; }
+        .modern-loading-ring {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 26px;
+            height: 26px;
+            border: 4px solid transparent;
+            border-radius: 50%;
+            background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0)) padding-box,
+                        linear-gradient(135deg, #0096ff, #8b5cf6, #f4a261, #10b981) border-box;
+            background-clip: padding-box, border-box;
+            animation: multicolorSpin 0.75s linear infinite;
+        }
+        @media (max-width: 800px) {
+            .nav-links { display: none; }
+            .mobile-nav-toggle { display: inline-flex; }
+            .nav-logo-area { flex-wrap: wrap; justify-content: space-between; }
+            .nav-links { width: 100%; margin-top: 12px; }
+        }
+
+        /* Keep desktop links as text, and use a calm side drawer on mobile. */
+        .nav-links a.active { background: transparent !important; box-shadow: none !important; border-radius: 0 !important; padding: 0 !important; }
+        @media (max-width: 800px) {
+            .mobile-nav-toggle { width: 60px; height: 48px; border-radius: 14px; background: #ffffff; color: #0f4c81; }
+            .mobile-nav-toggle.open { transform: none; background: #0f4c81; color: #ffffff; }
+            .mobile-nav-menu { display: flex; flex-direction: column; top: 0; right: 0; width: min(360px, 88vw); max-height: 100vh; height: 100vh; padding: 30px 28px; box-sizing: border-box; border: 0; border-radius: 0; background: rgba(255,255,255,.99); box-shadow: -18px 0 48px rgba(15,76,129,.16); overflow-y: auto; opacity: 0; visibility: hidden; transform: translateX(32px); transition: opacity .3s ease, transform .3s cubic-bezier(.22,1,.36,1), visibility .3s; }
+            .mobile-nav-menu.show { display: flex; opacity: 1; visibility: visible; transform: translateX(0); }
+            .mobile-nav-menu .mobile-menu-brand { display: flex; align-items: center; gap: 10px; margin: 0 0 26px; padding: 0 0 20px; border-bottom: 1px solid #e6edf5; color: #0f4c81; font-size: .78rem; font-weight: 800; letter-spacing: .08em; }
+            .mobile-nav-menu .mobile-menu-brand img { width: 46px; height: 46px; object-fit: contain; border-radius: 8px; }
+            .mobile-nav-menu a { padding: 15px 0; border: 0; background: transparent; color: #172033; font-size: 1.1rem; font-weight: 700; }
+            .mobile-nav-menu a:hover, .mobile-nav-menu a.active { background: transparent; color: #0f4c81; }
+            .mobile-nav-menu a.btn-nav { margin-top: auto; padding: 14px 18px; border-radius: 12px; color: #ffffff; text-align: center; background: linear-gradient(135deg, #0f4c81, #0096ff); box-shadow: 0 10px 20px rgba(15,76,129,.2); }
+        }
+    </style>
+</head>
+<body>
+
+    {% include 'core/accessibility_snippet.html' %}
+
+    <nav id="home">
+        <div class="nav-logo-area">
+            <img src="{% static 'images/logo.jpeg' %}" alt="Kisii University Logo">
+            <div class="brand-text">
+                <h1>KISII UNIVERSITY</h1>
+                <p>{{ school_name|default:"School of Information Sciences & Technology" }}</p>
+            </div>
+        </div>
+        <button class="mobile-nav-toggle" id="mobileNavToggle" type="button">☰</button>
+        <div class="nav-links">
+            <a href="/" class="back-home-btn" title="Back to School Selection">&#8592; Home</a>
+            <a href="#home" class="active">Login</a>
+            <a href="{% url 'core:register' %}?school={{ school_code|default:'SIST' }}">Register for Logbook</a>
+            <a href="#services">Services</a>
+            <a href="#support">Support</a>
+            <a class="btn-nav" onclick="scrollToAndHighlightForm()">Login Portal</a>
+        </div>
+        <div class="mobile-nav-menu" id="mobileNavMenu">
+            <div class="mobile-menu-brand"><img src="{% static 'images/logo.jpeg' %}" alt="">KISII LOGBOOK</div>
+            <a href="/">&#8592; Back to Home</a>
+            <a href="#home">Login</a>
+            <a href="{% url 'core:register' %}?school={{ school_code|default:'SIST' }}">Register for Logbook</a>
+            <a href="#services">Services</a>
+            <a href="#support">Support</a>
+            <a class="btn-nav" href="#" onclick="scrollToAndHighlightForm()">Login Portal</a>
+        </div>
+    </nav>
+
+    <main class="main-workspace reveal-on-scroll">
+        <div class="split-card">
+            
+            <div class="sist-header-banner">
+                <h2>{{ school_code|default:"SIST" }} <span>Digital Attachment</span> Logbook</h2>
+                <p>The centralized evaluation workflow environment for Kisii University students, supervisors, and internal university lecturers.</p>
+            </div>
+
+            <div class="split-card-body">
+                <div class="showcase-side"></div>
+
+                <div class="form-side" id="auth-terminal-form">
+                    <h2>Hi, welcome back</h2>
+                    <p class="subtitle">Please fill in your authentic access details to log into the logbook environment.</p>
+
+                    <form method="POST" id="loginForm" onsubmit="handleLoginSubmissionSystem(event)">
+                        {% csrf_token %}
+                        
+                        <div class="form-group">
+                            <label for="id_role">Select Target View Workspace Profile</label>
+                            <select name="role" id="id_role" class="form-control">
+                                <option value="STUDENT" selected>Student / Attachee View</option>
+                                <option value="SUPERVISOR">Industry Field Supervisor</option>
+                                <option value="LECTURER">University Academic Lecturer</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="id_username">Registration Number / Email Address</label>
+                            <input type="text" name="username" id="id_username" class="form-control" placeholder="Reg No / Email / Username" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="id_password">Account Security Password</label>
+                            <div class="password-container">
+                                <input type="password" name="password" id="id_password" class="form-control" placeholder="Enter your Password" required>
+                                <button type="button" class="toggle-eye-btn" onclick="togglePasswordVisibility()">👁️</button>
+                            </div>
+                        </div>
+
+                        <div class="form-actions-row">
+                            <label class="checkbox-wrap">
+                                <input type="checkbox" name="remember_me"> Remember me
+                            </label>
+                            <a href="{% url 'core:password_reset' %}" class="forgot-pass-link">Forgot Password?</a>
+                        </div>
+
+                        <button type="submit" class="btn-portal" id="login-submit-btn">
+                            <span class="btn-text-content">Sign In</span>
+                            <div class="modern-loading-ring" id="login-button-spinner"></div>
+                        </button>
+                    </form>
+
+                    <div class="register-prompt-footer">
+                        Don't have an account? <a href="{% url 'core:register' %}">Sign Up</a>
+                    </div>
+                    <div style="text-align:center; margin-top:10px;">
+                        <a href="{% url 'core:admin_login' %}" style="font-size:0.78rem; color:#94a3b8; text-decoration:none;">🔐 System Administrator Portal</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <section class="services-section reveal-on-scroll" id="services">
+        <div class="services-section-title">
+            <h3>Core System Capabilities</h3>
+            <p>Explore the tools provided by the digital logbook ecosystem to streamline industrial attachments.</p>
+        </div>
+
+        <div class="services-grid">
+            <div class="service-card sc-blue">
+                <div class="service-icon">📝</div>
+                <h4>Daily Milestone Logging</h4>
+                <p>Enables attachees to record daily operational records, skills mastered, and challenges faced during their 14-week attachment cycle.</p>
+            </div>
+            <div class="service-card sc-gold">
+                <div class="service-icon">✅</div>
+                <h4>Supervisor Endorsements</h4>
+                <p>Allows industry field supervisors to review, append custom training feedback, sign off, and digitally validate entries weekly.</p>
+            </div>
+            <div class="service-card sc-green">
+                <div class="service-icon">🎓</div>
+                <h4>Lecturer Assessment Hub</h4>
+                <p>Provides university assessors with real-time remote visibility to track student progress, schedule assessment visits, and submit final marks.</p>
+            </div>
+            <div class="service-card sc-purple">
+                <div class="service-icon">📊</div>
+                <h4>Automated Reports</h4>
+                <p>Compiles logs into downloadable, cleanly formatted summaries alongside visual attachment progress analytics.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer id="support">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4>SIST Platforms</h4>
+                <ul>
+                    <li><a href="{% url 'core:register' %}">Logbook Registration</a></li>
+                    <li><a href="{% url 'core:info_page' 'guidelines' %}">Attachment Guidelines</a></li>
+                    <li><a href="{% url 'core:info_page' 'manuals' %}">Supervisor Manuals</a></li>
+                    <li><a href="{% url 'core:admin_login' %}">Administrator Portal</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Kisii University Links</h4>
+                <ul>
+                    <li><a href="https://www.kisiiuniversity.ac.ke" target="_blank">Main University Site</a></li>
+                    <li><a href="https://portal.kisiiuniversity.ac.ke" target="_blank">Student Portal</a></li>
+                    <li><a href="https://elearning.kisiiuniversity.ac.ke/" target="_blank">E-Learning LMS</a></li>
+                    <li><a href="https://digital.kisiiuniversity.ac.ke/" target="_blank">Kisii Huduma-Bora</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Support Center</h4>
+                <ul>
+                    <li><a href="https://kisiiuniversity.ac.ke/dpt/information-communication-and-technology-ict" target="_blank">SIST ICT Desk</a></li>
+                    <li><a href="{% url 'core:info_page' 'support' %}">Logbook Support Help</a></li>
+                    <li><a href="{% url 'core:info_page' 'report' %}">Report System Issues</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div>&copy; 2026 Kisii University School of Information Sciences & Technology. All rights reserved.</div>
+            <div><a href="#" onclick="executeCleanPortalExit(event)" style="color: #fca5a5; text-decoration: none; font-weight: 600;">Exit Portal</a></div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const mobileNavToggle = document.getElementById('mobileNavToggle');
+            const mobileNavMenu = document.getElementById('mobileNavMenu');
+            if (mobileNavToggle) {
+                mobileNavToggle.addEventListener('click', function() {
+                    mobileNavMenu.classList.toggle('show');
+                    mobileNavToggle.classList.toggle('open');
+                    const isOpen = mobileNavMenu.classList.contains('show');
+                    mobileNavToggle.textContent = isOpen ? '✕' : '☰';
+                });
+                document.addEventListener('click', function(event) {
+                    if (!mobileNavMenu.contains(event.target) && event.target !== mobileNavToggle) {
+                        mobileNavMenu.classList.remove('show');
+                        mobileNavToggle.classList.remove('open');
+                        mobileNavToggle.textContent = '☰';
+                    }
+                });
+            }
+
+            const itemsToReveal = document.querySelectorAll(".reveal-on-scroll");
+            const scrollTrackingObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add("active");
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            itemsToReveal.forEach(item => {
+                scrollTrackingObserver.observe(item);
+            });
+
+            // Read potential registration status payload parameters out of URL
+            const urlParameters = new URLSearchParams(window.location.search);
+            if (urlParameters.get('registered') === 'true') {
+                triggerTemporaryNotification("🎉 Account successfully registered inside database! Please log in below.");
+            }
+            if (urlParameters.get('registration_closed') === '1') {
+                const closedMessage = urlParameters.get('message') || 'Registration is temporarily closed by the system administrator.';
+                triggerTemporaryNotification("⚠️ " + closedMessage, "error");
+            }
+
+            // Trigger temporary notification if error variable was passed from standard form submission
+            {% if error %}
+            triggerTemporaryNotification("❌ {{ error|escapejs }}", "error");
+            {% endif %}
+        });
+
+        // Helper to grab the freshest CSRF token from cookies (prevents back-button stale token issues)
+        function getCookie(name) {
+            const cookieValue = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith(name + '='));
+            return cookieValue ? decodeURIComponent(cookieValue.split('=')[1]) : null;
+        }
+
+        // Handle Database Authentication Sequence dynamically using Fetch 
+        function handleLoginSubmissionSystem(event) {
+            event.preventDefault();
+            
+            const form = document.getElementById('loginForm');
+            const submitBtn = document.getElementById('login-submit-btn');
+            const btnText = submitBtn.querySelector('.btn-text-content');
+            const spinner = document.getElementById('login-button-spinner');
+            
+            // 1. Activate Multicolor Spinner Animation
+            btnText.style.opacity = "0";
+            spinner.style.display = "block";
+            submitBtn.disabled = true;
+
+            const formData = new FormData(form);
+            const csrfToken = getCookie('csrftoken');
+
+            // 2. Submit straight to your Java/Django backend login authentication URL endpoint
+            fetch(form.action || window.location.href, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': csrfToken
+                }
+            })
+            .then(async response => {
+                const data = await response.json().catch(() => ({}));
+
+                if (response.ok && data.status === 'success') {
+                    triggerTemporaryNotification("✅ Credentials verified! Redirecting to your dashboard...", "success");
+                    setTimeout(() => {
+                        window.beginSmoothNavigation(data.redirect_url || "/portal/dashboard/");
+                    }, 1500);
+                } else {
+                    const serverMsg = data.message || "Invalid Registration Number or Password. Please try again.";
+                    triggerTemporaryNotification("❌ " + serverMsg, "error");
+                    spinner.style.display = "none";
+                    btnText.style.opacity = "1";
+                    submitBtn.disabled = false;
+                }
+            })
+            .catch(error => {
+                triggerTemporaryNotification("❌ Connection error. Please check your network and try again.", "error");
+                spinner.style.display = "none";
+                btnText.style.opacity = "1";
+                submitBtn.disabled = false;
+            });
+        }
+
+        // Floating Alert Notifications Controller
+        function triggerTemporaryNotification(message, flagType = "success") {
+            let toast = document.getElementById('portal-toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'portal-toast';
+                document.body.appendChild(toast);
+            }
+            toast.textContent = message;
+            toast.className = "toast-notification " + (flagType === "success" ? "toast-success" : "toast-error");
+            showSmoothToast(toast);
+        }
+
+        function scrollToAndHighlightForm() {
+            const formSide = document.getElementById('auth-terminal-form');
+            formSide.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            formSide.classList.add('highlight-focus-ring');
+            setTimeout(() => { formSide.classList.remove('highlight-focus-ring'); }, 2000);
+            document.getElementById('id_username').focus();
+        }
+
+        function togglePasswordVisibility() {
+            const passInput = document.getElementById('id_password');
+            const eyeBtn = document.querySelector('.toggle-eye-btn');
+            if (passInput.type === 'password') {
+                passInput.type = 'text';
+                eyeBtn.textContent = '🙈';
+            } else {
+                passInput.type = 'password';
+                eyeBtn.textContent = '👁️';
+            }
+        }
+
+        let rootPixelSize = 14;
+        function changeFontSize(direction) {
+            rootPixelSize += (direction * 1.5);
+            if(rootPixelSize < 11) rootPixelSize = 11;
+            if(rootPixelSize > 24) rootPixelSize = 24;
+            document.documentElement.style.fontSize = rootPixelSize + 'px';
+        }
+        function resetFontSize() {
+            rootPixelSize = 14;
+            document.documentElement.style.fontSize = '14px';
+        }
+
+        function toggleContrast() {
+            document.body.classList.toggle('dark-contrast');
+        }
+
+        function executeCleanPortalExit(event) {
+            event.preventDefault();
+            window.open('chrome://newtab', '_blank');
+            window.location.replace('about:blank');
+        }
+
+        // Sticky nav scroll shadow
+        (function() {
+            const navEl = document.querySelector('nav');
+            if (navEl) {
+                window.addEventListener('scroll', function() {
+                    navEl.classList.toggle('scrolled', window.scrollY > 10);
+                }, { passive: true });
+            }
+        })();
+    </script>
+    {% include 'core/ui_transitions.html' %}
+</body>
+</html>

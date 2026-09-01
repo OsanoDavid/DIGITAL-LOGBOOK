@@ -1,0 +1,508 @@
+{% load static %}
+<!-- Accessibility Sidebar Snippet (v5 - Updated Design) -->
+<link rel="stylesheet" href="{% static 'css/accessibility.css' %}">
+
+<style>
+    /* ── Adaptive Panel Theming ──
+       When the body carries a theme-* class the panel recolours itself
+       using CSS custom properties so every label, border, and accent
+       automatically shifts to match. */
+
+    /* Default palette (deep navy) */
+    #accessibility-panel {
+        --acc-accent:     #0096ff;
+        --acc-accent-rgb: 0,150,255;
+        --acc-bg-start:   #080e1e;
+        --acc-bg-end:     #0f2348;
+        --acc-text:       #e2e8f0;
+        --acc-label:      #7dd3fc;
+        --acc-border:     rgba(0,150,255,0.22);
+    }
+
+    /* Red theme — the panel becomes a deep crimson glass */
+    body.theme-red #accessibility-panel {
+        --acc-accent:     #ef4444;
+        --acc-accent-rgb: 239,68,68;
+        --acc-bg-start:   #1a0505;
+        --acc-bg-end:     #3b0a0a;
+        --acc-text:       #ffe4e4;
+        --acc-label:      #fca5a5;
+        --acc-border:     rgba(239,68,68,0.35);
+    }
+
+    /* Yellow theme — rich amber glass */
+    body.theme-yellow #accessibility-panel {
+        --acc-accent:     #f59e0b;
+        --acc-accent-rgb: 245,158,11;
+        --acc-bg-start:   #1a1200;
+        --acc-bg-end:     #3b2800;
+        --acc-text:       #fff8e1;
+        --acc-label:      #fcd34d;
+        --acc-border:     rgba(245,158,11,0.35);
+    }
+
+    /* Blue theme — deep sapphire glass */
+    body.theme-blue #accessibility-panel {
+        --acc-accent:     #38bdf8;
+        --acc-accent-rgb: 56,189,248;
+        --acc-bg-start:   #03091a;
+        --acc-bg-end:     #0a2040;
+        --acc-text:       #e0f2fe;
+        --acc-label:      #7dd3fc;
+        --acc-border:     rgba(56,189,248,0.35);
+    }
+
+    /* Apply the CSS variables to panel internals */
+    #accessibility-panel {
+        background: linear-gradient(160deg, var(--acc-bg-start) 0%, var(--acc-bg-end) 100%) !important;
+        border-left-color: var(--acc-border) !important;
+    }
+    #accessibility-panel .acc-label {
+        color: var(--acc-label) !important;
+    }
+    #accessibility-panel .acc-icon-box {
+        background: linear-gradient(135deg, var(--acc-bg-end), var(--acc-accent)) !important;
+        box-shadow: 0 4px 12px rgba(var(--acc-accent-rgb),0.35) !important;
+    }
+    #accessibility-panel .acc-btn-primary {
+        background: linear-gradient(135deg, var(--acc-bg-end), var(--acc-accent)) !important;
+        box-shadow: 0 4px 16px rgba(var(--acc-accent-rgb),0.35) !important;
+    }
+    #accessibility-panel #acc-font-display {
+        color: var(--acc-accent) !important;
+    }
+    #accessibility-panel .acc-option.active,
+    #accessibility-panel .acc-option.mode-active {
+        background: linear-gradient(135deg, var(--acc-bg-end), var(--acc-accent)) !important;
+        border-color: rgba(var(--acc-accent-rgb),0.5) !important;
+    }
+    #accessibility-panel .acc-option:hover {
+        background: rgba(var(--acc-accent-rgb),0.18) !important;
+        border-color: rgba(var(--acc-accent-rgb),0.4) !important;
+    }
+    #accessibility-panel .acc-divider {
+        background: linear-gradient(90deg,transparent,rgba(var(--acc-accent-rgb),0.2),transparent) !important;
+    }
+    /* Also tint the scrollbar thumb */
+    #accessibility-panel::-webkit-scrollbar-thumb {
+        background: rgba(var(--acc-accent-rgb),0.3) !important;
+    }
+
+    /* ===== FLOATING TRIGGER BUTTON ===== */
+    #accessibility-widget {
+        position: fixed !important;
+        bottom: 28px !important;
+        right: 28px !important;
+        z-index: 99999 !important;
+    }
+    
+    #accessibility-btn {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 50px !important;
+        height: 50px !important;
+        border-radius: 50% !important;
+        border: none !important;
+        cursor: pointer !important;
+        color: #ffffff !important;
+        background: linear-gradient(135deg, #0f4c81 0%, #0096ff 50%, #38bdf8 100%) !important;
+        box-shadow: 0 4px 20px rgba(0, 150, 255, 0.45), 0 2px 8px rgba(0, 0, 0, 0.25) !important;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+        outline: none !important;
+        position: relative !important;
+    }
+    #accessibility-btn:hover {
+        transform: translateY(-3px) scale(1.04) !important;
+        box-shadow: 0 8px 28px rgba(0, 150, 255, 0.55), 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    }
+    #accessibility-btn:active {
+        transform: translateY(0) scale(0.97) !important;
+    }
+    #acc-gear-icon {
+        font-size: 1.4rem !important;
+    }
+
+    /* ===== SIDEBAR PUSH SYSTEM ===== */
+    body {
+        transition: margin-right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    body.acc-sidebar-open {
+        margin-right: 320px;
+    }
+
+    /* ===== ACCESSIBILITY PANEL ===== */
+    #accessibility-panel {
+        position: fixed !important;
+        top: 0 !important;
+        right: 0 !important;
+        width: 320px !important;
+        height: 100vh !important;
+        transform: translateX(100%) !important;
+        z-index: 99998 !important;
+        transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        padding: 22px 20px 28px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        color: #e2e8f0 !important;
+        scrollbar-width: thin !important;
+        box-shadow: -10px 0 70px rgba(0, 0, 0, 0.65) !important;
+    }
+    #accessibility-panel.active {
+        transform: translateX(0) !important;
+    }
+
+    /* Panel Header */
+    .acc-flex-between { display: flex !important; justify-content: space-between !important; align-items: center !important; margin-bottom: 1.2rem !important; }
+    .acc-flex-center  { display: flex !important; align-items: center !important; justify-content: center !important; gap: 10px !important; }
+    .acc-title-text { color: #f1f5f9 !important; font-weight: 800 !important; font-size: 1.05rem !important; margin: 0 !important; }
+    
+    .btn-close-acc {
+        background: rgba(255, 255, 255, 0.08) !important;
+        border: 1.5px solid rgba(255, 255, 255, 0.15) !important;
+        width: 34px !important;
+        height: 34px !important;
+        border-radius: 50% !important;
+        font-size: 0.9rem !important;
+        color: #94a3b8 !important;
+        cursor: pointer !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    }
+    .btn-close-acc:hover {
+        background: rgba(239, 68, 68, 0.22) !important;
+        border-color: rgba(239, 68, 68, 0.5) !important;
+        color: #fca5a5 !important;
+        transform: rotate(90deg) scale(1.1) !important;
+    }
+
+    /* Sections & Dividers */
+    .acc-section { margin-bottom: 18px !important; }
+    .acc-label {
+        display: block !important;
+        font-weight: 700 !important;
+        font-size: 0.7rem !important;
+        text-transform: uppercase !important;
+        letter-spacing: 1.8px !important;
+        margin-bottom: 10px !important;
+    }
+
+    /* Grid layout */
+    .acc-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+    }
+
+    /* Primary Action Buttons */
+    .acc-btn-primary {
+        background: linear-gradient(135deg, #0f4c81, #0096ff) !important;
+        width: 100% !important;
+        padding: 12px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 8px !important;
+        font-weight: 700 !important;
+        font-size: 0.88rem !important;
+        border-radius: 10px !important;
+        color: white !important;
+        border: none !important;
+        cursor: pointer !important;
+        transition: opacity 0.2s, transform 0.18s !important;
+        box-shadow: 0 4px 16px rgba(0, 150, 255, 0.3) !important;
+    }
+    .acc-btn-primary:hover { opacity: 0.9 !important; transform: translateY(-1px) !important; }
+    .acc-btn-primary:active { transform: translateY(0) !important; }
+
+    .acc-btn-outline {
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1.5px solid rgba(255, 255, 255, 0.14) !important;
+        width: 100% !important;
+        padding: 10px !important;
+        font-weight: 700 !important;
+        font-size: 0.85rem !important;
+        border-radius: 10px !important;
+        color: #94a3b8 !important;
+        cursor: pointer !important;
+        margin-top: 12px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 6px !important;
+        transition: all 0.2s !important;
+    }
+    .acc-btn-outline:hover { background: rgba(255, 255, 255, 0.1) !important; color: #e2e8f0 !important; }
+
+    /* Theme Circles */
+    .theme-circle {
+        width: 34px !important;
+        height: 34px !important;
+        border-radius: 50% !important;
+        cursor: pointer !important;
+        border: 2.5px solid rgba(255, 255, 255, 0.3) !important;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.4) !important;
+        transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    }
+    .theme-circle:hover {
+        transform: translateY(-4px) scale(1.15) !important;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.5) !important;
+    }
+    .tc-default { background: linear-gradient(135deg, #64748b, #1e293b) !important; }
+    .tc-red     { background: linear-gradient(135deg, #f44336, #b71c1c) !important; }
+    .tc-yellow  { background: linear-gradient(135deg, #ffeb3b, #fbc02d) !important; }
+    .tc-blue    { background: linear-gradient(135deg, #2196f3, #0d47a1) !important; }
+
+    /* Default styling for options in the panel */
+    #accessibility-panel .acc-option {
+        background: rgba(255, 255, 255, 0.06) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: var(--acc-text) !important;
+        transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    }
+
+    /* ===== FONT SIZE CONTROLS ===== */
+    .acc-font-row {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 12px !important;
+        width: 100% !important;
+        margin: 10px 0 !important;
+    }
+    
+    .acc-font-btn {
+        flex: 1 !important;
+        height: 48px !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        background: rgba(255, 255, 255, 0.05) !important;
+        border-radius: 12px !important;
+        cursor: pointer !important;
+        font-size: 1.6rem !important;
+        font-weight: 400 !important;
+        line-height: 1 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+        user-select: none !important;
+        color: #e2e8f0 !important;
+        backdrop-filter: blur(8px) !important;
+    }
+    
+    .acc-font-btn-minus {
+        color: #fca5a5 !important;
+        border-color: rgba(239, 68, 68, 0.25) !important;
+        background: rgba(239, 68, 68, 0.08) !important;
+    }
+    .acc-font-btn-minus:hover {
+        background: rgba(239, 68, 68, 0.2) !important;
+        border-color: rgba(239, 68, 68, 0.5) !important;
+        box-shadow: 0 4px 15px rgba(239, 68, 68, 0.25) !important;
+        transform: translateY(-2px) !important;
+        color: #ffffff !important;
+    }
+    .acc-font-btn-minus:active {
+        transform: scale(0.92) !important;
+    }
+    
+    .acc-font-btn-plus {
+        color: #86efac !important;
+        border-color: rgba(16, 185, 129, 0.25) !important;
+        background: rgba(16, 185, 129, 0.08) !important;
+    }
+    .acc-font-btn-plus:hover {
+        background: rgba(16, 185, 129, 0.2) !important;
+        border-color: rgba(16, 185, 129, 0.5) !important;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.25) !important;
+        transform: translateY(-2px) !important;
+        color: #ffffff !important;
+    }
+    .acc-font-btn-plus:active {
+        transform: scale(0.92) !important;
+    }
+    
+    .acc-font-display-wrap {
+        flex: 1.2 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background: rgba(255, 255, 255, 0.06) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 12px !important;
+        padding: 6px 4px !important;
+        min-width: 80px !important;
+        height: 48px !important;
+    }
+    
+    #acc-font-display {
+        font-size: 1.25rem !important;
+        font-weight: 800 !important;
+        line-height: 1.1 !important;
+    }
+    
+    .acc-font-label {
+        font-size: 0.6rem !important;
+        color: #94a3b8 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 1.2px !important;
+        margin-top: 2px !important;
+    }
+
+    /* Select dropdown */
+    #accessibility-panel select, #accessibility-panel .form-select {
+        background: #0d1f3c !important;
+        color: #ffffff !important;
+        border-color: rgba(var(--acc-accent-rgb),0.3) !important;
+        border-radius: 8px !important;
+    }
+    #accessibility-panel select option,
+    #accessibility-panel .form-select option {
+        background: #0d1f3c !important;
+        color: #ffffff !important;
+    }
+</style>
+
+<!-- Premium 3-Color Glowing Spinner Loader -->
+<div id="system-page-loader">
+    <div class="loader-container">
+        <span class="loader-text">KISII LOGBOOK</span>
+        <!-- Arc 1: Red -->
+        <svg class="loader-arc arc-1" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="44" stroke="#FF1744" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-dasharray="55 220" />
+        </svg>
+        <!-- Arc 4: Green -->
+        <svg class="loader-arc arc-4" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="38" stroke="#00C853" stroke-width="3" fill="none" stroke-linecap="round" stroke-dasharray="65 220" stroke-dashoffset="-70" />
+        </svg>
+        <!-- Arc 5: Blue -->
+        <svg class="loader-arc arc-5" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="32" stroke="#00B0FF" stroke-width="3" fill="none" stroke-linecap="round" stroke-dasharray="40 200" stroke-dashoffset="-50" />
+        </svg>
+    </div>
+</div>
+
+<div id="accessibility-widget">
+    <button id="accessibility-btn" onclick="toggleAccPanel()" title="Accessibility Settings">
+        <i class="bi bi-gear-fill" id="acc-gear-icon"></i>
+    </button>
+</div>
+
+<div id="accessibility-panel">
+    <div class="acc-flex-between">
+        <div class="acc-flex-center">
+            <div class="acc-icon-box">
+                <i class="bi bi-universal-access" style="font-size: 1.25rem;"></i>
+            </div>
+            <span class="acc-title-text">Accessibility</span>
+        </div>
+        <button onclick="toggleAccPanel()" class="btn-close-acc" title="Close Sidebar" id="acc-close-btn">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+
+    <!-- 1. Text Controls -->
+    <div class="acc-section">
+        <span class="acc-label">Font Scaling</span>
+        <div class="acc-font-row">
+            <button class="acc-font-btn acc-font-btn-minus" onclick="changeFontSize(-15)" title="Decrease font size">&minus;</button>
+            <div class="acc-font-display-wrap">
+                <div id="acc-font-display">100%</div>
+                <div class="acc-font-label">Font Size</div>
+            </div>
+            <button class="acc-font-btn acc-font-btn-plus" onclick="changeFontSize(15)" title="Increase font size">+</button>
+        </div>
+    </div>
+
+    <div class="acc-divider"></div>
+
+    <!-- 2. Intelligence Section -->
+    <div class="acc-section">
+        <span class="acc-label">Voice-First Navigation</span>
+        <button class="acc-btn-primary" onclick="startVoiceAssistant()">
+            <i class="bi bi-mic-fill" style="color: #0dcaf0;"></i> Engage Voice Engine
+        </button>
+    </div>
+
+    <div class="acc-divider"></div>
+
+    <!-- 3. Reading Tools -->
+    <div class="acc-section">
+        <span class="acc-label">Reading Assistance</span>
+        <div class="acc-grid">
+            <div class="acc-option py-3" style="padding: 1rem 0;" onclick="toggleAccSetting('dyslexic')">
+                <i class="bi bi-fonts" style="display:block; margin-bottom:6px; font-size: 1.2rem;"></i> Dyslexic
+            </div>
+            <div class="acc-option py-3" style="padding: 1rem 0;" onclick="location.reload()">
+                <i class="bi bi-arrow-clockwise" style="display:block; margin-bottom:6px; font-size: 1.2rem;"></i> Reset
+            </div>
+        </div>
+    </div>
+
+    <div class="acc-divider"></div>
+
+    <!-- Font Family Selector -->
+    <div class="acc-section">
+        <span class="acc-label">Font Family</span>
+        <select class="form-select shadow-sm" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ced4da; font-size: 0.9rem;" onchange="changeFont(this.value)">
+            <option value="">— Default System Font —</option>
+            <option value="'Arial', sans-serif">Arial (Clean)</option>
+            <option value="'Georgia', serif">Georgia (Serif)</option>
+            <option value="'Courier New', monospace">Courier New (Mono)</option>
+            <option value="'Verdana', sans-serif">Verdana (Wide)</option>
+            <option value="'Trebuchet MS', sans-serif">Trebuchet (Rounded)</option>
+            <option value="'Comic Sans MS', cursive">Comic Sans (Dyslexia)</option>
+            <option value="'Times New Roman', serif">Times New Roman</option>
+        </select>
+    </div>
+
+    <div class="acc-divider"></div>
+
+    <!-- Visual Display Options -->
+    <div class="acc-section">
+        <span class="acc-label">Visual Display Options</span>
+        <div class="acc-grid">
+            <div class="acc-option py-3" style="padding: 1rem 0;" onclick="toggleDisplayMode('dark')" id="btn-dark">
+                <i class="bi bi-moon-stars-fill" style="display:block; margin-bottom:6px; font-size: 1.2rem;"></i> Dark Mode
+            </div>
+            <div class="acc-option py-3" style="padding: 1rem 0;" onclick="toggleDisplayMode('contrast')" id="btn-contrast">
+                <i class="bi bi-circle-half" style="display:block; margin-bottom:6px; font-size: 1.2rem;"></i> High Contrast
+            </div>
+            <div class="acc-option py-3" style="padding: 1rem 0;" onclick="toggleDisplayMode('grayscale')" id="btn-gray">
+                <i class="bi bi-palette2" style="display:block; margin-bottom:6px; font-size: 1.2rem;"></i> Greyscale
+            </div>
+            <div class="acc-option py-3" style="padding: 1rem 0;" onclick="toggleDisplayMode('sepia')" id="btn-sepia">
+                <i class="bi bi-brightness-high" style="display:block; margin-bottom:6px; font-size: 1.2rem;"></i> Warm Sepia
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-top: auto;">
+        <!-- 4. Themes -->
+        <div class="acc-section" style="border-top: 1px solid rgba(0,0,0,0.08); padding-top: 1.5rem;">
+            <span class="acc-label" style="text-align:center;">Interface Themes</span>
+            <div class="acc-flex-center" style="gap: 18px;">
+                <div class="theme-circle tc-default" onclick="setTheme('default')" title="Standard"></div>
+                <div class="theme-circle tc-red" onclick="setTheme('red')" title="Red Mode"></div>
+                <div class="theme-circle tc-yellow" onclick="setTheme('yellow')" title="Yellow Mode"></div>
+                <div class="theme-circle tc-blue" onclick="setTheme('blue')" title="Blue Mode"></div>
+            </div>
+        </div>
+
+        <button class="acc-btn-outline" onclick="toggleAccPanel()">
+            <i class="bi bi-x-circle"></i> Close Sidebar
+        </button>
+    </div>
+</div>
+
+<div id="voice-overlay">
+    <div class="voice-wave"></div>
+    <h2 style="margin-top: 2rem; font-weight: bold;" id="voice-status">Analyzing Voice Input...</h2>
+</div>
+
+<script src="{% static 'js/accessibility.js' %}"></script>

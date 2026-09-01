@@ -1,0 +1,941 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIST System Registration - Kisii University</title>
+
+    <link rel="icon" type="image/jpeg" href="{% static 'images/logo.jpeg' %}">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="{% static 'css/portal.css' %}">
+    <style>
+        .back-home-btn { display:inline-flex;align-items:center;gap:4px;font-weight:700;color:#0f4c81 !important;font-size:0.88rem;text-decoration:none;border:1.5px solid rgba(15,76,129,0.25);padding:5px 12px;border-radius:8px;transition:all 0.2s;background:rgba(15,76,129,0.06); }
+        .back-home-btn:hover { background:rgba(15,76,129,0.12);border-color:#0f4c81;color:#0f4c81 !important; }
+        .multicolor-gradient-side {
+            flex: 1.1;
+            background: linear-gradient(135deg, #0f4c81 0%, #0096ff 30%, #8b5cf6 70%, #f4a261 100%);
+            position: relative;
+            min-height: 520px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            box-sizing: border-box;
+        }
+
+        .gradient-overlay-content {
+            z-index: 2;
+            color: #ffffff;
+            text-align: center;
+        }
+
+        .gradient-logo-frame {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+        }
+
+        .gradient-logo-frame img {
+            height: 90px;
+            width: auto;
+            border-radius: 8px;
+        }
+
+        .gradient-overlay-content h3 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin: 0 0 10px 0;
+        }
+
+        .gradient-overlay-content p {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin: 0;
+        }
+
+        .fee-alert-box {
+            background-color: #fee2e2;
+            border-left: 4px solid #ef4444;
+            color: #991b1b;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .conditional-field-wrapper {
+            display: none;
+            background: rgba(15, 150, 255, 0.04);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px dashed var(--kisii-sky);
+            margin-bottom: 20px;
+        }
+
+        .live-error-text {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #ef4444;
+            margin-top: 5px;
+            display: none;
+        }
+
+        nav { position: relative; }
+        .mobile-nav-toggle {
+            display: none;
+            position: fixed;
+            top: 18px;
+            right: 18px;
+            width: 52px;
+            height: 52px;
+            border: 1px solid rgba(15,76,129,0.18);
+            background: rgba(255, 255, 255, 0.96);
+            color: #0f172a;
+            border-radius: 50%;
+            padding: 0;
+            cursor: pointer;
+            font-weight: 700;
+            box-shadow: 0 16px 40px rgba(15,76,129,0.16);
+            align-items: center;
+            justify-content: center;
+            z-index: 2200;
+            transition: transform 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .mobile-nav-toggle.open {
+            transform: rotate(90deg);
+            background: #0f172a;
+            color: #ffffff;
+        }
+
+        .mobile-nav-menu {
+            display: none;
+            position: fixed;
+            top: 80px;
+            right: 18px;
+            width: min(280px, calc(100vw - 36px));
+            max-height: calc(100vh - 104px);
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 18px;
+            border: 1px solid rgba(226, 232, 240, 0.95);
+            box-shadow: 0 24px 60px rgba(15,76,129,0.16);
+            overflow: hidden;
+            z-index: 2050;
+            opacity: 0;
+            transform: translateY(-12px) scale(0.96);
+            transition: opacity 0.22s ease, transform 0.22s ease;
+        }
+
+        .mobile-nav-menu.show {
+            display: block;
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        .mobile-nav-menu a {
+            display: block;
+            padding: 14px 18px;
+            color: #0f172a;
+            text-decoration: none;
+            border-bottom: 1px solid #f1f5f9;
+            font-weight: 600;
+        }
+
+        .mobile-nav-menu a:last-child { border-bottom: none; }
+        .mobile-nav-menu a:hover { background: #f8fbff; }
+
+        .mobile-nav-menu a {
+            display: block;
+            padding: 14px 18px;
+            color: #0f172a;
+            text-decoration: none;
+            border-bottom: 1px solid #f1f5f9;
+            font-weight: 600;
+        }
+
+        .mobile-nav-menu a:last-child { border-bottom: none; }
+        .mobile-nav-menu a:hover { background: #f8fbff; }
+
+        @media (max-width: 800px) {
+            .nav-links { display: none; }
+            .mobile-nav-toggle { display: inline-flex; }
+            nav { position: relative; }
+            .nav-logo-area { flex-wrap: wrap; justify-content: space-between; }
+            .nav-links { width: 100%; margin-top: 12px; }
+        }
+
+        /* Keep desktop links as text, and use a calm side drawer on mobile. */
+        .nav-links a.active { background: transparent !important; box-shadow: none !important; border-radius: 0 !important; padding: 0 !important; }
+        @media (max-width: 800px) {
+            .mobile-nav-toggle { width: 60px; height: 48px; border-radius: 14px; background: #ffffff; color: #0f4c81; }
+            .mobile-nav-toggle.open { transform: none; background: #0f4c81; color: #ffffff; }
+            .mobile-nav-menu { display: flex; flex-direction: column; top: 0; right: 0; width: min(360px, 88vw); max-height: 100vh; height: 100vh; padding: 30px 28px; box-sizing: border-box; border: 0; border-radius: 0; background: rgba(255,255,255,.99); box-shadow: -18px 0 48px rgba(15,76,129,.16); overflow-y: auto; opacity: 0; visibility: hidden; transform: translateX(32px); transition: opacity .3s ease, transform .3s cubic-bezier(.22,1,.36,1), visibility .3s; }
+            .mobile-nav-menu.show { display: flex; opacity: 1; visibility: visible; transform: translateX(0); }
+            .mobile-nav-menu .mobile-menu-brand { display: flex; align-items: center; gap: 10px; margin: 0 0 26px; padding: 0 0 20px; border-bottom: 1px solid #e6edf5; color: #0f4c81; font-size: .78rem; font-weight: 800; letter-spacing: .08em; }
+            .mobile-nav-menu .mobile-menu-brand img { width: 46px; height: 46px; object-fit: contain; border-radius: 8px; }
+            .mobile-nav-menu a { padding: 15px 0; border: 0; background: transparent; color: #172033; font-size: 1.1rem; font-weight: 700; }
+            .mobile-nav-menu a:hover, .mobile-nav-menu a.active { background: transparent; color: #0f4c81; }
+            .mobile-nav-menu a.btn-nav { margin-top: auto; padding: 14px 18px; border-radius: 12px; color: #ffffff; text-align: center; background: linear-gradient(135deg, #0f4c81, #0096ff); box-shadow: 0 10px 20px rgba(15,76,129,.2); }
+        }
+
+        /* Profile Role Selector Cards */
+        .profile-card-btn {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 20px;
+            background: #ffffff;
+            border: 1.5px solid var(--border-color);
+            border-radius: 14px;
+            cursor: pointer;
+            text-align: left;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            width: 100%;
+            color: var(--slate-dark);
+            box-shadow: 0 2px 8px rgba(15, 76, 129, 0.06);
+        }
+
+        .profile-card-btn:hover {
+            border-color: var(--kisii-sky);
+            background: rgba(0, 150, 255, 0.04);
+            box-shadow: 0 6px 20px rgba(15, 76, 129, 0.12);
+            transform: translateY(-2px);
+        }
+
+        .profile-card-btn .profile-icon {
+            font-size: 1.8rem;
+            flex-shrink: 0;
+            width: 44px;
+            text-align: center;
+        }
+
+        .profile-card-btn div {
+            flex: 1;
+        }
+
+        .profile-card-btn strong {
+            display: block;
+            font-size: 0.97rem;
+            font-weight: 700;
+            color: var(--kisii-blue);
+            margin-bottom: 3px;
+        }
+
+        .profile-card-btn small {
+            font-size: 0.82rem;
+            color: #64748b;
+            font-weight: 400;
+        }
+
+        .profile-card-btn .profile-arrow {
+            font-size: 1.3rem;
+            color: var(--kisii-sky);
+            flex-shrink: 0;
+            font-weight: 700;
+        }
+
+        /* === SHARED WIZARD STYLES === */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .form-group label {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .form-control, .form-group input, .form-group select {
+            padding: 14px 18px;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            background: #f8fafc;
+            color: #334155;
+            transition: all 0.2s ease;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .form-control:focus, .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--kisii-blue);
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(15, 76, 129, 0.1);
+        }
+
+        .password-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        .password-wrapper input {
+            width: 100%;
+            padding-right: 45px;
+        }
+
+        .toggle-eye-btn {
+            position: absolute;
+            right: 12px;
+            background: none;
+            border: none;
+            font-size: 1.1rem;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+
+        .toggle-eye-btn:hover {
+            opacity: 1;
+        }
+
+        .wizard-container {
+            width: 100%;
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 25px rgba(15, 76, 129, 0.05);
+            box-sizing: border-box;
+            border: 1px solid var(--border-color);
+        }
+
+        .wizard-container h2 {
+            text-align: center;
+            color: var(--kisii-blue);
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 26px;
+            font-weight: 800;
+        }
+
+        .wizard-container .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .progress-container {
+            width: 100%;
+            background: #f0f3f6;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            height: 8px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 33.33%;
+            background: linear-gradient(90deg, var(--kisii-blue), var(--kisii-sky));
+            border-radius: 20px;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .step { 
+            display: none; 
+            opacity: 0;
+            transform: translateY(8px);
+        }
+        
+        .step.active { 
+            display: block; 
+            animation: fadeInStep 0.4s ease forwards;
+        }
+
+        @keyframes fadeInStep {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .btn-back {
+            background: #f1f5f9;
+            color: #64748b;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s;
+        }
+        .btn-back:hover:not(:disabled) { background: #e2e8f0; color: #334155; }
+        .btn-back:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .btn-next {
+            background: linear-gradient(135deg, var(--kisii-blue), var(--kisii-sky));
+            color: #ffffff;
+            padding: 14px 35px;
+            border-radius: 12px;
+            font-weight: 600;
+            border: none;
+            box-shadow: 0 8px 16px rgba(15, 76, 129, 0.2);
+            display: inline-flex;
+            align-items: center;
+        }
+        .btn-next:disabled { background: #cbd5e1; box-shadow: none; cursor: not-allowed; color: #94a3b8; }
+        .btn-next:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 12px 20px rgba(15, 76, 129, 0.3); }
+
+        /* Small, button-only loader used by the registration wizard. */
+        .spinner {
+            display: none;
+            width: 16px;
+            height: 16px;
+            margin-left: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.42);
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: formButtonSpin 0.7s linear infinite;
+            flex: 0 0 auto;
+        }
+
+        @keyframes formButtonSpin { to { transform: rotate(360deg); } }
+
+        .form-side { position: relative; }
+        .calm-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 20;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            padding: 28px;
+            background: rgba(255, 255, 255, 0.94);
+            backdrop-filter: blur(8px);
+            opacity: 0;
+            transition: opacity 0.32s ease;
+        }
+        .calm-overlay.show { opacity: 1; }
+        .calm-spinner {
+            width: 34px;
+            height: 34px;
+            border: 4px solid #dbeafe;
+            border-top-color: var(--kisii-blue);
+            border-radius: 50%;
+            animation: formButtonSpin 0.8s linear infinite;
+        }
+        .fade-in-section { animation: wizardLanding 0.55s cubic-bezier(0.16, 1, 0.3, 1) both; }
+        @keyframes wizardLanding {
+            from { opacity: 0; transform: translateY(20px) scale(0.985); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .overlay-backdrop {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 9999;
+            align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease;
+        }
+        .overlay-backdrop.show { display: flex; opacity: 1; }
+        .overlay-card {
+            background: #ffffff; width: 90%; max-width: 700px; max-height: 85vh;
+            border-radius: 20px; padding: 35px; overflow-y: auto;
+            transform: scale(0.9) translateY(20px); transition: transform 0.3s;
+        }
+        .overlay-backdrop.show .overlay-card { transform: scale(1) translateY(0); }
+        
+        .review-grid-list {
+            list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
+        }
+        .review-grid-list li {
+            background: #f8fafc; padding: 12px 15px; border-radius: 10px; border: 1px solid #e2e8f0; font-size: 14px; color: #334155;
+        }
+        .review-grid-list li strong { display: block; color: #94a3b8; font-size: 12px; text-transform: uppercase; margin-bottom: 4px; }
+        .overlay-actions { display: flex; justify-content: flex-end; gap: 15px; margin-top: 25px; border-top: 1px solid #e2e8f0; padding-top: 20px; }
+        .close-overlay-btn { background: none; border: none; cursor: pointer; color: #94a3b8; padding: 5px; border-radius: 8px; transition: all 0.2s; }
+        .close-overlay-btn:hover { background: #f1f5f9; color: #ef4444; }
+
+        @media (max-width: 768px) { .form-grid, .review-grid-list { grid-template-columns: 1fr; } }
+    </style>
+</head>
+
+<body>
+
+    <nav id="home">
+        <div class="nav-logo-area">
+            <img src="{% static 'images/logo.jpeg' %}" alt="Kisii University Logo">
+            <div class="brand-text">
+                <h1>KISII UNIVERSITY</h1>
+                <p>{{ school_name|default:"School of Information Sciences & Technology" }}</p>
+            </div>
+        </div>
+        <button class="mobile-nav-toggle" id="mobileNavToggle" type="button">☰</button>
+        <div class="nav-links">
+            <a href="/" class="back-home-btn" title="Back to School Selection">&#8592; Home</a>
+            <a href="{% url 'core:login' %}?school={{ school_code|default:'SIST' }}">Login</a>
+            <a href="#" class="active">Register for Logbook</a>
+            <a href="{% url 'core:login' %}?school={{ school_code|default:'SIST' }}#services">Services</a>
+            <a href="#support">Support</a>
+            <a href="{% url 'core:login' %}?school={{ school_code|default:'SIST' }}" class="btn-nav">Sign In Terminal</a>
+        </div>
+        <div class="mobile-nav-menu" id="mobileNavMenu">
+            <div class="mobile-menu-brand"><img src="{% static 'images/logo.jpeg' %}" alt="">KISII LOGBOOK</div>
+            <a href="/">&#8592; Back to Home</a>
+            <a href="{% url 'core:login' %}?school={{ school_code|default:'SIST' }}">Login</a>
+            <a href="#" class="active">Register for Logbook</a>
+            <a href="{% url 'core:login' %}?school={{ school_code|default:'SIST' }}#services">Services</a>
+            <a href="#support">Support</a>
+            <a href="{% url 'core:login' %}?school={{ school_code|default:'SIST' }}" class="btn-nav">Sign In Terminal</a>
+        </div>
+    </nav>
+
+    <main class="main-workspace reveal-on-scroll">
+        <div class="split-card">
+
+            <div class="sist-header-banner">
+                <h2>{{ school_code|default:"SIST" }} <span>System Portal</span> Registration</h2>
+                <p>Create your verified attachment logging credentials for Kisii University evaluation cycles.</p>
+            </div>
+
+            <div class="split-card-body">
+                <div class="multicolor-gradient-side">
+                    <div class="gradient-overlay-content">
+                        <div class="gradient-logo-frame">
+                            <img src="{% static 'images/logo.jpeg' %}" alt="SIST Crest">
+                        </div>
+                        <h3>Inclusivity & Borderlessness</h3>
+                        <p>SIST Digital Logbook Hub</p>
+                    </div>
+                </div>
+
+                <div class="form-side" id="reg-terminal-form">
+                    <h2>Account Creation Portal</h2>
+                    <p class="subtitle">Provide your official academic registry parameters to initialize your profile
+                        system node.</p>
+
+                    <div id="fee-blocker-message" class="fee-alert-box">
+                        ⚠️ Registration Blocked: You must have cleared your university tuition fees to register for
+                        industrial attachment evaluation.
+                    </div>
+
+                    <div id="registrationErrorPanel" class="fee-alert-box" {% if errors %}style="display: block;"{% endif %}>
+                        <span id="registrationErrorMessage">{% if error_summary %}{{ error_summary }}{% elif errors %}Please correct the highlighted fields:{% endif %}</span>
+                        <ul id="registrationErrorList" style="margin: 8px 0 0 0; padding-left: 20px; font-size: 0.85rem; font-weight: normal;">
+                            {% if errors %}
+                                {% for err in errors %}
+                                    <li>{{ err }}</li>
+                                {% endfor %}
+                            {% endif %}
+                        </ul>
+                    </div>
+
+                    <!-- === PROFILE SELECTOR LANDING === -->
+                    <div id="calmTransitionOverlay" class="calm-overlay">
+                        <div class="calm-spinner"></div>
+                        <div>
+                            <h3 style="margin:0; font-size:1.1rem; color:#0f172a;">Preparing your profile form...</h3>
+                            <p style="margin: 10px 0 0; color:#475569; font-size:0.95rem; max-width: 320px;">Just a moment while we load the registration fields calmly.</p>
+                        </div>
+                    </div>
+                    <div id="profile-selector-section">
+                        <p style="font-size:0.95rem; color:#475569; margin-bottom:18px; font-weight:500;">Select your system workspace profile to begin registration:</p>
+                        <div style="display:flex; flex-direction:column; gap:14px;">
+                            <button type="button" class="profile-card-btn" onclick="selectWorkspaceProfile('STUDENT', this)">
+                                <span class="profile-icon">🎓</span>
+                                <div>
+                                    <strong>Student / Attachee Node</strong>
+                                    <small>Register as an industrial attachment student</small>
+                                </div>
+                                <span class="profile-arrow">→</span>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- === END PROFILE S                    <!-- Dynamic Wizard Wrappers -->
+                    <div id="student_wizard_wrapper" style="display:none;">
+                        <button type="button" class="btn-back" onclick="returnToProfileSelector()" style="margin-bottom:15px; padding: 10px 20px;">← Back to Roles</button>
+                        <form method="POST" id="student_registrationForm" onsubmit="handleFormSubmissionSystem(event, 'STUDENT')">
+                            {% csrf_token %}
+                            <input type="hidden" name="role" value="STUDENT">
+                            {% include 'core/studentdetails.html' %}
+                        </form>
+                    </div>
+
+                    <div class="register-prompt-footer">
+                        Already have an operating account? <a href="{% url 'core:login' %}">Sign In Here</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer id="support">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4>SIST Platforms</h4>
+                <ul>
+                    <li><a href="{% url 'core:register' %}">Logbook Registration</a></li>
+                    <li><a href="{% url 'core:info_page' 'guidelines' %}">Attachment Guidelines</a></li>
+                    <li><a href="{% url 'core:info_page' 'manuals' %}">Supervisor Manuals</a></li>
+                    <li><a href="{% url 'core:admin_login' %}">Administrator Portal</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Kisii University Links</h4>
+                <ul>
+                    <li><a href="https://www.kisiiuniversity.ac.ke" target="_blank">Main University Site</a></li>
+                    <li><a href="https://portal.kisiiuniversity.ac.ke" target="_blank">Student Portal</a></li>
+                    <li><a href="https://elearning.kisiiuniversity.ac.ke/" target="_blank">E-Learning LMS</a></li>
+                    <li><a href="https://digital.kisiiuniversity.ac.ke/" target="_blank">Kisii Huduma-Bora</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Support Center</h4>
+                <ul>
+                    <li><a href="https://kisiiuniversity.ac.ke/dpt/information-communication-and-technology-ict" target="_blank">SIST ICT Desk</a></li>
+                    <li><a href="{% url 'core:info_page' 'support' %}">Logbook Support Help</a></li>
+                    <li><a href="{% url 'core:info_page' 'report' %}">Report System Issues</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div>&copy; 2026 Kisii University School of Information Sciences & Technology.</div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const itemsToReveal = document.querySelectorAll(".reveal-on-scroll");
+            const scrollTrackingObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add("active"); });
+            }, { threshold: 0.1 });
+            itemsToReveal.forEach(item => scrollTrackingObserver.observe(item));
+
+            // Trigger temporary notification if errors were passed from standard form submission
+            {% if errors %}
+            triggerTemporaryNotification("❌ {{ error_summary|default:'Please correct the registration errors displayed in the form.'|escapejs }}", "error");
+            // If there were errors on POST, show the form directly
+            document.getElementById('profile-selector-section').style.display = 'none';
+            document.getElementById('registrationForm').style.display = 'block';
+            evaluateRoleConditionalFlows();
+            {% endif %}
+        });
+
+        // Profile selector functions
+        function selectWorkspaceProfile(role, button) {
+            const overlay = document.getElementById('calmTransitionOverlay');
+            const chooser = document.getElementById('profile-selector-section');
+            const studentWrapper = document.getElementById('student_wizard_wrapper');
+            const profileButtons = document.querySelectorAll('.profile-card-btn');
+
+            profileButtons.forEach(btn => btn.disabled = true);
+            overlay.style.display = 'flex';
+            overlay.classList.add('show');
+
+            setTimeout(() => {
+                overlay.classList.remove('show');
+                overlay.style.display = 'none';
+                chooser.style.display = 'none';
+                studentWrapper.style.display = 'none';
+
+                let revealWrapper = null;
+                if (role === 'STUDENT') revealWrapper = studentWrapper;
+
+                if (revealWrapper) {
+                    revealWrapper.style.display = 'block';
+                    revealWrapper.classList.add('fade-in-section');
+                    setTimeout(() => revealWrapper.classList.add('active'), 30);
+                }
+
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                    profileButtons.forEach(btn => btn.disabled = false);
+                }, 320);
+            }, 650);
+        }
+
+        function returnToProfileSelector() {
+            document.getElementById('student_wizard_wrapper').style.display = 'none';
+            document.getElementById('profile-selector-section').style.display = 'block';
+            document.getElementById('fee-blocker-message').style.display = 'none';
+            document.getElementById('registrationErrorPanel').style.display = 'none';
+        }
+
+
+        function evaluateRoleConditionalFlows() {
+            const roleSelection = document.getElementById('id_role').value;
+            const feeVerificationWrapper = document.getElementById('student-fee-verification-box');
+            const supervisorCompanyWrapper = document.getElementById('supervisor-company-field');
+            const identityLabelText = document.getElementById('username-label-text');
+            const mainIdentityInputField = document.getElementById('id_username');
+            const companyInput = document.getElementById('id_institution_or_company');
+
+            const courseInput = document.getElementById('id_course');
+            const courseFieldWrapper = document.getElementById('course-field-wrapper');
+            if (roleSelection === "STUDENT") {
+                feeVerificationWrapper.style.display = "block";
+                supervisorCompanyWrapper.style.display = "block";
+                courseFieldWrapper.style.display = "block";
+                courseInput.required = true;
+                companyInput.required = true;
+                identityLabelText.textContent = "Registration Number";
+                mainIdentityInputField.placeholder = "e.g., IN14/00000/22";
+                evaluateFeeClearanceStatus();
+            } else {
+                feeVerificationWrapper.style.display = "none";
+                document.getElementById('fee-blocker-message').style.display = "none";
+                verifyPasswordSecurityRules();
+                if (roleSelection === "SUPERVISOR") {
+                    supervisorCompanyWrapper.style.display = "block";
+                    // Supervisors match by organisation only — course field is hidden
+                    courseFieldWrapper.style.display = "none";
+                    courseInput.required = false;
+                    courseInput.value = "";
+                    companyInput.required = true;
+                    identityLabelText.textContent = "Supervisor Staff ID Code";
+                    mainIdentityInputField.placeholder = "e.g., SUP-88741";
+                } else {
+                    // LECTURER
+                    supervisorCompanyWrapper.style.display = "none";
+                    courseFieldWrapper.style.display = "block";
+                    courseInput.required = true;
+                    companyInput.required = false;
+                    identityLabelText.textContent = "Lecturer Employee Number";
+                    mainIdentityInputField.placeholder = "e.g., KSU-PF-1024";
+                }
+            }
+        }
+
+        function evaluateFeeClearanceStatus() {
+            if (document.getElementById('id_role').value !== "STUDENT") return;
+            const selectedStatus = document.getElementById('id_fees_cleared').value;
+            if (selectedStatus === "NO") {
+                document.getElementById('fee-blocker-message').style.display = "block";
+                lockFormSubmission();
+            } else {
+                document.getElementById('fee-blocker-message').style.display = "none";
+                verifyPasswordSecurityRules();
+            }
+        }
+
+        function verifyPasswordSecurityRules() {
+            const passwordVal = document.getElementById('id_password').value;
+            const confirmVal = document.getElementById('id_confirm_password').value;
+            const isStrong = passwordVal.length >= 8;
+            const isMatch = passwordVal === confirmVal;
+
+            document.getElementById('strength-error-line').style.display = (passwordVal.length > 0 && !isStrong) ? "block" : "none";
+            document.getElementById('match-error-line').style.display = (confirmVal.length > 0 && !isMatch) ? "block" : "none";
+
+            if (isStrong && isMatch) {
+                const role = document.getElementById('id_role').value;
+                const feeStatus = document.getElementById('id_fees_cleared').value;
+                if (role === "STUDENT" && feeStatus === "NO") lockFormSubmission(); else unlockFormSubmission();
+            } else {
+                lockFormSubmission();
+            }
+        }
+
+        function lockFormSubmission() {
+            const btn = document.getElementById('submit-portal-btn');
+            btn.disabled = true; btn.style.opacity = "0.4"; btn.style.cursor = "not-allowed";
+        }
+
+        function unlockFormSubmission() {
+            const btn = document.getElementById('submit-portal-btn');
+            btn.disabled = false; btn.style.opacity = "1"; btn.style.cursor = "pointer";
+        }
+
+        // Submits registration parameters to database and points immediately to login screen
+        function getCookie(name) {
+            const cookieValue = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith(name + '='));
+            return cookieValue ? decodeURIComponent(cookieValue.split('=')[1]) : null;
+        }
+
+        function handleFormSubmissionSystem(event, role) {
+            event.preventDefault();
+            
+            let formId = '';
+            if (role === 'STUDENT') formId = 'student_registrationForm';
+            if (role === 'SUPERVISOR') formId = 'sup_registrationForm';
+            if (role === 'LECTURER') formId = 'lec_registrationForm';
+
+            const form = document.getElementById(formId);
+            // Clear any stale registration errors before attempting a new submit.
+            const errorPanel = document.getElementById('registrationErrorPanel');
+            const errorList = document.getElementById('registrationErrorList');
+            if (errorPanel) {
+                errorPanel.style.display = 'none';
+            }
+            if (errorList) {
+                errorList.innerHTML = '';
+            }
+            // Protect against duplicate requests from a button click plus a
+            // programmatic form submission.
+            if (form.dataset.submitting === 'true') return;
+            form.dataset.submitting = 'true';
+            const csrfToken = getCookie('csrftoken');
+            const submitButton = event.submitter || form.querySelector('.btn-submit');
+            if (submitButton) {
+                submitButton.disabled = true;
+                const spinner = submitButton.querySelector('.spinner');
+                if (spinner) spinner.style.display = 'inline-block';
+            }
+
+            // Keep the form visible while its button spinner communicates progress.
+
+            fetch(form.action || window.location.href, {
+                method: 'POST',
+                credentials: 'same-origin',
+                body: new FormData(form),
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': csrfToken,
+                },
+            })
+                .then(async response => {
+                    const payload = await response.json().catch(() => ({}));
+                    if (response.ok) {
+                        if (errorPanel) {
+                            errorPanel.style.display = 'none';
+                        }
+                        triggerTemporaryNotification("🎉 Registration successful! Redirecting to login...", "success");
+                        const destination = "{% url 'core:login' %}?registered=true";
+                        if (window.beginSmoothNavigation) {
+                            window.beginSmoothNavigation(destination);
+                        } else {
+                            window.location.href = destination;
+                        }
+                        return;
+                    }
+
+                    const errorMessage = payload.message || 'Registration failed. Please check the form and try again.';
+                    const errorItems = payload.errors || [];
+                    triggerTemporaryNotification("❌ " + errorMessage, "error");
+                    showRegistrationErrors(errorMessage, errorItems);
+                    form.dataset.submitting = 'false';
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                        const spinner = submitButton.querySelector('.spinner');
+                        if (spinner) spinner.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    form.dataset.submitting = 'false';
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                        const spinner = submitButton.querySelector('.spinner');
+                        if (spinner) spinner.style.display = 'none';
+                    }
+                    triggerTemporaryNotification("❌ Connection error. Please check your network and try again.", "error");
+                });
+        }
+
+        function showRegistrationErrors(message, errors) {
+            const panel = document.getElementById('registrationErrorPanel');
+            const messageContainer = document.getElementById('registrationErrorMessage');
+            const list = document.getElementById('registrationErrorList');
+
+            messageContainer.textContent = message || "Registration Failed";
+            list.innerHTML = '';
+            if (errors && errors.length) {
+                // Filter out any error that identically matches the header message to prevent duplication
+                const uniqueErrors = errors.filter(err => err.trim() !== (message || '').trim());
+                const displayErrors = uniqueErrors.length ? uniqueErrors : errors;
+                displayErrors.forEach(err => {
+                    const li = document.createElement('li');
+                    li.textContent = err;
+                    list.appendChild(li);
+                });
+            }
+            panel.style.display = 'block';
+        }
+
+        function triggerTemporaryNotification(message, flagType = "success") {
+            let toast = document.getElementById('portal-toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'portal-toast';
+                document.body.appendChild(toast);
+            }
+            toast.textContent = message;
+            toast.className = "toast-notification " + (flagType === "success" ? "toast-success" : "toast-error");
+            showSmoothToast(toast);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileNavToggle = document.getElementById('mobileNavToggle');
+            const mobileNavMenu = document.getElementById('mobileNavMenu');
+            if (mobileNavToggle) {
+                mobileNavToggle.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                    mobileNavMenu.classList.toggle('show');
+                    mobileNavToggle.classList.toggle('open');
+                    const isOpen = mobileNavMenu.classList.contains('show');
+                    mobileNavToggle.textContent = isOpen ? '✕' : '☰';
+                });
+                document.addEventListener('click', function(event) {
+                    if (!mobileNavMenu.contains(event.target) && event.target !== mobileNavToggle) {
+                        mobileNavMenu.classList.remove('show');
+                        mobileNavToggle.classList.remove('open');
+                        mobileNavToggle.textContent = '☰';
+                    }
+                });
+            }
+        });
+
+        function toggleFieldPassword(inputId, triggerBtn) {
+            const passInput = document.getElementById(inputId);
+            passInput.type = passInput.type === 'password' ? 'text' : 'password';
+            triggerBtn.textContent = passInput.type === 'password' ? '👁️' : '🙈';
+        }
+
+        let rootPixelSize = 14;
+        function changeFontSize(dir) {
+            rootPixelSize += (dir * 1.5);
+            document.documentElement.style.fontSize = Math.max(11, Math.min(24, rootPixelSize)) + 'px';
+        }
+        function resetFontSize() { document.documentElement.style.fontSize = '14px'; }
+        function toggleContrast() { document.body.classList.toggle('dark-contrast'); }
+
+        // Sticky nav scroll shadow
+        (function() {
+            const navEl = document.querySelector('nav');
+            if (navEl) {
+                window.addEventListener('scroll', function() {
+                    navEl.classList.toggle('scrolled', window.scrollY > 10);
+                }, { passive: true });
+            }
+        })();
+    </script>
+    {% include 'core/accessibility_snippet.html' %}
+    {% include 'core/ui_transitions.html' %}
+</body>
+
+</html>

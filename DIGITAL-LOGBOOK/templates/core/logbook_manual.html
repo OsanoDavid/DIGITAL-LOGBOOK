@@ -1,0 +1,98 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIST Logbook - {{ title }}</title>
+    <link rel="icon" type="image/jpeg" href="{% static 'images/logo.jpeg' %}">
+    <link rel="stylesheet" href="{% static 'css/sist_style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8fafc;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .manual-card {
+            background: white;
+            padding: 50px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            max-width: 800px;
+            border-top: 4px solid #0f4c81;
+        }
+        .manual-card h1 {
+            color: #0f4c81;
+            margin-top: 0;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            font-size: 1.5rem;
+            letter-spacing: 0.05em;
+        }
+        .manual-card h2 {
+            color: #0f172a;
+            font-size: 1.25rem;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+        .manual-card p {
+            color: #334155;
+            line-height: 1.8;
+            margin-bottom: 20px;
+            text-align: justify;
+        }
+        .back-btn {
+            display: inline-block;
+            margin-top: 40px;
+            padding: 12px 24px;
+            background: #0f4c81;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: background 0.3s ease;
+        }
+        .back-btn:hover {
+            background: #1d65a3;
+        }
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="manual-card">
+        <div class="header-actions">
+            <h1>HOW TO USE THE LOGBOOK</h1>
+            <i class="fa-solid fa-book-open" style="font-size: 2.5rem; color: #0f4c81;"></i>
+        </div>
+        
+        <p>Each student is required to have their logbook in the station of attachment. The logbook is meant to be a record of all student's practical involvement in duties assigned, performed or learnt. The activities are recorded on a daily basis and the field supervisor is meant to sign the logbook every week. The supervisor shall then comment on the general progress of the learner including any adjustment necessary to help the learner achieve more.</p>
+
+        <p>During the period of attachment, the academic supervisor assigned by the School/University shall visit the student at least twice to settle them and also to discuss on the progress with field supervisors. All learners are expected to report to duty every day as required by their supervisors until the end of their attachment which covers a minimum of twelve (12) weeks.</p>
+
+        <p>At the end of the industrial attachment, the student is expected to have had hands on experience to supplement the theories covered and application of the same in their respective degree programmes of study.</p>
+
+        <p>The completed logbook should be presented to the School for assessment on the second week after completion of the attachment with a comprehensive attachment report which should be double spaced spiral-bound as provided for the report template. The School shall then process the students' scores based on their filed performance and evaluation as well as the documents presented to the School upon completion of the exercise.</p>
+
+        <h2>MINIMUM ATTACHMENT PERIOD: 12 WEEKS</h2>
+        
+        <a href="{% url 'core:login' %}" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Portal</a>
+    </div>
+
+{% include 'core/ui_transitions.html' %}
+</body>
+</html>

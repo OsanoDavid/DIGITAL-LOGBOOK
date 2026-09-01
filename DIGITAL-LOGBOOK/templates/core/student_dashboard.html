@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIST Logbook - Student Workspace</title>
+    
+    <link rel="icon" type="image/jpeg" href="/static/images/logo.jpeg">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/sist1_style.css">
+    <style>
+        .message-banner { display: flex; align-items: center; gap: 12px; border-radius: 18px; padding: 16px 20px; margin-bottom: 24px; font-weight: 600; }
+        .message-banner.success { background: #ecfdf5; border: 1px solid #a7f3d0; color: #166534; }
+        .message-banner.warning { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+        .message-banner.error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+        .status-pill { display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; padding: 7px 14px; font-size: 0.87rem; font-weight: 700; margin-top: 12px; }
+        .status-pill.pending { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+        .status-pill.active { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+        .status-pill.created { background: #dbeafe; color: #1d4ed8; border: 1px solid #93c5fd; }
+        .request-card { display: grid; gap: 18px; }
+        .request-card .info-strip { background: rgba(59, 130, 246, 0.06); border: 1px solid rgba(59, 130, 246, 0.16); color: #0f172a; padding: 14px 16px; border-radius: 14px; }
+        .request-card .detail-grid { display: grid; gap: 10px; }
+        .btn-disabled { opacity: 0.7; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-left-cluster">
+            <img src="/static/images/logo.jpeg" alt="SIST Logo" class="nav-logo">
+            <div class="header-brand">
+                <h1>SIST DIGITAL LOGBOOK</h1>
+                <p>Student Portal Workspace</p>
+            </div>
+        </div>
+        <div class="right-nav-cluster">
+            <div class="profile-dropdown-container">
+                <div class="profile-trigger-btn" onclick="toggleProfileDropdown(event)">
+                    <span class="profile-display-name">{{ period.student.get_full_name|default:"Student Workspace" }}</span>
+                    <div id="userProfileDisplay" class="profile-avatar-fallback">S</div>
+                    <span class="profile-chevron">▼</span>
+                </div>
+                <div class="profile-dropdown-menu" id="profileDropdownMenu">
+                    <div class="dropdown-user-details">
+                        <h5>{{ period.student.get_full_name|default:"Student Workspace" }}</h5>
+                        <p>{{ period.student.course|default:"Applied Computer Science" }}</p>
+                    </div>
+                    <button class="dropdown-link-item" onclick="openSettingsModal()">⚙️ Customise Profile</button>
+                    <div class="dropdown-divider"></div>
+                    <a href="{% url 'core:logout' %}" class="dropdown-link-item" style="color: var(--danger);">🚪 Complete Signout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        {% if messages %}
+            <div id="messageBannerContainer" style="margin-bottom:24px; display: flex; flex-direction: column; gap: 10px;">
+                {% for message in messages %}
+                    <div class="message-banner" style="padding: 16px 20px; border-radius: 12px; font-weight: 700; font-size: 0.98rem; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); {% if message.tags == 'success' %}background: #dcfce7; color: #15803d; border: 1.5px solid #86efac;{% elif message.tags == 'warning' %}background: #fef3c7; color: #b45309; border: 1.5px solid #fde047;{% else %}background: #fee2e2; color: #b91c1c; border: 1.5px solid #fca5a5;{% endif %}">
+                        <span>{% if message.tags == 'success' %}✅{% elif message.tags == 'warning' %}⚠️{% else %}❌{% endif %}</span>
+                        <div style="flex: 1;">{{ message }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="grid-2">
+            <div class="card card-profile-accent">
+                <h3>Attachment Profile</h3>
+                <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 4px;">
+                    <div class="info-strip"><strong>Student Course:</strong> {{ period.student.course|default:"Not assigned" }}</div>
+                    <div class="info-strip" style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+                        <span><strong>Organization:</strong> {{ period.student.institution_or_company|default:"Not provided" }}</span>
+                        <button type="button" class="btn btn-outline" onclick="openOrganizationEditor()" style="padding:7px 12px; font-size:0.82rem; white-space:nowrap;">Edit</button>
+                    </div>
+                    <form method="post" id="organizationEditor" style="display:none; padding:14px 16px; border:1px solid #bfdbfe; border-radius:12px; background:#eff6ff;">
+                        {% csrf_token %}
+                        <input type="hidden" name="organization_update_form" value="1">
+                        <label for="organizationInput" style="display:flex; flex-direction:column; gap:6px; color:#0f172a; font-weight:700;">
+                            Attachment organization
+                            <input id="organizationInput" name="institution_or_company" type="text" list="organization_options" maxlength="255" required value="{{ period.student.institution_or_company|default:'' }}" placeholder="Type to search or enter an organization" autocomplete="organization" style="padding:10px 12px; border:1px solid #93c5fd; border-radius:8px; font:inherit; color:#0f172a;">
+                        </label>
+                        <div style="display:flex; gap:10px; margin-top:12px; justify-content:flex-end;">
+                            <button type="button" class="btn btn-outline" onclick="closeOrganizationEditor()">Cancel</button>
+                            <button type="submit" class="btn btn-blue">Save Organization</button>
+                        </div>
+                    </form>
+                    {% include "core/organization_options.html" %}
+                    <div class="info-strip"><strong>Field Supervisor:</strong> {{ period.supervisor.get_full_name|default:"Awaiting Field Allocation" }}</div>
+                    <div class="info-strip"><strong>KU Lecturer:</strong> {{ period.lecturer.get_full_name|default:"Awaiting Departmental Assignment" }}</div>
+                </div>
+            </div>
+
+            <div class="card" style="border-top: 5px solid #f59e0b;">
+                <h3>Academic Schedule</h3>
+                <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 10px;">
+                    <div class="info-strip"><strong>Attachment Start:</strong> {{ system_settings.term_start_date|default:"Not set" }}</div>
+                    <div class="info-strip"><strong>Attachment End:</strong> {{ system_settings.term_end_date|default:"Not set" }}</div>
+                    <div class="info-strip"><strong>Submission Deadline:</strong> {{ system_settings.submission_deadline_date|default:"Not set" }}</div>
+                    <div class="info-strip"><strong>Logbook Lock Date:</strong> {{ system_settings.logbook_lock_date|default:"Not set" }}</div>
+                </div>
+            </div>
+
+            <div class="card" style="border-top: 5px solid #22c55e;">
+                <h3>Register Supervisor</h3>
+                <p style="margin: 0 0 16px 0; color: #475569; font-size: 0.95rem;">Send your field supervisor details to the attachment administrator. They will create the supervisor account, then link it to your attachment profile.</p>
+
+                <div class="request-card">
+                    {% if period.supervisor %}
+                        <div style="border-radius: 16px; background: #eff6ff; border: 1px solid #bfdbfe; padding: 18px;">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+                                <div>
+                                    <p style="margin:0; font-size:1rem; font-weight:700; color:#1e3a8a;">Supervisor account linked successfully</p>
+                                    <p style="margin:10px 0 0 0; color:#475569; line-height:1.6;">Your supervisor account is now active. If changes are needed, the attachment administrator can reopen the request for editing.</p>
+                                </div>
+                                <span class="status-pill active">Active</span>
+                            </div>
+                        </div>
+                    {% elif period.field_supervisor_email or period.field_supervisor_name %}
+                        <div style="border-radius: 16px; background: #f8fafc; border: 1px solid #cfe1ff; padding: 18px;">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+                                <div>
+                                    <p style="margin:0; font-size:1rem; font-weight:700; color:#0f172a;">Supervisor request submitted</p>
+                                    <p style="margin:10px 0 0 0; color:#475569; line-height:1.6;">Your request has been sent to the attachment administrator. You will be notified once the supervisor account is created.</p>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end;">
+                                    <span class="status-pill pending">Pending admin review</span>
+                                    <button id="supervisorToggleButton" type="button" class="btn btn-sky btn-sm" onclick="toggleSupervisorForm()" data-closed-text="✎ Edit Request" data-open-text="✕ Hide details" style="white-space: nowrap; min-width: 148px;">✎ Edit Request</button>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div style="border-radius: 16px; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 18px;">
+                            <p style="margin:0; font-size:1rem; font-weight:700; color:#064e3b;">Ready to register your supervisor</p>
+                            <p style="margin:10px 0 0 0; color:#475569; line-height:1.6;">Fill in the details and submit the form so the attachment administrator can create the supervisor account for you.</p>
+                            <button id="supervisorToggleButton" type="button" class="btn btn-sky btn-sm" onclick="toggleSupervisorForm()" data-closed-text="+ Register Supervisor" data-open-text="✕ Hide Form" style="margin-top:14px; min-width:190px;">+ Register Supervisor</button>
+                        </div>
+                    {% endif %}
+
+                    <div id="supervisorDetailsSection" style="display: grid; gap:10px; overflow:hidden; max-height:0; opacity:0; transition:max-height 0.32s ease, opacity 0.32s ease; padding: 0 18px; border-radius: 16px; background: #ffffff; border: 1px solid #e2e8f0; margin-top: 16px;">
+                        {% if period.field_supervisor_email or period.field_supervisor_name %}
+                            <div class="detail-grid" style="display:grid; gap: 12px;">
+                                <div class="info-strip"><strong>Name:</strong> {{ period.field_supervisor_name|default:'Not provided' }}</div>
+                                <div class="info-strip"><strong>Email:</strong> {{ period.field_supervisor_email|default:'Not provided' }}</div>
+                                <div class="info-strip"><strong>Phone:</strong> {{ period.field_supervisor_phone|default:'Not provided' }}</div>
+                                <div class="info-strip"><strong>Staff ID:</strong> {{ period.field_supervisor_id|default:'Not provided' }}</div>
+                                <div class="info-strip"><strong>Gender:</strong> {{ period.field_supervisor_gender|default:'Not provided' }}</div>
+                                <div class="info-strip"><strong>Organization:</strong> {{ period.field_supervisor_organization|default:'Not provided' }}</div>
+                            </div>
+                            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e2e8f0; padding-bottom: 18px;">
+                                <p style="margin:0 0 12px 0; color:#475569; font-size:0.95rem;">Update the request details below and resubmit when ready.</p>
+                        {% else %}
+                            <div style="padding-top: 18px; padding-bottom: 18px; display:grid; gap: 12px;">
+                        {% endif %}
+                                <form id="supervisorRegistrationForm" method="POST" action="{% url 'core:dashboard' %}" style="display: grid; gap: 12px;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="supervisor_update_form" value="1">
+                                    <label style="display:flex; flex-direction:column; gap:6px;"><strong>Supervisor Name</strong><input type="text" name="field_supervisor_name" value="{{ period.field_supervisor_name|default:'' }}" placeholder="Full name of your field supervisor" required style="padding: 12px; border-radius: 10px; border: 1px solid #cbd5e1;"></label>
+                                    <label style="display:flex; flex-direction:column; gap:6px;"><strong>Gender</strong><select name="field_supervisor_gender" style="padding: 12px; border-radius: 10px; border: 1px solid #cbd5e1;">
+                                        <option value="" {% if not period.field_supervisor_gender %}selected{% endif %}>Select gender</option>
+                                        <option value="Male" {% if period.field_supervisor_gender == 'Male' %}selected{% endif %}>Male</option>
+                                        <option value="Female" {% if period.field_supervisor_gender == 'Female' %}selected{% endif %}>Female</option>
+                                        <option value="Other" {% if period.field_supervisor_gender == 'Other' %}selected{% endif %}>Other</option>
+                                    </select></label>
+                                    <label style="display:flex; flex-direction:column; gap:6px;"><strong>Phone Number</strong><input type="text" name="field_supervisor_phone" value="{{ period.field_supervisor_phone|default:'' }}" placeholder="Supervisor phone number" required style="padding: 12px; border-radius: 10px; border: 1px solid #cbd5e1;"></label>
+                                    <label style="display:flex; flex-direction:column; gap:6px;"><strong>Staff / ID Number</strong><input type="text" name="field_supervisor_id" value="{{ period.field_supervisor_id|default:'' }}" placeholder="Supervisor staff or ID number" style="padding: 12px; border-radius: 10px; border: 1px solid #cbd5e1;"></label>
+                                    <label style="display:flex; flex-direction:column; gap:6px;"><strong>Organization</strong><input type="text" name="field_supervisor_organization" list="organization_options" value="{{ period.field_supervisor_organization|default:'' }}" placeholder="Type to search or enter an organization" autocomplete="organization" required style="padding: 12px; border-radius: 10px; border: 1px solid #cbd5e1;"></label>
+                                    <label style="display:flex; flex-direction:column; gap:6px;"><strong>Email Address</strong><input type="email" name="field_supervisor_email" value="{{ period.field_supervisor_email|default:'' }}" placeholder="supervisor@example.com" required style="padding: 12px; border-radius: 10px; border: 1px solid #cbd5e1;"></label>
+                                    <button type="submit" class="btn btn-blue" style="padding: 12px 18px; width: fit-content;">Submit Supervisor Request</button>
+                                </form>
+                        {% if period.field_supervisor_email or period.field_supervisor_name %}
+                            </div>
+                        {% else %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+        <div class="card card-grading-accent">
+                <h3>Final Grading Results</h3>
+                {% if period.lecturer_signed %}
+                    <p style="font-size:24px; margin: 14px 0 10px 0; font-weight: 800;">Final Grade: <strong style="color:var(--kisii-blue);">{{ period.lecturer_grade }}</strong> ({{ period.lecturer_marks }}%)</p>
+                    <p style="margin: 0; color: var(--text-muted); background: var(--bg-light); padding: 12px; border-radius: 8px;"><em>Lecturer Comment: {{ period.lecturer_comment }}</em></p>
+                {% else %}
+                    <p style="color:#b45309; font-weight:700; margin: 16px 0 0 0; display: inline-flex; align-items: center; gap: 8px; background: #fffbeb; padding: 14px; border-radius: 12px; border: 1px solid rgba(245, 158, 11, 0.2); width: calc(100% - 28px);">
+                        <span>⏳</span> Final verification evaluations ongoing.
+                    </p>
+                {% endif %}
+            </div>
+            <div class="card" style="border-top: 5px solid #8b5cf6;">
+                <h3>Academic Assessments</h3>
+                <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-light); border-radius: 10px; border: 1px solid var(--border-light);">
+                        <div>
+                            <strong style="font-size: 0.95rem; color: var(--text-dark); display: block;">First Assessment (Week 7)</strong>
+                            {% if period.first_visit_date %}
+                                <span style="font-size: 0.8rem; color: var(--text-muted);">Assessed on: {{ period.first_visit_date }}</span>
+                            {% else %}
+                                <span style="font-size: 0.8rem; color: var(--text-muted);">Pending Academic Visit</span>
+                            {% endif %}
+                        </div>
+                        <span class="badge {% if period.first_visit_comment %}badge-success{% else %}badge-warning{% endif %}">
+                            {% if period.first_visit_comment %}Active{% else %}Pending{% endif %}
+                        </span>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-light); border-radius: 10px; border: 1px solid var(--border-light);">
+                        <div>
+                            <strong style="font-size: 0.95rem; color: var(--text-dark); display: block;">Second Assessment (Week 12)</strong>
+                            {% if period.second_visit_date %}
+                                <span style="font-size: 0.8rem; color: var(--text-muted);">Assessed on: {{ period.second_visit_date }}</span>
+                            {% else %}
+                                <span style="font-size: 0.8rem; color: var(--text-muted);">Pending Academic Visit</span>
+                            {% endif %}
+                        </div>
+                        <span class="badge {% if period.second_visit_comment %}badge-success{% else %}badge-warning{% endif %}">
+                            {% if period.second_visit_comment %}Active{% else %}Pending{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card card-pipeline-accent">
+            <div class="card-header-flex">
+                <div>
+                    <h3>Weekly Logs Pipeline Matrices</h3>
+                    <p style="margin: 4px 0 0 0; color: var(--text-muted); font-size: 0.88rem;">Manage entries, update draft metrics or review evaluation signatures.</p>
+                </div>
+                {% if not log_rows %}
+                    <a href="{% url 'core:create_log' period.id %}" class="btn btn-sky {% if not can_add_log %}disabled{% endif %}" {% if not can_add_log %}aria-disabled="true" onclick="return false;"{% endif %}>✨ + Add New Weekly Log</a>
+                {% else %}
+                    {% if log_rows.0.log.supervisor_approved %}
+                        <a href="{% url 'core:create_log' period.id %}" class="btn btn-sky {% if not can_add_log %}disabled{% endif %}" {% if not can_add_log %}aria-disabled="true" onclick="return false;"{% endif %}>✨ + Add New Weekly Log</a>
+                    {% else %}
+                        <a href="#" class="btn btn-sky disabled" aria-disabled="true" onclick="return false;">✨ + Add New Weekly Log</a>
+                    {% endif %}
+                {% endif %}
+            </div>
+            
+            {% if not log_rows %}
+                {% if not can_add_log %}
+                    <p style="margin: 12px 0 16px 0; color:#b45309; font-size:0.9rem; background: #fffbeb; padding: 10px 14px; border-radius: 8px; border-left: 4px solid var(--warning);">A new log can only be created after your current weekly log has been approved by the field supervisor.</p>
+                {% endif %}
+            {% else %}
+                {% if not log_rows.0.log.supervisor_approved or not can_add_log %}
+                    <p style="margin: 12px 0 16px 0; color:#b45309; font-size:0.9rem; background: #fffbeb; padding: 10px 14px; border-radius: 8px; border-left: 4px solid var(--warning);">A new log can only be created after your current weekly log has been approved by the field supervisor.</p>
+                {% endif %}
+            {% endif %}
+            
+            <div style="margin-bottom: 16px; display: flex; justify-content: flex-end;">
+                {% if can_download_full_log %}
+                    <a href="{% url 'core:download_all_logs' period.id %}" download="complete-12-week-log.html" class="btn btn-blue" style="padding: 12px 18px;">
+                        📥 Download combined weekly log
+                    </a>
+                {% else %}
+                    <button class="btn btn-outline disabled" aria-disabled="true" style="padding: 12px 18px; cursor: not-allowed;">
+                        📥 Download complete 12-week log
+                    </button>
+                {% endif %}
+            </div>
+            
+            <div class="pipeline-table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Week</th>
+                            <th>Status</th>
+                            <th>Supervisor Remarks</th>
+                            <th>Lecturer Signature</th>
+                            <th>Action Matrix Options</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in log_rows %}
+                            {% if not item.locked %}
+                                <tr class="row-active">
+                                    <td><strong>Week {{ item.log.week_number }}</strong></td>
+                                    <td>
+                                        {% if item.log.supervisor_approved %}
+                                            <span class="badge badge-success">Approved & Locked</span>
+                                        {% else %}
+                                            <span class="badge badge-warning">Draft Mode</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ item.log.supervisor_comment|default:"No evaluations added" }}</td>
+                                    <td>{{ item.log.lecturer_comment|default:"No academic signature" }}</td>
+                                    <td>
+                                        <div class="actions-cluster">
+                                            <button type="button" class="btn btn-sm btn-outline view-log-btn"
+                                                    data-week="{{ item.log.week_number }}"
+                                                    data-supervisor="{{ item.log.supervisor_comment|default:'No evaluations added' }}"
+                                                    data-lecturer="{{ item.log.lecturer_comment|default:'No academic signature' }}"
+                                                    data-monday="{{ item.log.monday_activity|default:'No activity recorded' }}"
+                                                    data-tuesday="{{ item.log.tuesday_activity|default:'No activity recorded' }}"
+                                                    data-wednesday="{{ item.log.wednesday_activity|default:'No activity recorded' }}"
+                                                    data-thursday="{{ item.log.thursday_activity|default:'No activity recorded' }}"
+                                                    data-friday="{{ item.log.friday_activity|default:'No activity recorded' }}">
+                                                👁️ View
+                                            </button>
+                                            {% if not item.log.supervisor_approved %}
+                                                <a href="{% url 'core:edit_log' item.log.id %}" class="btn btn-sm btn-gold">✏️ Edit Log</a>
+                                                <button class="btn btn-sm btn-outline disabled" disabled>🖨️ Print</button>
+                                            {% else %}
+                                                <button class="btn btn-sm btn-outline disabled" disabled>✏️ Edit Log</button>
+                                                <a href="{% url 'core:download_log' item.log.id %}" class="btn btn-sm btn-blue" style="text-decoration:none;">🖨️ Download</a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr class="row-locked">
+                                    <td><strong>Week {{ item.log.week_number }}</strong></td>
+                                    <td><span class="badge badge-locked">🔒 Locked Structure</span></td>
+                                    <td colspan="2" style="color: #94a3b8; font-size: 0.85rem; font-style: italic;">
+                                        Complete and obtain Field Supervisor signoff for Week {{ item.log.week_number|add:"-1" }} to activate tracking nodes.
+                                    </td>
+                                    <td>
+                                        <div class="actions-cluster">
+                                            <button class="btn btn-sm btn-outline disabled" disabled>👁️ View</button>
+                                            <button class="btn btn-sm btn-outline disabled" disabled>✏️ Edit Log</button>
+                                            <button class="btn btn-sm btn-outline disabled" disabled>🖨️ Print</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        {% empty %}
+                            <tr>
+                                <td colspan="5" style="text-align: center; padding: 40px; color: #64748b; font-style: italic;">
+                                    No active academic assignment records mapped to this system profile.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {% if log_rows|length >= 12 %}
+        <div class="card card-profile-accent" style="margin-top: 24px; border-top: 5px solid var(--kisii-blue);">
+            <h3>Student's Comments and Additional Information</h3>
+            <p style="margin: 4px 0 20px 0; color: var(--text-muted); font-size: 0.88rem;">Provide your final overall assessment and any additional information regarding your attachment.</p>
+            
+            {% if period.student_additional_info %}
+                <div style="background: #f8fafc; padding: 16px; border-radius: 10px; border: 1px solid var(--border-light);">
+                    <p style="margin: 0; white-space: pre-wrap; color: var(--text-dark);">{{ period.student_additional_info }}</p>
+                </div>
+            {% else %}
+                <form method="POST" action="{% url 'core:submit_assessment_form' period.id %}" style="display: flex; flex-direction: column; gap: 18px;">
+                    {% csrf_token %}
+                    <textarea name="student_additional_info" class="form-control" rows="5" placeholder="Enter your final comments here..." required style="width: 100%; border: 1px solid var(--border-light); border-radius: 8px; padding: 12px; font-family: inherit; font-size: 0.95rem; resize: vertical;"></textarea>
+                    <button type="submit" class="btn btn-blue" style="align-self: flex-start;">Submit Final Comments</button>
+                </form>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="card" style="border-top: 5px solid var(--kisii-blue);">
+            <h3>Final Assessment Report Submission Hub</h3>
+            <p style="margin: 4px 0 20px 0; color: var(--text-muted); font-size: 0.88rem;">Upload your final report here. It will be sent to your assigned lecturer for review and approval.</p>
+            
+            {% if period.report_status == 'APPROVED' %}
+                <div style="display: flex; align-items: center; justify-content: space-between; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 20px; border-radius: 12px; flex-wrap: wrap; gap: 16px;">
+                    <p style="color:var(--success); font-weight:700; margin: 0;">✓ Your final report has been approved by the lecturer.</p>
+                    {% if period.final_report %}
+                        <a href="{{ period.final_report.url }}" class="btn btn-blue" target="_blank" download>Download Approved Report</a>
+                    {% endif %}
+                </div>
+            {% elif period.report_status == 'RETURNED' %}
+                <div style="display: flex; flex-direction: column; gap: 14px; background: #fef2f2; border: 1px solid #fecaca; padding: 20px; border-radius: 12px;">
+                    <p style="color:#b91c1c; font-weight:700; margin: 0;">⚠ Your report needs revision.</p>
+                    {% if period.report_review_comment %}<p style="margin: 0; color: #7f1d1d; background: #fff; padding: 10px; border-radius: 8px; border: 1px solid #fee2e2;"><strong>Lecturer Feedback:</strong> {{ period.report_review_comment }}</p>{% endif %}
+                    {% if period.final_report %}<a href="{{ period.final_report.url }}" class="btn btn-blue" target="_blank" style="align-self: flex-start;" download>Download Previously Submitted File</a>{% endif %}
+                    
+                    <form method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 14px; margin-top: 8px;">
+                        {% csrf_token %}
+                        <div style="background: #ffffff; padding: 16px; border-radius: 10px; border: 1px dashed #fca5a5;">
+                            {{ report_form.as_p }}
+                        </div>
+                        <button type="submit" name="upload_report" class="btn btn-blue" style="align-self: flex-start;">Upload Revised Report Document</button>
+                    </form>
+                </div>
+            {% elif period.final_report %}
+                <div style="display: flex; flex-direction: column; gap: 16px; background: #f0f9ff; border: 1.5px solid #0284c7; padding: 20px; border-radius: 12px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                        <div>
+                            <p style="color: #0369a1; font-weight: 700; margin: 0; font-size: 1rem;">✓ Report Document Uploaded Successfully</p>
+                            <p style="margin: 4px 0 0 0; color: #475569; font-size: 0.88rem;">Your final report file is submitted and queued for lecturer evaluation and grading.</p>
+                        </div>
+                        <span class="status-pill pending" style="background: #e0f2fe; color: #0369a1; padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 0.85rem;">Status: Pending lecturer review</span>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 12px; background: #ffffff; padding: 12px 16px; border-radius: 10px; border: 1px solid #bae6fd;">
+                        <span style="font-size: 1.2rem;">📄</span>
+                        <div style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            <strong style="color: #0f172a; font-size: 0.9rem;">Attached Document:</strong>
+                            <span style="color: #475569; font-size: 0.85rem; margin-left: 6px;">{{ period.final_report.name }}</span>
+                        </div>
+                        <a href="{{ period.final_report.url }}" class="btn btn-blue btn-sm" target="_blank" style="padding: 6px 14px; font-size: 0.82rem; text-decoration: none;">View / Download File</a>
+                    </div>
+
+                    <details style="margin-top: 4px;">
+                        <summary style="cursor: pointer; color: #0284c7; font-weight: 600; font-size: 0.88rem;">Re-upload / Replace Report File</summary>
+                        <form method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 14px; margin-top: 12px;">
+                            {% csrf_token %}
+                            <div style="background: #ffffff; padding: 16px; border-radius: 10px; border: 1px dashed #cbd5e1;">
+                                {{ report_form.as_p }}
+                            </div>
+                            <button type="submit" name="upload_report" class="btn btn-blue" style="align-self: flex-start;">Upload New Version</button>
+                        </form>
+                    </details>
+                </div>
+            {% else %}
+                <form method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 18px;">
+                    {% csrf_token %}
+                    <div style="background: var(--bg-light); padding: 20px; border-radius: 12px; border: 1px dashed var(--border-light);">
+                        {{ report_form.as_p }}
+                    </div>
+                    <button type="submit" name="upload_report" class="btn btn-blue" style="align-self: flex-start;">Upload Report Document</button>
+                    <p style="margin: 0; color: #64748b; font-size: 0.9rem;">Status: <strong>Not yet uploaded</strong></p>
+                </form>
+            {% endif %}
+        </div>
+
+        <div class="card" style="border-top: 5px solid #0284c7; margin-top: 24px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 8px;">
+                <h3 style="margin: 0; color: #0f172a;">Organization Recommendation Letter Submission Hub</h3>
+                <span class="status-pill" style="background: #e0f2fe; color: #0369a1; padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: 0.82rem;">Official Attachment Verification</span>
+            </div>
+            
+            <div style="background: #fffbeb; border: 1.5px solid #fde047; padding: 14px 18px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 1.4rem;">🏛️</span>
+                <p style="margin: 0; color: #92400e; font-size: 0.92rem; font-weight: 600; line-height: 1.5;">
+                    <strong>Mandatory Requirement:</strong> The recommendation letter submitted must have an official <strong>Organization Stamp</strong> and authorized signature from your place of attachment.
+                </p>
+            </div>
+
+            {% if period.recommendation_letter %}
+                <div style="display: flex; flex-direction: column; gap: 16px; background: #f0f9ff; border: 1.5px solid #0284c7; padding: 20px; border-radius: 12px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                        <div>
+                            <p style="color: #0369a1; font-weight: 700; margin: 0; font-size: 1rem;">✓ Stamped Recommendation Letter Uploaded &amp; Submitted</p>
+                            <p style="margin: 4px 0 0 0; color: #475569; font-size: 0.88rem;">Your stamped recommendation letter is saved and available for lecturer verification.</p>
+                        </div>
+                        <span class="status-pill" style="background: #dcfce7; color: #15803d; padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 0.85rem;">Submitted</span>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 12px; background: #ffffff; padding: 12px 16px; border-radius: 10px; border: 1px solid #bae6fd;">
+                        <span style="font-size: 1.2rem;">📜</span>
+                        <div style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            <strong style="color: #0f172a; font-size: 0.9rem;">Attached Recommendation Letter:</strong>
+                            <span style="color: #475569; font-size: 0.85rem; margin-left: 6px;">{{ period.recommendation_letter.name }}</span>
+                        </div>
+                        <a href="{{ period.recommendation_letter.url }}" class="btn btn-blue btn-sm" target="_blank" style="padding: 6px 14px; font-size: 0.82rem; text-decoration: none;">View / Download Letter</a>
+                    </div>
+
+                    <details style="margin-top: 4px;">
+                        <summary style="cursor: pointer; color: #0284c7; font-weight: 600; font-size: 0.88rem;">Re-upload / Replace Recommendation Letter</summary>
+                        <form method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 14px; margin-top: 12px;">
+                            {% csrf_token %}
+                            <div style="background: #ffffff; padding: 16px; border-radius: 10px; border: 1px dashed #cbd5e1;">
+                                {{ recommendation_form.as_p }}
+                            </div>
+                            <button type="submit" name="upload_recommendation" class="btn btn-blue" style="align-self: flex-start;">Upload Updated Letter</button>
+                        </form>
+                    </details>
+                </div>
+            {% else %}
+                <form method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 18px;">
+                    {% csrf_token %}
+                    <div style="background: var(--bg-light); padding: 20px; border-radius: 12px; border: 1px dashed var(--border-light);">
+                        {{ recommendation_form.as_p }}
+                    </div>
+                    <button type="submit" name="upload_recommendation" class="btn btn-blue" style="align-self: flex-start;">Upload Recommendation Letter</button>
+                    <p style="margin: 0; color: #64748b; font-size: 0.9rem;">Status: <strong>Not yet uploaded</strong></p>
+                </form>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <div id="quickViewModal" class="log-modal">
+        <div class="log-modal-content">
+            <div class="modal-header">
+                <h4 id="modalWeekTitle">Week Details</h4>
+                <span class="close-modal" onclick="closeQuickView()">&times;</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+                <div>
+                    <strong style="color: #475569; display: block; margin-bottom: 6px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Industry Supervisor Comments:</strong>
+                    <p id="modalSupervisorText" style="margin: 0; background: #f8fafc; padding: 16px; border-radius: 10px; border: 1px solid var(--border-light); line-height: 1.5; color: var(--text-dark);"></p>
+                </div>
+                <div>
+                    <strong style="color: #475569; display: block; margin-bottom: 6px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">University Lecturer Notes:</strong>
+                    <p id="modalLecturerText" style="margin: 0; background: #f8fafc; padding: 16px; border-radius: 10px; border: 1px solid var(--border-light); line-height: 1.5; color: var(--text-dark);"></p>
+                </div>
+                <div>
+                    <strong style="color: #475569; display: block; margin-bottom: 6px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Work done this week:</strong>
+                    <div style="display: grid; gap: 12px;">
+                        <div><strong>Monday</strong><p id="modalMondayText" style="margin: 4px 0 0 0; white-space: pre-wrap; background: #f8fafc; padding: 14px; border-radius: 10px; border: 1px solid var(--border-light); line-height: 1.5; color: var(--text-dark);"></p></div>
+                        <div><strong>Tuesday</strong><p id="modalTuesdayText" style="margin: 4px 0 0 0; white-space: pre-wrap; background: #f8fafc; padding: 14px; border-radius: 10px; border: 1px solid var(--border-light); line-height: 1.5; color: var(--text-dark);"></p></div>
+                        <div><strong>Wednesday</strong><p id="modalWednesdayText" style="margin: 4px 0 0 0; white-space: pre-wrap; background: #f8fafc; padding: 14px; border-radius: 10px; border: 1px solid var(--border-light); line-height: 1.5; color: var(--text-dark);"></p></div>
+                        <div><strong>Thursday</strong><p id="modalThursdayText" style="margin: 4px 0 0 0; white-space: pre-wrap; background: #f8fafc; padding: 14px; border-radius: 10px; border: 1px solid var(--border-light); line-height: 1.5; color: var(--text-dark);"></p></div>
+                        <div><strong>Friday</strong><p id="modalFridayText" style="margin: 4px 0 0 0; white-space: pre-wrap; background: #f8fafc; padding: 14px; border-radius: 10px; border: 1px solid var(--border-light); line-height: 1.5; color: var(--text-dark);"></p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="settingsModal" class="log-modal">
+        <div class="log-modal-content">
+            <div class="modal-header">
+                <h4>⚙️ Customise Profile</h4>
+                <span class="close-modal" onclick="closeSettingsModal()">&times;</span>
+            </div>
+            <form onsubmit="event.preventDefault(); saveProfileChanges();" style="display: flex; flex-direction: column; gap: 14px;">
+                {% csrf_token %}
+                
+                <div class="settings-input-group">
+                    <label>Profile Picture</label>
+                    <input type="file" id="profilePhotoInput" accept="image/*" style="padding:4px 0;">
+                    <p style="font-size: 0.85rem; color: #64748b; margin-top: 6px;">Upload a picture or leave blank to use your avatar color below.</p>
+                </div>
+                
+                <div class="settings-input-group">
+                    <label>Avatar Color</label>
+                    {% if request.user.avatar_color %}
+                    <input type="color" id="avatarColorInput" value="#{{ request.user.avatar_color }}" style="width:100%; height:40px; border:1px solid var(--border-light); border-radius:8px; cursor:pointer;">
+                    {% else %}
+                    <input type="color" id="avatarColorInput" value="#0284c7" style="width:100%; height:40px; border:1px solid var(--border-light); border-radius:8px; cursor:pointer;">
+                    {% endif %}
+                    <p style="font-size: 0.85rem; color: #64748b; margin-top: 6px;">This color will be used if no picture is uploaded.</p>
+                </div>
+                
+                <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:10px;">
+                    <button type="button" class="btn btn-outline" onclick="closeSettingsModal()">Cancel</button>
+                    <button type="submit" class="btn btn-blue">💾 Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUserProfile();
+
+            const viewButtons = document.querySelectorAll('.view-log-btn');
+            viewButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const week = this.getAttribute('data-week');
+                    const supervisor = this.getAttribute('data-supervisor');
+                    const lecturer = this.getAttribute('data-lecturer');
+                    const monday = this.getAttribute('data-monday');
+                    const tuesday = this.getAttribute('data-tuesday');
+                    const wednesday = this.getAttribute('data-wednesday');
+                    const thursday = this.getAttribute('data-thursday');
+                    const friday = this.getAttribute('data-friday');
+                    openQuickView(week, supervisor, lecturer, monday, tuesday, wednesday, thursday, friday);
+                });
+            });
+        });
+
+        // Load user profile from database
+        function loadUserProfile() {
+            const targetAvatar = document.getElementById('userProfileDisplay');
+            const fullName = '{{ request.user.get_full_name|default:request.user.username }}';
+            const avatarColor = '{{ request.user.avatar_color|default:"0284c7" }}';
+            const profilePhoto = '{% if request.user.profile_photo %}{{ request.user.profile_photo.url }}{% endif %}';
+            
+            if (profilePhoto) {
+                targetAvatar.textContent = "";
+                targetAvatar.style.backgroundImage = `url('${profilePhoto}')`;
+                targetAvatar.style.backgroundSize = 'cover';
+                targetAvatar.style.backgroundPosition = 'center';
+            } else {
+                const initials = fullName.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
+                targetAvatar.textContent = initials || 'U';
+                targetAvatar.style.backgroundColor = '#' + avatarColor;
+                targetAvatar.style.backgroundImage = 'none';
+            }
+        }
+
+        // Toggle profile dropdown
+        function toggleProfileDropdown(event) {
+            event.stopPropagation();
+            const menu = document.getElementById('profileDropdownMenu');
+            const chevron = document.querySelector('.profile-chevron');
+            if (menu.style.display === "block") {
+                menu.style.display = "none";
+                chevron.style.transform = "rotate(0deg)";
+            } else {
+                menu.style.display = "block";
+                chevron.style.transform = "rotate(180deg)";
+            }
+        }
+
+        // Open settings modal
+        function openSettingsModal() {
+            document.getElementById('profileDropdownMenu').style.display = "none";
+            document.getElementById('settingsModal').style.display = "block";
+        }
+
+        // Close settings modal
+        function closeSettingsModal() {
+            document.getElementById('settingsModal').style.display = "none";
+        }
+
+        function openOrganizationEditor() {
+            const editor = document.getElementById('organizationEditor');
+            editor.style.display = 'block';
+            document.getElementById('organizationInput').focus();
+        }
+
+        function closeOrganizationEditor() {
+            document.getElementById('organizationEditor').style.display = 'none';
+        }
+
+        // Save profile changes to database
+        async function saveProfileChanges() {
+            const form = new FormData();
+            const colorInput = document.getElementById('avatarColorInput');
+            const photoInput = document.getElementById('profilePhotoInput');
+            
+            if (colorInput && colorInput.value) {
+                form.append('avatar_color', colorInput.value.replace('#', ''));
+            }
+            
+            if (photoInput && photoInput.files.length > 0) {
+                form.append('profile_photo', photoInput.files[0]);
+            }
+            
+            try {
+                const response = await fetch('{% url "core:update_profile_meta" %}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '{% csrf_token %}'
+                    },
+                    body: form
+                });
+                
+                if (response.ok) {
+                    closeSettingsModal();
+                    location.reload();
+                } else {
+                    alert('Failed to save profile changes. Please try again.');
+                }
+            } catch (error) {
+                alert('Error saving profile: ' + error.message);
+            }
+        }
+
+        function openQuickView(weekNumber, supervisorComment, lecturerComment, mondayComment, tuesdayComment, wednesdayComment, thursdayComment, fridayComment) {
+            document.getElementById('modalWeekTitle').textContent = "Summary Logs Overview — Week " + weekNumber;
+            document.getElementById('modalSupervisorText').textContent = supervisorComment;
+            document.getElementById('modalLecturerText').textContent = lecturerComment;
+            document.getElementById('modalMondayText').textContent = mondayComment;
+            document.getElementById('modalTuesdayText').textContent = tuesdayComment;
+            document.getElementById('modalWednesdayText').textContent = wednesdayComment;
+            document.getElementById('modalThursdayText').textContent = thursdayComment;
+            document.getElementById('modalFridayText').textContent = fridayComment;
+            document.getElementById('quickViewModal').style.display = "block";
+        }
+
+        function closeQuickView() {
+            document.getElementById('quickViewModal').style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('quickViewModal');
+            const settingsModal = document.getElementById('settingsModal');
+            const dropdown = document.getElementById('profileDropdownMenu');
+            const chevron = document.querySelector('.profile-chevron');
+            
+            if (event.target == modal) modal.style.display = "none";
+            if (event.target == settingsModal) settingsModal.style.display = "none";
+            if (dropdown && !event.target.closest('.profile-dropdown-container')) {
+                dropdown.style.display = "none";
+                if(chevron) chevron.style.transform = "rotate(0deg)";
+            }
+        }
+
+        function toggleSupervisorForm() {
+            const section = document.getElementById('supervisorDetailsSection');
+            const button = document.getElementById('supervisorToggleButton');
+            if (!section || !button) return;
+            const isOpen = section.style.maxHeight && section.style.maxHeight !== '0px';
+            if (isOpen) {
+                section.style.maxHeight = '0';
+                section.style.opacity = '0';
+                button.textContent = button.dataset.closedText;
+            } else {
+                section.style.maxHeight = section.scrollHeight + 24 + 'px';
+                section.style.opacity = '1';
+                button.textContent = button.dataset.openText;
+                setTimeout(() => section.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const flashContainer = document.getElementById('messageBannerContainer');
+            if (flashContainer) {
+                setTimeout(() => {
+                    flashContainer.style.transition = 'opacity 0.4s ease';
+                    flashContainer.style.opacity = '0';
+                    setTimeout(() => { flashContainer.style.display = 'none'; }, 400);
+                }, 6000);
+            }
+        });
+    </script>
+{% include 'core/ui_transitions.html' %}
+</body>
+</html>

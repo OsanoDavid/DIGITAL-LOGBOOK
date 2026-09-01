@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: digital-logbook
+    env: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput"
+    startCommand: "bash start.sh"
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DJANGO_SETTINGS_MODULE
+        value: sist_project.settings
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: WEB_CONCURRENCY
+        value: 2
+      # Add the Neon connection string in the Render dashboard. Never commit it.
+      - key: DATABASE_URL
+        sync: false
+      - key: RENDER
+        value: "true"
+      - key: DEBUG
+        value: "false"
