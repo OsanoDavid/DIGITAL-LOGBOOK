@@ -19,6 +19,15 @@
     body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #f8fafc; margin: 0; padding: 0; color: #0f172a; font-size: 0.88rem; }
     .dashboard-container { max-width: 1440px; margin: 0 auto; padding: 16px; }
 
+    .organization-combobox { position: relative; display: flex; align-items: center; }
+    .organization-combobox input { width: 100%; padding-right: 38px; }
+    .organization-dropdown-toggle { position: absolute; right: 1px; top: 1px; height: calc(100% - 2px); width: 34px; border: 0; background: transparent; color: #334155; cursor: pointer; }
+    .organization-dropdown { display: none; position: absolute; z-index: 30; top: calc(100% + 4px); left: 0; right: 0; max-height: 240px; overflow-y: auto; padding: 4px; border: 1px solid #cbd5e1; border-radius: 8px; background: #ffffff; box-shadow: 0 8px 20px rgba(15, 23, 42, 0.16); }
+    .organization-dropdown.is-open { display: block; }
+    .organization-dropdown-option { display: block; width: 100%; padding: 9px 10px; border: 0; border-radius: 5px; background: transparent; color: #0f172a; text-align: left; cursor: pointer; font: inherit; }
+    .organization-dropdown-option:hover, .organization-dropdown-option:focus { background: #e0f2fe; outline: none; }
+    .organization-dropdown-empty { padding: 9px 10px; color: #64748b; }
+
     /* COMPACT MULTICOLOR HEADER WITH BLURRED LOGO WATERMARK */
     .dashboard-header-compact {
       position: relative;
@@ -610,6 +619,129 @@
   padding-bottom: 0;
   overflow: hidden;
 }
+
+    /* Broadcast Message Modal & Panel Styles */
+    .broadcast-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(5px);
+      z-index: 10000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .broadcast-modal-card {
+      background: #ffffff;
+      border-radius: 16px;
+      width: min(640px, 100%);
+      max-height: 92vh;
+      overflow-y: auto;
+      box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.4);
+      border: 1px solid #e2e8f0;
+      animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes modalPop {
+      from { opacity: 0; transform: scale(0.95) translateY(10px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .broadcast-modal-header {
+      padding: 18px 24px;
+      border-bottom: 1.5px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      border-radius: 16px 16px 0 0;
+    }
+    .broadcast-modal-body {
+      padding: 24px;
+    }
+    .audience-option-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+      margin-top: 6px;
+    }
+    .audience-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 10px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+      background: #f8fafc;
+    }
+    .audience-card:hover {
+      border-color: #0284c7;
+      background: #f0f9ff;
+    }
+    .audience-card input[type="radio"] {
+      display: none;
+    }
+    .audience-card.is-selected {
+      border-color: #0284c7;
+      background: #e0f2fe;
+      box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.25);
+    }
+    .duration-pills-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+    .duration-pill {
+      border: 1.5px solid #cbd5e1;
+      background: #f8fafc;
+      padding: 7px 14px;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 0.8rem;
+      cursor: pointer;
+      color: #334155;
+      transition: all 0.15s;
+    }
+    .duration-pill:hover {
+      border-color: #0284c7;
+      background: #f0f9ff;
+      color: #0284c7;
+    }
+    .duration-pill.active-pill {
+      background: #0284c7;
+      border-color: #0284c7;
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
+    }
+    .broadcast-item-card {
+      background: #ffffff;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 18px 20px;
+      margin-bottom: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      transition: all 0.2s;
+    }
+    .broadcast-item-card:hover {
+      border-color: #cbd5e1;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.07);
+    }
+    .broadcast-item-card.priority-URGENT {
+      border-left: 5px solid #dc2626;
+    }
+    .broadcast-item-card.priority-WARNING {
+      border-left: 5px solid #f59e0b;
+    }
+    .broadcast-item-card.priority-INFO {
+      border-left: 5px solid #0284c7;
+    }
   </style>
 </head>
 <body>
@@ -637,6 +769,7 @@
         <li><a href="#" class="nav-link" id="link-academic-cycle" onclick="showPanel('academic-cycle-panel', event)">🔄 Academic Cycle & Export</a></li>
         <li><a href="#" class="nav-link" id="link-settings" onclick="showPanel('settings-panel', event)">⚙️ System Settings</a></li>
         <li><a href="#" class="nav-link" id="link-reports" onclick="showPanel('reports-panel', event)">📊 Activity Logs & Reports</a></li>
+        <li><a href="#" class="nav-link" id="link-broadcasts" onclick="showPanel('broadcasts-panel', event)">📢 Broadcast Messages</a></li>
         <li class="separator"></li>
       </ul>
     </nav>
@@ -709,6 +842,12 @@
 
   </div>
 
+  <!-- Broadcast Message button -->
+  <button type="button" class="btn-multicolor" onclick="openBroadcastModal()" title="Broadcast message to students, supervisors, or lecturers" style="cursor: pointer; border: none; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);">
+    <span style="font-size: 1rem;">✉️</span>
+    <span>Broadcast Message</span>
+  </button>
+
   <a class="btn-multicolor admin-settings-btn" href="{% url 'core:admin_dashboard' %}?panel=settings-panel" onclick="showPanel('settings-panel', event)">
     <span>⚙️</span> Admin Settings
   </a>
@@ -741,7 +880,7 @@
                 <form method="post" action="{% url 'core:mark_admin_notification_read' n.id %}">{% csrf_token %}<button class="table-action" type="submit">Mark read</button></form>
               </div>
             </div>
-            {% if request.user.role in ['ATTACHMENT_ADMIN', 'ADMIN'] %}
+            {% if request.user.role == 'ATTACHMENT_ADMIN' or request.user.role == 'ADMIN' %}
             <!-- Manual historic counts editor -->
             <div style="margin-top:12px; border-top:1px dashed #e6eef6; padding-top:12px;">
               <form method="post" action="{% url 'core:admin_update_historic_counts' %}" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
@@ -1099,6 +1238,9 @@
               <label>Organization / Institution
                 <input type="text" name="institution_or_company" list="admin_org_options" placeholder="Type to search or enter an organization" autocomplete="organization">
                 <datalist id="admin_org_options">
+                  {% for organization in organization_options %}
+                  <option value="{{ organization }}">
+                  {% endfor %}
                   <option value="Kisii University — Main Campus">
                   <option value="ABNO Softwares International — Nairobi">
                   <option value="Safaricom PLC — Nairobi">
@@ -1486,6 +1628,87 @@
         </div>
       </section>
 
+      <!-- 8. BROADCAST MESSAGES & ANNOUNCEMENTS PANEL -->
+      <section class="view-panel" id="broadcasts-panel" style="display:none;">
+        <div class="panel-box">
+          <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;">
+            <div>
+              <h2>📢 Broadcast Announcements &amp; Notices</h2>
+              <p class="subheading-dark">Send targeted announcements to students, industry supervisors, or lecturers with automatic disappearance timestamps.</p>
+            </div>
+            <div style="display:flex; gap:10px; align-items:center;">
+              <button type="button" class="btn primary" onclick="openBroadcastModal()" style="display:inline-flex; align-items:center; gap:6px;">
+                <span>✉️</span> New Announcement
+              </button>
+              <button type="button" class="btn back-btn" onclick="showPanel('dashboard-overview')">← Back to Overview</button>
+            </div>
+          </div>
+
+          <!-- Active Broadcasts -->
+          <div style="margin-top:20px;">
+            <h3 style="margin-bottom:12px; color:#1e293b; display:flex; align-items:center; gap:8px;">
+              <span>🟢</span> Currently Active Broadcasts ({{ active_broadcasts|length }})
+            </h3>
+            {% if active_broadcasts %}
+              <div style="display:grid; gap:14px;">
+                {% for b in active_broadcasts %}
+                <div class="broadcast-item-card priority-{{ b.priority }}">
+                  <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+                    <div>
+                      <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap;">
+                        <span class="badge" style="background:#e0f2fe; color:#0369a1; font-weight:800; font-size:0.75rem; padding:4px 8px; border-radius:6px;">
+                          {% if b.target_role == 'ALL' %}👥 All Roles{% elif b.target_role == 'STUDENT' %}🎓 Students Only{% elif b.target_role == 'SUPERVISOR' %}💼 Supervisors Only{% else %}👨‍🏫 Lecturers Only{% endif %}
+                        </span>
+                        <span class="badge" style="{% if b.priority == 'URGENT' %}background:#fee2e2; color:#b91c1c;{% elif b.priority == 'WARNING' %}background:#fef3c7; color:#b45309;{% else %}background:#dbeafe; color:#1e40af;{% endif %} font-weight:800; font-size:0.75rem; padding:4px 8px; border-radius:6px;">
+                          {{ b.get_priority_display }}
+                        </span>
+                        <span style="font-size:0.78rem; color:#64748b;">Posted {{ b.created_at|date:"M d, Y H:i" }} by {{ b.sender.get_full_name|default:b.sender.username }}</span>
+                      </div>
+                      <h4 style="margin:0 0 6px 0; font-size:1.05rem; color:#0f172a;">{{ b.title }}</h4>
+                      <p style="margin:0; color:#334155; font-size:0.9rem; line-height:1.5; white-space:pre-wrap;">{{ b.message }}</p>
+                    </div>
+                    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+                      <span style="display:inline-flex; align-items:center; gap:4px; font-size:0.78rem; font-weight:700; color:#b45309; background:#fffbeb; border:1px solid #fde68a; padding:4px 10px; border-radius:8px;">
+                        ⏳ Disappears: {{ b.expires_at|date:"M d, Y H:i" }}
+                      </span>
+                      <form method="post" action="{% url 'core:admin_delete_broadcast' b.id %}" onsubmit="return confirm('Are you sure you want to revoke this announcement now? It will disappear from all recipient dashboards immediately.');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn" style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; padding:4px 10px; font-size:0.75rem; border-radius:6px; cursor:pointer; font-weight:700;">Revoke Now ✕</button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div style="background:#f8fafc; border:1.5px dashed #cbd5e1; border-radius:12px; padding:32px; text-align:center; color:#64748b;">
+                <p style="font-size:1.2rem; margin:0 0 6px;">📭 No active announcements right now</p>
+                <p style="font-size:0.85rem; margin:0 0 16px;">Create a broadcast message above to pass instructions or reminders to students, supervisors, or lecturers.</p>
+                <button type="button" class="btn primary" onclick="openBroadcastModal()">Create First Announcement</button>
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- Expired / Revoked History -->
+          {% if past_broadcasts %}
+          <div style="margin-top:32px; border-top:1px solid #e2e8f0; padding-top:20px;">
+            <h4 style="margin-bottom:12px; color:#64748b; font-size:0.95rem;">📜 Recently Expired / Revoked Notices (Last 10)</h4>
+            <div style="display:grid; gap:8px;">
+              {% for pb in past_broadcasts %}
+              <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 16px; display:flex; justify-content:space-between; align-items:center; gap:12px; font-size:0.82rem;">
+                <div>
+                  <strong style="color:#334155;">{{ pb.title }}</strong> &bull;
+                  <span style="color:#64748b;">Sent to {{ pb.get_target_role_display }} on {{ pb.created_at|date:"M d, Y" }}</span>
+                </div>
+                <span style="color:#94a3b8; font-weight:600;">Expired / Inactive</span>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </section>
+
     </main>
   </div>
 
@@ -1553,9 +1776,178 @@
     </div>
   </div>
 
+  <!-- Broadcast Message Composition Modal -->
+  <div class="broadcast-modal-overlay" id="broadcastModal" onclick="if(event.target===this) closeBroadcastModal();">
+    <div class="broadcast-modal-card">
+      <div class="broadcast-modal-header">
+        <div>
+          <h3 style="margin:0; font-size:1.2rem; color:#0369a1; display:flex; align-items:center; gap:8px;">
+            <span>📢</span> Send Broadcast Announcement
+          </h3>
+          <p style="margin:4px 0 0; font-size:0.8rem; color:#64748b;">
+            Pass messages to students, supervisors, or lecturers with automated disappearance.
+          </p>
+        </div>
+        <button type="button" class="overlay-close" onclick="closeBroadcastModal()" aria-label="Close" style="font-size:1.4rem; cursor:pointer;">&times;</button>
+      </div>
+
+      <form method="post" action="{% url 'core:admin_send_broadcast' %}" class="broadcast-modal-body">
+        {% csrf_token %}
+        <input type="hidden" name="duration_preset" id="durationPresetInput" value="3_days">
+
+        <!-- Target Audience -->
+        <div style="margin-bottom:18px;">
+          <label style="font-weight:700; color:#1e293b; font-size:0.85rem; display:block; margin-bottom:4px;">
+            👥 Decide Who to Send To:
+          </label>
+          <div class="audience-option-grid">
+            <label class="audience-card is-selected" onclick="selectAudience(this, 'ALL')">
+              <input type="radio" name="target_role" value="ALL" checked>
+              <span style="font-size:1.3rem;">👥</span>
+              <strong style="font-size:0.82rem; margin-top:4px;">All Roles</strong>
+              <small style="color:#64748b; font-size:0.7rem;">Everyone</small>
+            </label>
+
+            <label class="audience-card" onclick="selectAudience(this, 'STUDENT')">
+              <input type="radio" name="target_role" value="STUDENT">
+              <span style="font-size:1.3rem;">🎓</span>
+              <strong style="font-size:0.82rem; margin-top:4px;">Students</strong>
+              <small style="color:#64748b; font-size:0.7rem;">Students only</small>
+            </label>
+
+            <label class="audience-card" onclick="selectAudience(this, 'SUPERVISOR')">
+              <input type="radio" name="target_role" value="SUPERVISOR">
+              <span style="font-size:1.3rem;">💼</span>
+              <strong style="font-size:0.82rem; margin-top:4px;">Supervisors</strong>
+              <small style="color:#64748b; font-size:0.7rem;">Industry only</small>
+            </label>
+
+            <label class="audience-card" onclick="selectAudience(this, 'LECTURER')">
+              <input type="radio" name="target_role" value="LECTURER">
+              <span style="font-size:1.3rem;">👨‍🏫</span>
+              <strong style="font-size:0.82rem; margin-top:4px;">Lecturers</strong>
+              <small style="color:#64748b; font-size:0.7rem;">Lecturers only</small>
+            </label>
+          </div>
+        </div>
+
+        <!-- Title / Subject -->
+        <div style="margin-bottom:18px;">
+          <label for="broadcastTitle" style="font-weight:700; color:#1e293b; font-size:0.85rem; display:block; margin-bottom:6px;">
+            📌 Announcement Subject / Title:
+          </label>
+          <input type="text" id="broadcastTitle" name="title" placeholder="e.g. Week 7 Logbook Submission Reminder" required
+                 style="width:100%; padding:10px 14px; border-radius:8px; border:1.5px solid #cbd5e1; font-size:0.9rem; box-sizing:border-box;">
+        </div>
+
+        <!-- Priority & Tone -->
+        <div style="margin-bottom:18px;">
+          <label for="broadcastPriority" style="font-weight:700; color:#1e293b; font-size:0.85rem; display:block; margin-bottom:6px;">
+            🎨 Priority Level / Notice Banner Style:
+          </label>
+          <select id="broadcastPriority" name="priority" style="width:100%; padding:10px 14px; border-radius:8px; border:1.5px solid #cbd5e1; font-size:0.88rem; background:#fff;">
+            <option value="INFO">ℹ️ Informational (Blue banner — general updates &amp; information)</option>
+            <option value="WARNING">⚠️ Important Notice (Amber banner — attention needed / deadlines)</option>
+            <option value="URGENT">🚨 Urgent Alert (Red banner — critical notices / immediate action)</option>
+          </select>
+        </div>
+
+        <!-- Disappearance / Expiry Period -->
+        <div style="margin-bottom:18px;">
+          <label style="font-weight:700; color:#1e293b; font-size:0.85rem; display:block; margin-bottom:4px;">
+            ⏱️ Period it Will Disappear (Auto-Expiry):
+          </label>
+          <div class="duration-pills-row">
+            <button type="button" class="duration-pill" onclick="setDurationPreset('1_day', this)">24 Hours (1 Day)</button>
+            <button type="button" class="duration-pill active-pill" onclick="setDurationPreset('3_days', this)">3 Days (Standard)</button>
+            <button type="button" class="duration-pill" onclick="setDurationPreset('7_days', this)">7 Days (1 Week)</button>
+            <button type="button" class="duration-pill" onclick="setDurationPreset('14_days', this)">14 Days (2 Weeks)</button>
+            <button type="button" class="duration-pill" onclick="setDurationPreset('30_days', this)">30 Days (1 Month)</button>
+            <button type="button" class="duration-pill" onclick="setDurationPreset('custom', this)">🗓️ Custom Expiry</button>
+          </div>
+          <div id="customExpiresRow" style="display:none; margin-top:10px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:10px 14px;">
+            <label for="customExpiresInput" style="font-size:0.8rem; font-weight:700; color:#475569; display:block; margin-bottom:4px;">Specify Exact Disappearance Date &amp; Time:</label>
+            <input type="datetime-local" id="customExpiresInput" name="custom_expires_at" style="padding:8px 12px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.88rem;">
+          </div>
+        </div>
+
+        <!-- Message Body -->
+        <div style="margin-bottom:20px;">
+          <label for="broadcastContent" style="font-weight:700; color:#1e293b; font-size:0.85rem; display:block; margin-bottom:6px;">
+            📝 Message Content:
+          </label>
+          <textarea id="broadcastContent" name="message" rows="5" placeholder="Type your broadcast message instructions or reminders here..." required
+                    style="width:100%; padding:12px 14px; border-radius:8px; border:1.5px solid #cbd5e1; font-size:0.9rem; font-family:inherit; resize:vertical; box-sizing:border-box;"></textarea>
+        </div>
+
+        <!-- Info strip -->
+        <div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:8px; padding:10px 14px; color:#0369a1; font-size:0.8rem; margin-bottom:20px; display:flex; align-items:center; gap:8px;">
+          <span>💡</span>
+          <span>This message will appear automatically on the chosen workspace dashboards and will disappear automatically once the duration expires.</span>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:12px;">
+          <button type="button" class="btn" onclick="closeBroadcastModal()" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; padding:10px 18px; border-radius:8px; font-weight:700; cursor:pointer;">Cancel</button>
+          <button type="submit" class="btn primary" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#fff; border:none; padding:10px 24px; border-radius:8px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 4px 12px rgba(2,132,199,0.3);">
+            <span>✉️</span> Send Broadcast Now
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- JavaScript for Navigation & Chart.js Rendering -->
   <script>
     const attachmentManageUserUrlTemplate = "{% url 'core:admin_manage_user' 0 %}";
+
+    function openBroadcastModal(prefillRole) {
+      const modal = document.getElementById('broadcastModal');
+      if (modal) {
+        modal.style.display = 'flex';
+        if (prefillRole) {
+          const radio = modal.querySelector(`input[name="target_role"][value="${prefillRole}"]`);
+          if (radio) {
+            radio.checked = true;
+            document.querySelectorAll('.audience-card').forEach(c => c.classList.remove('is-selected'));
+            radio.closest('.audience-card')?.classList.add('is-selected');
+          }
+        }
+        document.getElementById('broadcastTitle')?.focus();
+      }
+    }
+
+    function closeBroadcastModal() {
+      const modal = document.getElementById('broadcastModal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function selectAudience(card, val) {
+      document.querySelectorAll('.audience-card').forEach(c => c.classList.remove('is-selected'));
+      card.classList.add('is-selected');
+      const radio = card.querySelector('input[type="radio"]');
+      if (radio) radio.checked = true;
+    }
+
+    function setDurationPreset(val, btn) {
+      document.querySelectorAll('.duration-pill').forEach(b => b.classList.remove('active-pill'));
+      if (btn) btn.classList.add('active-pill');
+      const hiddenInput = document.getElementById('durationPresetInput');
+      if (hiddenInput) hiddenInput.value = val;
+      const customRow = document.getElementById('customExpiresRow');
+      if (customRow) {
+        if (val === 'custom') {
+          customRow.style.display = 'block';
+          const customInput = document.getElementById('customExpiresInput');
+          if (customInput && !customInput.value) {
+            const d = new Date();
+            d.setDate(d.getDate() + 3);
+            customInput.value = d.toISOString().slice(0, 16);
+          }
+        } else {
+          customRow.style.display = 'none';
+        }
+      }
+    }
 
     function openSidebar() {
       document.getElementById('sidebarDrawer').classList.add('open');
@@ -1593,6 +1985,7 @@
       if (panelId === 'academic-cycle-panel') document.getElementById('link-academic-cycle')?.classList.add('active');
       if (panelId === 'settings-panel') document.getElementById('link-settings')?.classList.add('active');
       if (panelId === 'reports-panel') document.getElementById('link-reports')?.classList.add('active');
+      if (panelId === 'broadcasts-panel') document.getElementById('link-broadcasts')?.classList.add('active');
 
       // Animate year bars when academic-cycle-panel is shown
       if (panelId === 'academic-cycle-panel') {
@@ -1983,6 +2376,51 @@
             setTimeout(() => alert.remove(), 450);
           });
         }, 5000);
+      }
+
+      const organizationInput = document.getElementById('admin_organization_input');
+      const organizationDropdown = document.getElementById('admin_org_dropdown');
+      const organizationToggle = document.querySelector('.organization-dropdown-toggle');
+      if (organizationInput && organizationDropdown && organizationToggle) {
+        const organizationOptions = [...document.querySelectorAll('#admin_org_options option')]
+          .map(option => option.value.trim())
+          .filter((value, index, values) => value && values.indexOf(value) === index);
+
+        function renderOrganizationOptions() {
+          const search = organizationInput.value.trim().toLowerCase();
+          const matches = organizationOptions.filter(option => option.toLowerCase().includes(search));
+          organizationDropdown.innerHTML = matches.length
+            ? matches.map(option => `<button type="button" class="organization-dropdown-option" role="option">${option.replace(/[&<>]/g, character => ({'&': '&amp;', '<': '&lt;', '>': '&gt;'}[character]))}</button>`).join('')
+            : '<div class="organization-dropdown-empty">No saved match. Your typed organization can still be saved.</div>';
+          organizationDropdown.querySelectorAll('.organization-dropdown-option').forEach(option => {
+            option.addEventListener('click', () => {
+              organizationInput.value = option.textContent;
+              closeOrganizationDropdown();
+            });
+          });
+        }
+
+        function openOrganizationDropdown() {
+          renderOrganizationOptions();
+          organizationDropdown.classList.add('is-open');
+          organizationInput.setAttribute('aria-expanded', 'true');
+        }
+
+        function closeOrganizationDropdown() {
+          organizationDropdown.classList.remove('is-open');
+          organizationInput.setAttribute('aria-expanded', 'false');
+        }
+
+        organizationInput.addEventListener('focus', openOrganizationDropdown);
+        organizationInput.addEventListener('input', openOrganizationDropdown);
+        organizationToggle.addEventListener('click', () => {
+          if (organizationDropdown.classList.contains('is-open')) closeOrganizationDropdown();
+          else openOrganizationDropdown();
+          organizationInput.focus();
+        });
+        document.addEventListener('click', event => {
+          if (!event.target.closest('.organization-combobox')) closeOrganizationDropdown();
+        });
       }
     });
   </script>

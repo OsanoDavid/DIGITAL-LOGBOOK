@@ -6,6 +6,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import Q
 from django.db.models.functions import Lower
+from django.utils import timezone
 from django.utils.text import slugify
 from .auth_utils import normalize_username
 
@@ -82,6 +83,11 @@ class User(AbstractUser):
                 condition=Q(email__isnull=False) & ~Q(email=''),
             )
         ]
+
+    def save(self, *args, **kwargs):
+        if self.is_superuser:
+            self.role = 'ADMIN'
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.get_full_name() or self.username} ({self.get_role_display()})"
@@ -188,6 +194,8 @@ class AttachmentPeriod(models.Model):
     recommendation_letter = models.FileField(upload_to=_sist_reports_upload_path, max_length=255, blank=True, null=True)
     report_status = models.CharField(max_length=24, default='NOT_SUBMITTED')
     report_review_comment = models.TextField(blank=True, null=True)
+    report_auto_score = models.FloatField(null=True, blank=True)
+    report_auto_feedback = models.JSONField(default=dict, blank=True)
     supervisor_marks = models.FloatField(null=True, blank=True)
     supervisor_comment = models.TextField(blank=True, null=True)
     supervisor_signed = models.BooleanField(default=False)
@@ -211,10 +219,12 @@ class AttachmentPeriod(models.Model):
     week_7_grading_doc = models.FileField(upload_to=_sist_reports_week7_upload_path, max_length=255, blank=True, null=True)
     week_7_supervisor_marks = models.FloatField(null=True, blank=True)
     week_7_returned_doc = models.FileField(upload_to=_sist_reports_week7_returned_upload_path, max_length=255, blank=True, null=True)
+    week_7_finalized = models.BooleanField(default=False)
 
     week_12_grading_doc = models.FileField(upload_to=_sist_reports_week12_upload_path, max_length=255, blank=True, null=True)
     week_12_supervisor_marks = models.FloatField(null=True, blank=True)
     week_12_returned_doc = models.FileField(upload_to=_sist_reports_week12_returned_upload_path, max_length=255, blank=True, null=True)
+    week_12_finalized = models.BooleanField(default=False)
 
 
 class AdminNotification(models.Model):
@@ -243,6 +253,7 @@ class WeeklyLog(models.Model):
     
     supervisor_approved = models.BooleanField(default=False)
     supervisor_comment = models.TextField(blank=True, null=True)
+    supervisor_signature = models.ImageField(upload_to='signatures/', blank=True, null=True)
     
     lecturer_approved = models.BooleanField(default=False)
     lecturer_comment = models.TextField(blank=True, null=True)
@@ -250,4 +261,48 @@ class WeeklyLog(models.Model):
     class Meta:
         unique_together = ('profile', 'week_number')
         ordering = ['week_number']
+
+
+class BroadcastMessage(models.Model):
+    TARGET_ROLE_CHOICES = (
+        ('ALL', 'All (Students, Supervisors & Lecturers)'),
+        ('STUDENT', 'Students Only'),
+        ('SUPERVISOR', 'Industry Supervisors Only'),
+        ('LECTURER', 'University Lecturers Only'),
+    )
+    PRIORITY_CHOICES = (
+        ('INFO', 'Informational (Blue)'),
+        ('WARNING', 'Important Notice (Yellow/Orange)'),
+        ('URGENT', 'Urgent Alert (Red)'),
+    )
+
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_broadcasts')
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    target_role = models.CharField(max_length=20, choices=TARGET_ROLE_CHOICES, default='ALL')
+    priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default='INFO')
+    school = models.CharField(max_length=20, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"[{self.get_target_role_display()}] {self.title} (Expires: {self.expires_at})"
+
+    @property
+    def is_expired(self):
+        return timezone.now() >= self.expires_at
+
+    @classmethod
+    def active_for_role(cls, role, school=None):
+        now = timezone.now()
+        qs = cls.objects.filter(is_active=True, expires_at__gt=now).filter(
+            Q(target_role='ALL') | Q(target_role=role)
+        )
+        if school:
+            qs = qs.filter(Q(school__isnull=True) | Q(school='') | Q(school=school))
+        return qs
 

@@ -20,6 +20,8 @@ from .models import User, AttachmentPeriod, WeeklyLog, SystemSettings, LecturerP
 from .auth_utils import normalize_username
 from .forms import SISTRegistrationForm, SISTLoginForm, LogEntryForm, SupervisorCommentForm, LecturerSignForm, FinalReportForm, RecommendationLetterForm, FinalSupervisorGradingForm, FinalLecturerGradingForm
 from django.views.decorators.http import require_POST
+import base64
+from django.core.files.base import ContentFile
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_protect
 
@@ -518,7 +520,23 @@ def dashboard_view(request):
 
         report_form = FinalReportForm(instance=period)
         recommendation_form = RecommendationLetterForm(instance=period)
+
+        # Determine whether final report uploads should be allowed.
+        # A report becomes locked only after both assessments are completed.
+        can_upload_final_report = True
+        try:
+            # Both assessments must have supervisor marks and lecturer completion.
+            week7_locked = (period.week_7_supervisor_marks is not None and period.week_7_finalized)
+            week12_locked = (period.week_12_supervisor_marks is not None and period.week_12_finalized)
+            if week7_locked and week12_locked:
+                can_upload_final_report = False
+        except Exception:
+            can_upload_final_report = True
+
         if request.method == 'POST' and ('upload_report' in request.POST or 'final_report' in request.FILES):
+            if not can_upload_final_report:
+                messages.error(request, 'Final report upload is locked — both assessments already finalized by your lecturer.')
+                return redirect('core:dashboard')
             report_form = FinalReportForm(request.POST, request.FILES, instance=period)
             if report_form.is_valid():
                 period = report_form.save()
@@ -551,6 +569,7 @@ def dashboard_view(request):
             'report_form': report_form,
             'recommendation_form': recommendation_form,
             'can_download_full_log': len(log_rows) >= 12,
+            'can_upload_final_report': can_upload_final_report,
         })
         
     elif user.role == 'SUPERVISOR':
@@ -1201,7 +1220,17 @@ def supervisor_review_log(request, log_id):
     if request.method == 'POST':
         form = SupervisorCommentForm(request.POST, instance=log)
         if form.is_valid():
-            form.save()
+            log = form.save()
+            sig_data = request.POST.get('supervisor_signature_data', '').strip()
+            if sig_data.startswith('data:image'):
+                try:
+                    header, encoded = sig_data.split(',', 1)
+                    data = base64.b64decode(encoded)
+                    ext = 'png'
+                    filename = f"signature_week{log.week_number}_{log.id}.{ext}"
+                    log.supervisor_signature.save(filename, ContentFile(data), save=True)
+                except Exception:
+                    logger.exception('Failed to save supervisor signature')
             return redirect('core:dashboard')
     else:
         form = SupervisorCommentForm(instance=log)
@@ -1286,6 +1315,11 @@ def final_grading_view(request, period_id):
             period.lecturer = request.user
             period.save(update_fields=['lecturer'])
 
+        assessments_complete = period.week_7_finalized and period.week_12_finalized
+        if not assessments_complete:
+            messages.error(request, 'Final grading is unavailable until both Week 7 and Week 12 assessments are marked done.')
+            return redirect('core:dashboard')
+
         form = FinalLecturerGradingForm(instance=period)
         if request.method == 'POST':
             form = FinalLecturerGradingForm(request.POST, instance=period)
@@ -1316,10 +1350,20 @@ def submit_assessment_form(request, period_id):
         if 'second_visit_comment' in request.POST:
             period.second_visit_comment = request.POST.get('second_visit_comment')
             period.second_visit_date = request.POST.get('second_visit_date') or None
-        if 'week_7_grading_doc' in request.FILES:
+        if 'week_7_grading_doc' in request.FILES and not period.week_7_finalized:
             period.week_7_grading_doc = request.FILES['week_7_grading_doc']
-        if 'week_12_grading_doc' in request.FILES:
+        if 'week_12_grading_doc' in request.FILES and not period.week_12_finalized:
             period.week_12_grading_doc = request.FILES['week_12_grading_doc']
+        # Lecturer can finalize an assessment to lock further student uploads
+        if 'finalize_week_7' in request.POST:
+            # only allow finalize if supervisor marks exist
+            if period.week_7_supervisor_marks is not None and not period.week_7_finalized:
+                period.week_7_finalized = True
+                messages.success(request, 'Week 7 assessment marked successful and closed.')
+        if 'finalize_week_12' in request.POST:
+            if period.week_12_supervisor_marks is not None and not period.week_12_finalized:
+                period.week_12_finalized = True
+                messages.success(request, 'Week 12 assessment marked successful and closed.')
             
     elif user.role == 'SUPERVISOR' and period.supervisor == user:
         if 'industry_supervisor_final_comment' in request.POST:

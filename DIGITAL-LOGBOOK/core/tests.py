@@ -10,6 +10,7 @@ from django.urls import reverse
 
 from .forms import ProfileUpdateForm, SISTRegistrationForm
 from .models import AdminNotification, User, AttachmentPeriod, WeeklyLog
+from .auto_grading import issue_final_grade
 from .views import _ensure_period_assignments
 
 
@@ -57,6 +58,51 @@ class DatabaseSettingsTests(TestCase):
 
             self.assertEqual(reloaded_module.DATABASES['default']['ENGINE'], 'django.db.backends.sqlite3')
             self.assertEqual(reloaded_module.DATABASES['default']['NAME'], '/tmp/render-db.sqlite3')
+
+
+class FinalGradingTests(TestCase):
+    def test_final_grade_uses_week_7_week_12_and_report_marks(self):
+        student = User.objects.create_user(username='GRADE001', password='pass1234!', role='STUDENT')
+        period = AttachmentPeriod.objects.create(student=student, start_date='2026-01-01')
+        period.recommendation_letter = 'recommendation.pdf'
+        period.report_auto_score = 80
+        period.week_7_supervisor_marks = 34
+        period.week_12_supervisor_marks = 45
+        period.week_7_finalized = True
+        period.week_12_finalized = True
+
+        self.assertTrue(issue_final_grade(period))
+        self.assertEqual(period.lecturer_marks, 79.5)
+        self.assertEqual(period.lecturer_grade, 'A')
+        self.assertEqual(period.lecturer_comment, 'Week 7 = 34.0, Week 12 = 45.0, Report = 80.0.')
+
+    def test_student_dashboard_ensures_final_grade_without_exposing_formula(self):
+        student = User.objects.create_user(username='GRADE002', password='pass1234!', role='STUDENT')
+        period = AttachmentPeriod.objects.create(student=student, start_date='2026-01-01')
+        period.recommendation_letter = 'recommendation.pdf'
+        period.report_auto_score = 17.0
+        period.week_7_supervisor_marks = 34.0
+        period.week_12_supervisor_marks = 45.0
+        period.week_7_finalized = True
+        period.week_12_finalized = True
+        # Set old stale comment & grade to verify it gets updated automatically
+        period.lecturer_marks = 28.2
+        period.lecturer_grade = 'F'
+        period.lecturer_comment = 'Automatic grade: report 17.0/100 (50%) and Week 7/12 average 39.5/100 (50%).'
+        period.save()
+
+        self.client.force_login(student)
+        response = self.client.get(reverse('core:dashboard'))
+        self.assertEqual(response.status_code, 200)
+
+        period.refresh_from_db()
+        # 34 + 45 + 17 = 96 / 200 * 100 = 48.0%
+        self.assertEqual(period.lecturer_marks, 48.0)
+        self.assertEqual(period.lecturer_grade, 'D')
+        self.assertEqual(period.lecturer_comment, 'Week 7 = 34.0, Week 12 = 45.0, Report = 17.0.')
+        self.assertContains(response, 'Week 7 = 34.0, Week 12 = 45.0, Report = 17.0.')
+        self.assertNotContains(response, '/ 200')
+        self.assertNotContains(response, 'average')
 
 
 class MediaUploadSettingsTests(TestCase):

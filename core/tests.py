@@ -13,6 +13,39 @@ from .models import AdminNotification, User, AttachmentPeriod, WeeklyLog
 from .views import _ensure_period_assignments
 
 
+class AssessmentCompletionTests(TestCase):
+    def test_finalizing_week_marks_it_successful_and_closes_the_action(self):
+        student = User.objects.create_user(username='assessment-student', password='Pass1234!', role='STUDENT')
+        lecturer = User.objects.create_user(username='assessment-lecturer', password='Pass1234!', role='LECTURER')
+        period = AttachmentPeriod.objects.create(
+            student=student,
+            lecturer=lecturer,
+            start_date='2026-01-01',
+            first_visit_comment='Assessment completed',
+            week_7_supervisor_marks=44,
+        )
+        WeeklyLog.objects.bulk_create([
+            WeeklyLog(profile=period, week_number=week_number)
+            for week_number in range(1, 8)
+        ])
+
+        self.client.force_login(lecturer)
+        response = self.client.post(
+            reverse('core:submit_assessment_form', args=[period.id]),
+            {'finalize_week_7': '1'},
+            follow=True,
+        )
+
+        period.refresh_from_db()
+        self.assertTrue(period.week_7_finalized)
+        self.assertContains(response, 'Week 7: Successful')
+        self.assertNotContains(response, 'Mark Week 7 Done')
+
+        self.client.force_login(student)
+        response = self.client.get(reverse('core:dashboard'))
+        self.assertContains(response, 'Successful')
+
+
 class DatabaseSettingsTests(TestCase):
     def test_dj_database_url_dependency_is_available(self):
         self.assertTrue(importlib.util.find_spec('dj_database_url'))

@@ -22,6 +22,8 @@ urlpatterns = [
     path('admin/export-attachment-data/', views.admin_export_attachment_data_view, name='admin_export_attachment_data'),
     path('admin/reset-academic-cycle/', views.admin_reset_academic_cycle_view, name='admin_reset_academic_cycle'),
     path('admin/update-historic-counts/', views.admin_update_historic_counts_view, name='admin_update_historic_counts'),
+    path('admin/broadcast/send/', views.admin_send_broadcast_view, name='admin_send_broadcast'),
+    path('admin/broadcast/<int:broadcast_id>/delete/', views.admin_delete_broadcast_view, name='admin_delete_broadcast'),
     path('debug/login-supervisor/', views.debug_login_supervisor, name='debug_login_supervisor'),
 
     # highlight-start

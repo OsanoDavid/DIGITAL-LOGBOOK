@@ -2,7 +2,7 @@ import csv
 import logging
 import re
 import secrets
-from datetime import datetime
+from datetime import datetime, timedelta
 from urllib.parse import urlencode
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -15,15 +15,19 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.password_validation import validate_password
 from django.http import HttpResponse, HttpResponseForbidden
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.views.decorators.http import require_GET
 from django.db import IntegrityError, transaction
 from django.db.models import Q
-from .models import User, AttachmentPeriod, WeeklyLog, SystemSettings, LecturerProfile
+from .models import User, AttachmentPeriod, WeeklyLog, SystemSettings, LecturerProfile, BroadcastMessage
 from .auth_utils import normalize_username
 from .forms import SISTRegistrationForm, SISTLoginForm, LogEntryForm, SupervisorCommentForm, LecturerSignForm, FinalReportForm, RecommendationLetterForm, FinalSupervisorGradingForm, FinalLecturerGradingForm
+from .auto_grading import grade_report, issue_final_grade
 from django.views.decorators.http import require_POST
+import base64
+from django.core.files.base import ContentFile
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_protect
 
@@ -33,6 +37,20 @@ logger = logging.getLogger(__name__)
 def _generate_temporary_password():
     alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%'
     return ''.join(secrets.choice(alphabet) for _ in range(16))
+
+
+def _organization_options():
+    values = set(
+        User.objects.exclude(institution_or_company__isnull=True)
+        .exclude(institution_or_company='')
+        .values_list('institution_or_company', flat=True)
+    )
+    values.update(
+        AttachmentPeriod.objects.exclude(field_supervisor_organization__isnull=True)
+        .exclude(field_supervisor_organization='')
+        .values_list('field_supervisor_organization', flat=True)
+    )
+    return sorted(value.strip() for value in values if value and value.strip())
 
 
 def info_page_view(request, page_name):
@@ -185,9 +203,12 @@ def register_view(request):
                 user = form.save(commit=False)
                 user.school = school_ctx['school_code']
                 user.save()
-                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                    return JsonResponse({'status': 'success'})
-                return redirect(reverse('core:login') + '?registered=true&school=' + school_ctx['school_code'])
+                redirect_url = reverse('core:login') + '?registered=true&school=' + school_ctx['school_code']
+                is_ajax = (request.headers.get('x-requested-with') == 'XMLHttpRequest' or 
+                           request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest')
+                if is_ajax:
+                    return JsonResponse({'status': 'success', 'redirect_url': redirect_url})
+                return redirect(redirect_url)
             except IntegrityError as exc:
                 exc_str = str(exc).lower()
                 if 'unique_lower_email' in exc_str or ('email' in exc_str and 'unique' in exc_str):
@@ -312,7 +333,7 @@ def _ensure_period_assignments(period):
     changed = False
     company_name = (period.student.institution_or_company or '').strip()
 
-    if not period.supervisor_id:
+    if not period.supervisor_id and not period.field_supervisor_name and not period.field_supervisor_email:
         supervisor = _find_matching_supervisor(company_name)
         if supervisor:
             period.supervisor = supervisor
@@ -520,13 +541,68 @@ def dashboard_view(request):
             return redirect('core:dashboard')
 
         if request.method == 'POST' and request.POST.get('supervisor_update_form') == '1':
-            period.field_supervisor_name = request.POST.get('field_supervisor_name', '').strip() or None
-            period.field_supervisor_email = request.POST.get('field_supervisor_email', '').strip().lower() or None
-            period.field_supervisor_phone = request.POST.get('field_supervisor_phone', '').strip() or None
-            period.field_supervisor_id = request.POST.get('field_supervisor_id', '').strip() or None
-            period.field_supervisor_gender = request.POST.get('field_supervisor_gender', '').strip() or None
-            period.field_supervisor_organization = request.POST.get('field_supervisor_organization', '').strip() or None
+            existing_sup_id = request.POST.get('existing_supervisor_id', '').strip()
+            if existing_sup_id:
+                existing_sup = User.objects.filter(id=existing_sup_id, role='SUPERVISOR').first()
+                if existing_sup:
+                    period.supervisor = existing_sup
+                    period.field_supervisor_name = None
+                    period.field_supervisor_email = None
+                    period.field_supervisor_phone = None
+                    period.field_supervisor_id = None
+                    period.field_supervisor_gender = None
+                    period.field_supervisor_organization = None
+                    period.save(update_fields=[
+                        'supervisor',
+                        'field_supervisor_name',
+                        'field_supervisor_email',
+                        'field_supervisor_phone',
+                        'field_supervisor_id',
+                        'field_supervisor_gender',
+                        'field_supervisor_organization',
+                    ])
+                    messages.success(request, f'Field supervisor updated to {existing_sup.get_full_name() or existing_sup.username}.')
+                    return redirect('core:dashboard')
+
+            field_name = request.POST.get('field_supervisor_name', '').strip() or None
+            field_email = request.POST.get('field_supervisor_email', '').strip().lower() or None
+            field_phone = request.POST.get('field_supervisor_phone', '').strip() or None
+            field_staff_id = request.POST.get('field_supervisor_id', '').strip() or None
+            field_gender = request.POST.get('field_supervisor_gender', '').strip() or None
+            field_org = request.POST.get('field_supervisor_organization', '').strip() or period.student.institution_or_company
+
+            # Check if a supervisor account with this email already exists
+            existing_user = User.objects.filter(email__iexact=field_email, role='SUPERVISOR').first() if field_email else None
+            if existing_user:
+                period.supervisor = existing_user
+                period.field_supervisor_name = None
+                period.field_supervisor_email = None
+                period.field_supervisor_phone = None
+                period.field_supervisor_id = None
+                period.field_supervisor_gender = None
+                period.field_supervisor_organization = None
+                period.save(update_fields=[
+                    'supervisor',
+                    'field_supervisor_name',
+                    'field_supervisor_email',
+                    'field_supervisor_phone',
+                    'field_supervisor_id',
+                    'field_supervisor_gender',
+                    'field_supervisor_organization',
+                ])
+                messages.success(request, f'Supervisor {existing_user.get_full_name() or existing_user.username} linked to your attachment profile.')
+                return redirect('core:dashboard')
+
+            # Different supervisor requested — clear previous auto-assigned supervisor
+            period.supervisor = None
+            period.field_supervisor_name = field_name
+            period.field_supervisor_email = field_email
+            period.field_supervisor_phone = field_phone
+            period.field_supervisor_id = field_staff_id
+            period.field_supervisor_gender = field_gender
+            period.field_supervisor_organization = field_org
             period.save(update_fields=[
+                'supervisor',
                 'field_supervisor_name',
                 'field_supervisor_email',
                 'field_supervisor_phone',
@@ -606,6 +682,9 @@ def dashboard_view(request):
             previous_approved = log.supervisor_approved
 
         latest_log = logs[-1] if logs else None
+        next_editable_log = period.weekly_logs.filter(
+            supervisor_approved=False,
+        ).order_by('week_number').first()
         can_add_log = True
         if latest_log and latest_log.supervisor_approved is False and any([
             bool(latest_log.monday_activity),
@@ -621,13 +700,26 @@ def dashboard_view(request):
         if request.method == 'POST' and ('upload_report' in request.POST or 'final_report' in request.FILES):
             report_form = FinalReportForm(request.POST, request.FILES, instance=period)
             if report_form.is_valid():
+                uploaded_report = request.FILES['final_report']
+                if not uploaded_report.name.lower().endswith('.pdf'):
+                    messages.error(request, 'Your report must be submitted as a PDF file.')
+                    return redirect('core:dashboard')
+                try:
+                    report_score, feedback = grade_report(uploaded_report)
+                except (ValueError, RuntimeError) as exc:
+                    messages.error(request, f'Report could not be graded: {exc}')
+                    return redirect('core:dashboard')
+                uploaded_report.seek(0)
                 period = report_form.save()
-                period.report_status = 'PENDING_REVIEW'
+                period.report_auto_score = report_score
+                period.report_auto_feedback = feedback
+                period.report_status = 'AUTO_GRADED'
                 period.report_review_comment = ''
                 if not period.lecturer_id:
                     _ensure_period_assignments(period)
+                issued = issue_final_grade(period)
                 period.save()
-                messages.success(request, 'Your final assessment report document has been uploaded successfully and submitted to your lecturer for review!')
+                messages.success(request, f'Your PDF report was automatically graded: {report_score:.1f}/100.' + (' Your final grade is now available.' if issued else ' Final grade will be issued after the recommendation letter and both completed assessments are available.'))
                 return redirect('core:dashboard')
             else:
                 messages.error(request, 'Failed to upload report document. Please make sure you selected a valid file.')
@@ -638,21 +730,36 @@ def dashboard_view(request):
                 period = recommendation_form.save()
                 if not period.lecturer_id:
                     _ensure_period_assignments(period)
+                issued = issue_final_grade(period)
                 period.save()
-                messages.success(request, 'Your stamped organization recommendation letter has been uploaded successfully and submitted to your lecturer!')
+                messages.success(request, 'Your recommendation letter was received.' + (' Your final grade is now available.' if issued else ''))
                 return redirect('core:dashboard')
             else:
                 messages.error(request, 'Failed to upload recommendation letter. Please make sure you selected a valid document.')
 
+        if issue_final_grade(period):
+            period.save(update_fields=['lecturer_marks', 'lecturer_grade', 'lecturer_comment', 'lecturer_signed'])
+
+        company_name = (period.student.institution_or_company or '').strip()
+        organization_supervisors = []
+        if company_name:
+            for s in User.objects.filter(role='SUPERVISOR').order_by('first_name', 'last_name', 'username'):
+                if _companies_match(company_name, getattr(s, 'institution_or_company', '')):
+                    organization_supervisors.append(s)
+
         system_settings = SystemSettings.get_settings()
+        active_broadcasts = BroadcastMessage.active_for_role('STUDENT', school=user.school)
         return render(request, 'core/student_dashboard.html', {
             'period': period,
             'log_rows': log_rows,
             'can_add_log': can_add_log,
+            'next_editable_log_id': next_editable_log.id if next_editable_log else None,
             'report_form': report_form,
             'recommendation_form': recommendation_form,
             'can_download_full_log': len(log_rows) >= 12,
             'system_settings': system_settings,
+            'active_broadcasts': active_broadcasts,
+            'organization_supervisors': organization_supervisors,
         })
         
     elif user.role == 'SUPERVISOR':
@@ -671,15 +778,30 @@ def dashboard_view(request):
             entries = []
             for period in students:
                 log = period.weekly_logs.filter(week_number=week_number).first()
-                entries.append({'period': period, 'log': log})
+                has_activity = bool(log and any([
+                    log.monday_activity,
+                    log.tuesday_activity,
+                    log.wednesday_activity,
+                    log.thursday_activity,
+                    log.friday_activity,
+                ]))
+                entries.append({'period': period, 'log': log, 'has_activity': has_activity})
             week_groups.append({
                 'week_number': week_number,
                 'entries': entries,
-                'has_pending': any(entry['log'] and not entry['log'].supervisor_approved for entry in entries),
+                'has_pending': any(entry['has_activity'] and not entry['log'].supervisor_approved for entry in entries),
             })
 
-        pending_count = WeeklyLog.objects.filter(profile__supervisor=user, supervisor_approved=False).count()
+        pending_count = WeeklyLog.objects.filter(
+            profile__supervisor=user,
+            supervisor_approved=False,
+        ).filter(
+            Q(monday_activity__isnull=False) | Q(tuesday_activity__isnull=False) |
+            Q(wednesday_activity__isnull=False) | Q(thursday_activity__isnull=False) |
+            Q(friday_activity__isnull=False)
+        ).count()
         verified_count = WeeklyLog.objects.filter(profile__supervisor=user, supervisor_approved=True).count()
+        active_broadcasts = BroadcastMessage.active_for_role('SUPERVISOR')
         return render(
             request,
             'core/supervisor_dashboard.html',
@@ -689,6 +811,7 @@ def dashboard_view(request):
                 'verified_count': verified_count,
                 'week_groups': week_groups,
                 'week_range': range(1, 15),
+                'active_broadcasts': active_broadcasts,
             },
         )
         
@@ -754,6 +877,7 @@ def dashboard_view(request):
             recommendation_letter__isnull=False
         ).exclude(recommendation_letter='').select_related('student', 'supervisor', 'lecturer').order_by('-id')
 
+        active_broadcasts = BroadcastMessage.active_for_role('LECTURER', school=user.school)
         return render(
             request,
             'core/lecturer_dashboard.html',
@@ -765,6 +889,7 @@ def dashboard_view(request):
                 'pending_reports': pending_reports,
                 'recommendation_letters': recommendation_letters,
                 'archived_reports': archived_reports,
+                'active_broadcasts': active_broadcasts,
             },
         )
 
@@ -886,6 +1011,9 @@ def admin_dashboard_view(request):
     total_5yr_completed = 0
     school_filter = request.user.school if request.user.role == 'ATTACHMENT_ADMIN' else None
 
+    # Load any manual year counts from system settings (ensure variable exists)
+    manual_counts = getattr(system_settings, 'landing_manual_year_counts', {}) or {}
+
     for i in range(5):
         yr_start = current_yr_int - i
         yr_label = f"{yr_start-1}/{yr_start}"
@@ -990,18 +1118,23 @@ def admin_dashboard_view(request):
     if selected_role:
         notice = f"Create a new {role_choices.get(selected_role, selected_role).lower()} account from the form below."
 
-        template_name = 'core/attachment_admin_dashboard.html' if request.user.role == 'ATTACHMENT_ADMIN' else 'core/admin_dashboard.html'
+    template_name = 'core/attachment_admin_dashboard.html' if request.user.role == 'ATTACHMENT_ADMIN' else 'core/admin_dashboard.html'
 
-        admin_notifications = []
-        if request.user.is_authenticated and User.is_admin_console_user(request.user.role):
-            try:
-                from .models import AdminNotification
-                admin_notifications = list(AdminNotification.objects.filter(recipient=request.user, read=False).order_by('-created_at')[:20])
-            except Exception:
-                admin_notifications = []
+    active_broadcasts = BroadcastMessage.objects.filter(
+        is_active=True, expires_at__gt=timezone.now()
+    ).order_by('-created_at')
+    past_broadcasts = BroadcastMessage.objects.filter(
+        Q(is_active=False) | Q(expires_at__lte=timezone.now())
+    ).order_by('-created_at')
+    if request.user.role == 'ATTACHMENT_ADMIN' and request.user.school:
+        active_broadcasts = active_broadcasts.filter(Q(school__isnull=True) | Q(school='') | Q(school=request.user.school))
+        past_broadcasts = past_broadcasts.filter(Q(school__isnull=True) | Q(school='') | Q(school=request.user.school))
+    past_broadcasts = past_broadcasts[:10]
 
     return render(request, template_name, {
+        'admin_user': request.user,
         'form': form,
+        'users': User.objects.all().order_by('-date_joined'),
         'stats': stats,
         'role_groups': role_groups,
         'schools': User.SCHOOL_CHOICES,
@@ -1020,6 +1153,9 @@ def admin_dashboard_view(request):
         'total_5yr_completed': total_5yr_completed,
         'last_year_completed': last_year_completed,
         'manual_counts': manual_counts,
+        'organization_options': _organization_options(),
+        'active_broadcasts': active_broadcasts,
+        'past_broadcasts': past_broadcasts,
     })
 
 
@@ -1249,6 +1385,7 @@ def admin_create_user_view(request):
             'error': f'Failed to create account: {exc}',
             'traceback': tb,
             'manual_counts': getattr(system_settings, 'landing_manual_year_counts', {}) or {},
+            'organization_options': _organization_options(),
         })
 
     selected_role = request.POST.get('role', '')
@@ -1273,6 +1410,7 @@ def admin_create_user_view(request):
         'notice': notice,
         'system_settings': SystemSettings.get_settings(),
         'manual_counts': getattr(SystemSettings.get_settings(), 'landing_manual_year_counts', {}) or {},
+        'organization_options': _organization_options(),
     })
 
 
@@ -1372,6 +1510,7 @@ def create_log_view(request, period_id):
         wednesday_activity__isnull=True,
         thursday_activity__isnull=True,
         friday_activity__isnull=True,
+        supervisor_approved=False,
     ).order_by('week_number').first()
 
     if next_week:
@@ -1402,10 +1541,29 @@ def edit_week_log(request, log_id):
 def supervisor_review_log(request, log_id):
     if request.user.role != 'SUPERVISOR': return HttpResponseForbidden()
     log = get_object_or_404(WeeklyLog, id=log_id, profile__supervisor=request.user)
+    if not any([
+        log.monday_activity,
+        log.tuesday_activity,
+        log.wednesday_activity,
+        log.thursday_activity,
+        log.friday_activity,
+    ]):
+        return HttpResponseForbidden("This weekly log has no student activities to review yet.")
     if request.method == 'POST':
         form = SupervisorCommentForm(request.POST, instance=log)
         if form.is_valid():
-            form.save()
+            log = form.save()
+            # Handle optional base64-encoded signature data from the frontend
+            sig_data = request.POST.get('supervisor_signature_data', '').strip()
+            if sig_data.startswith('data:image'):
+                try:
+                    header, encoded = sig_data.split(',', 1)
+                    data = base64.b64decode(encoded)
+                    ext = 'png'
+                    filename = f"signature_week{log.week_number}_{log.id}.{ext}"
+                    log.supervisor_signature.save(filename, ContentFile(data), save=True)
+                except Exception:
+                    logger.exception('Failed to save supervisor signature')
             return redirect('core:dashboard')
     else:
         form = SupervisorCommentForm(instance=log)
@@ -1490,16 +1648,14 @@ def final_grading_view(request, period_id):
             period.lecturer = request.user
             period.save(update_fields=['lecturer'])
 
-        form = FinalLecturerGradingForm(instance=period)
-        if request.method == 'POST':
-            form = FinalLecturerGradingForm(request.POST, instance=period)
-            if form.is_valid():
-                graded = form.save(commit=False)
-                graded.lecturer_signed = True
-                graded.save()
-                messages.success(request, f"Final grade for {period.student.get_full_name() or period.student.username} allocated successfully!")
-                return redirect('core:dashboard')
-        return render(request, 'core/final_grading.html', {'form': form, 'period': period, 'role': 'Lecturer'})
+        if not (period.week_7_finalized and period.week_12_finalized):
+            messages.error(request, 'Final grading is unavailable until both Week 7 and Week 12 assessments are marked done.')
+            return redirect('core:dashboard')
+
+        if issue_final_grade(period):
+            period.save()
+        messages.info(request, 'Final grades are calculated automatically from Week 7 marks, Week 12 marks, and report marks.')
+        return redirect('core:dashboard')
 
     return HttpResponseForbidden("You do not have permission to access final grading for this student.")
 
@@ -1520,10 +1676,16 @@ def submit_assessment_form(request, period_id):
         if 'second_visit_comment' in request.POST:
             period.second_visit_comment = request.POST.get('second_visit_comment')
             period.second_visit_date = request.POST.get('second_visit_date') or None
-        if 'week_7_grading_doc' in request.FILES:
+        if 'week_7_grading_doc' in request.FILES and not period.week_7_finalized:
             period.week_7_grading_doc = request.FILES['week_7_grading_doc']
-        if 'week_12_grading_doc' in request.FILES:
+        if 'week_12_grading_doc' in request.FILES and not period.week_12_finalized:
             period.week_12_grading_doc = request.FILES['week_12_grading_doc']
+        if 'finalize_week_7' in request.POST and period.week_7_supervisor_marks is not None and not period.week_7_finalized:
+            period.week_7_finalized = True
+            messages.success(request, 'Week 7 assessment marked successful and closed.')
+        if 'finalize_week_12' in request.POST and period.week_12_supervisor_marks is not None and not period.week_12_finalized:
+            period.week_12_finalized = True
+            messages.success(request, 'Week 12 assessment marked successful and closed.')
             
     elif user.role == 'SUPERVISOR' and period.supervisor == user:
         if 'industry_supervisor_final_comment' in request.POST:
@@ -1538,6 +1700,9 @@ def submit_assessment_form(request, period_id):
             period.week_12_supervisor_marks = request.POST.get('week_12_supervisor_marks')
             
     period.save()
+    if issue_final_grade(period):
+        period.save()
+        messages.success(request, 'All requirements are complete. The final grade was calculated automatically.')
     return redirect('core:dashboard')
 
 
@@ -1725,6 +1890,102 @@ def admin_reset_academic_cycle_view(request):
         f"The active workspace is now initialized for the new cycle ({new_academic_year})."
     )
     return redirect('core:admin_dashboard')
+
+
+@login_required
+@require_POST
+def admin_send_broadcast_view(request):
+    if not User.is_admin_console_user(request.user.role):
+        return HttpResponseForbidden("Only administrators can broadcast announcements.")
+
+    title = request.POST.get('title', '').strip()
+    message = request.POST.get('message', '').strip()
+    target_role = request.POST.get('target_role', 'ALL').strip().upper()
+    priority = request.POST.get('priority', 'INFO').strip().upper()
+    duration = request.POST.get('duration_preset', '3_days').strip()
+    custom_expires_at = request.POST.get('custom_expires_at', '').strip()
+
+    valid_roles = {'ALL', 'STUDENT', 'SUPERVISOR', 'LECTURER'}
+    if target_role not in valid_roles:
+        target_role = 'ALL'
+
+    valid_priorities = {'INFO', 'WARNING', 'URGENT'}
+    if priority not in valid_priorities:
+        priority = 'INFO'
+
+    redirect_url = request.META.get('HTTP_REFERER') or reverse('core:admin_dashboard')
+
+    if not title:
+        messages.error(request, "Please provide a subject or title for the broadcast message.")
+        return redirect(redirect_url)
+
+    if not message:
+        messages.error(request, "Please enter the message content you wish to broadcast.")
+        return redirect(redirect_url)
+
+    now = timezone.now()
+    expires_at = None
+
+    if duration == 'custom' and custom_expires_at:
+        try:
+            expires_at = datetime.fromisoformat(custom_expires_at)
+            if timezone.is_naive(expires_at):
+                expires_at = timezone.make_aware(expires_at, timezone.get_current_timezone())
+        except (ValueError, TypeError):
+            messages.error(request, "Invalid custom expiration date format. Please select a valid date and time.")
+            return redirect(redirect_url)
+    elif duration == '1_day':
+        expires_at = now + timedelta(days=1)
+    elif duration == '3_days':
+        expires_at = now + timedelta(days=3)
+    elif duration == '7_days':
+        expires_at = now + timedelta(days=7)
+    elif duration == '14_days':
+        expires_at = now + timedelta(days=14)
+    elif duration == '30_days':
+        expires_at = now + timedelta(days=30)
+    else:
+        expires_at = now + timedelta(days=3)
+
+    if expires_at <= now:
+        messages.error(request, "The disappearance time must be set in the future.")
+        return redirect(redirect_url)
+
+    school = request.user.school if request.user.role == 'ATTACHMENT_ADMIN' else None
+
+    BroadcastMessage.objects.create(
+        sender=request.user,
+        title=title,
+        message=message,
+        target_role=target_role,
+        priority=priority,
+        school=school,
+        expires_at=expires_at,
+        is_active=True,
+    )
+
+    role_label = dict(BroadcastMessage.TARGET_ROLE_CHOICES).get(target_role, target_role)
+    formatted_expiry = expires_at.strftime('%b %d, %Y at %H:%M')
+    messages.success(
+        request,
+        f"Broadcast message '{title}' successfully sent to {role_label}! It will automatically disappear after {formatted_expiry}."
+    )
+    return redirect(redirect_url)
+
+
+@login_required
+@require_POST
+def admin_delete_broadcast_view(request, broadcast_id):
+    if not User.is_admin_console_user(request.user.role):
+        return HttpResponseForbidden("Only administrators can revoke broadcasts.")
+
+    broadcast = get_object_or_404(BroadcastMessage, id=broadcast_id)
+    broadcast.is_active = False
+    broadcast.save(update_fields=['is_active'])
+
+    messages.success(request, f"Broadcast message '{broadcast.title}' was revoked and removed from all dashboards.")
+    return redirect(request.META.get('HTTP_REFERER') or reverse('core:admin_dashboard'))
+
 
 # Inside your views.py dashboard controller
 # Note: student dashboard is handled by `dashboard_view` above which renders

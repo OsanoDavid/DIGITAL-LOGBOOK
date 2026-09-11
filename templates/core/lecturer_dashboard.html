@@ -357,25 +357,25 @@
         </form>
 
         <div class="stats-row">
-            <div class="stat-card">
+            <a href="#assigned-students" class="stat-card stat-link" style="text-decoration: none; color: inherit;">
                 <div class="stat-value">{{ students|length }}</div>
                 <div class="stat-label">Assigned students</div>
-            </div>
-            <div class="stat-card">
+            </a>
+            <a href="#ready-logs" class="stat-card stat-link" style="text-decoration: none; color: inherit;">
                 <div class="stat-value">{{ ready_for_lecturer_count|default:0 }}</div>
                 <div class="stat-label">Supervisor-approved logs ready</div>
-            </div>
-            <div class="stat-card">
+            </a>
+            <a href="#final-reports" class="stat-card stat-link" style="text-decoration: none; color: inherit;">
                 <div class="stat-value">{{ pending_reports|length }}</div>
                 <div class="stat-label">Submitted final reports</div>
-            </div>
-            <div class="stat-card">
+            </a>
+            <a href="#rec-letters" class="stat-card stat-link" style="text-decoration: none; color: inherit;">
                 <div class="stat-value">{{ recommendation_letters|length }}</div>
                 <div class="stat-label">Stamped Rec. Letters</div>
-            </div>
+            </a>
         </div>
 
-        <div class="course-section">
+        <div id="final-reports" class="course-section">
             <div class="course-header">
                 <i class="fa-solid fa-file-lines" style="color: #0f4c81; font-size: 1.2rem;"></i>
                 <h2 class="course-title">Final Report Review Queue</h2>
@@ -433,7 +433,7 @@
             </div>
         </div>
 
-        <div class="course-section" style="margin-top: 24px;">
+        <div id="rec-letters" class="course-section" style="margin-top: 24px;">
             <div class="course-header" style="border-left: 4px solid #0284c7;">
                 <i class="fa-solid fa-stamp" style="color: #0284c7; font-size: 1.2rem;"></i>
                 <h2 class="course-title">Organization Recommendation Letters Queue</h2>
@@ -483,6 +483,7 @@
             </div>
         </div>
 
+        <div id="ready-logs"></div>
         {% regroup students by student.course as course_list %}
 
         {% for course in course_list %}
@@ -554,6 +555,15 @@
                                                 {% elif p.week_7_grading_doc %}
                                                     <p style="font-size: 0.8rem; margin: 4px 0; color: #ca8a04;">Pending supervisor grading...</p>
                                                 {% endif %}
+                                                {% if p.week_7_supervisor_marks is not None and not p.week_7_finalized %}
+                                                    <form action="{% url 'core:submit_assessment_form' p.id %}" method="POST" style="margin-top:8px;">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="finalize_week_7" value="1">
+                                                        <button type="submit" class="action-btn" onclick="return confirm('Mark Week 7 as done? This will lock student uploads for Week 7. Continue?');" style="background:#16a34a;color:white;padding:6px 10px;font-size:0.8rem;">Mark Week 7 Done</button>
+                                                    </form>
+                                                {% elif p.week_7_finalized %}
+                                                    <span style="display:inline-block;margin-top:6px;color:#065f46;font-weight:700;">Week 7: Successful — Closed</span>
+                                                {% endif %}
                                             {% else %}
                                                 <form action="{% url 'core:submit_assessment_form' p.id %}" method="POST" enctype="multipart/form-data" style="margin-top: 8px; display: flex; flex-direction: column; gap: 6px;">
                                                     {% csrf_token %}
@@ -577,6 +587,15 @@
                                                     <a href="{{ p.week_12_returned_doc.url }}" style="font-size: 0.8rem; color: #0f4c81;">Download Graded Doc ({{ p.week_12_supervisor_marks|default:"-" }} Marks)</a>
                                                 {% elif p.week_12_grading_doc %}
                                                     <p style="font-size: 0.8rem; margin: 4px 0; color: #ca8a04;">Pending supervisor grading...</p>
+                                                {% endif %}
+                                                {% if p.week_12_supervisor_marks is not None and not p.week_12_finalized %}
+                                                    <form action="{% url 'core:submit_assessment_form' p.id %}" method="POST" style="margin-top:8px;">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="finalize_week_12" value="1">
+                                                        <button type="submit" class="action-btn" onclick="return confirm('Mark Week 12 as done? This will lock student uploads for Week 12. Continue?');" style="background:#16a34a;color:white;padding:6px 10px;font-size:0.8rem;">Mark Week 12 Done</button>
+                                                    </form>
+                                                {% elif p.week_12_finalized %}
+                                                    <span style="display:inline-block;margin-top:6px;color:#065f46;font-weight:700;">Week 12: Successful — Closed</span>
                                                 {% endif %}
                                             {% else %}
                                                 <form action="{% url 'core:submit_assessment_form' p.id %}" method="POST" enctype="multipart/form-data" style="margin-top: 8px; display: flex; flex-direction: column; gap: 6px;">
@@ -606,10 +625,10 @@
                                         {% if p.lecturer_signed %}
                                             <span class="status-pill status-approved" style="font-weight: 700; background: #dcfce7; color: #15803d; padding: 4px 10px; border-radius: 12px;">Grade: {{ p.lecturer_grade|default:"A" }} ({{ p.lecturer_marks|default:"-" }}%)</span>
                                             <a href="{% url 'core:final_grading' p.id %}" class="action-btn secondary" style="padding: 4px 10px; font-size: 0.78rem;"><i class="fa-solid fa-pen-to-square"></i> Edit</a>
-                                        {% elif p.supervisor_signed or p.weekly_logs.all|length >= 1 or p.final_report or p.first_visit_comment or p.second_visit_comment %}
+                                        {% elif p.week_7_finalized and p.week_12_finalized %}
                                             <a href="{% url 'core:final_grading' p.id %}" class="action-btn" style="background: #0284c7; color: white; border-radius: 8px; padding: 6px 14px; font-size: 0.85rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-pen-to-square"></i> Allocate Grade</a>
                                         {% else %}
-                                            <span class="muted" style="display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-lock"></i> Locked until completion</span>
+                                            <span class="muted" style="display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-lock"></i> Locked until both assessments are done</span>
                                         {% endif %}
                                     </div>
                                 </td>
@@ -718,6 +737,18 @@
         
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', initializeAvatar);
+        // Scroll to section when stat card anchor clicked
+        document.querySelectorAll('.stat-link').forEach(el => {
+            el.addEventListener('click', (e) => {
+                // default anchor behaviour will jump, but use smooth scroll
+                const href = el.getAttribute('href');
+                if (href && href.startsWith('#')) {
+                    e.preventDefault();
+                    const target = document.querySelector(href);
+                    if (target) target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
     </script>
     
     <!-- Profile Settings Modal -->

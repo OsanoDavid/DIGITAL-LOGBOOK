@@ -97,8 +97,11 @@ import dj_database_url
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
 SQLITE_DB_PATH = os.environ.get('SQLITE_DB_PATH')
-USE_SQLITE = os.environ.get('USE_SQLITE', 'false').lower() in {'1', 'true', 'yes', 'on'}
 IS_RENDER = os.environ.get('RENDER', '').lower() in {'1', 'true', 'yes', 'on'}
+# Use SQLite by default outside Render so the project runs locally without
+# production database variables. Render still requires DATABASE_URL unless
+# SQLite is explicitly configured.
+USE_SQLITE = os.environ.get('USE_SQLITE', 'false' if IS_RENDER else 'true').lower() in {'1', 'true', 'yes', 'on'}
 LEGACY_RENDER_DATABASE_NAME = False
 USING_POSTGRES = False
 

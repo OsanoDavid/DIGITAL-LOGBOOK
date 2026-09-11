@@ -196,10 +196,12 @@ class AttachmentPeriod(models.Model):
     week_7_grading_doc = models.FileField(upload_to=_sist_reports_week7_upload_path, max_length=255, blank=True, null=True)
     week_7_supervisor_marks = models.FloatField(null=True, blank=True)
     week_7_returned_doc = models.FileField(upload_to=_sist_reports_week7_returned_upload_path, max_length=255, blank=True, null=True)
+    week_7_finalized = models.BooleanField(default=False)
 
     week_12_grading_doc = models.FileField(upload_to=_sist_reports_week12_upload_path, max_length=255, blank=True, null=True)
     week_12_supervisor_marks = models.FloatField(null=True, blank=True)
     week_12_returned_doc = models.FileField(upload_to=_sist_reports_week12_returned_upload_path, max_length=255, blank=True, null=True)
+    week_12_finalized = models.BooleanField(default=False)
 
 
 class AdminNotification(models.Model):
@@ -231,6 +233,7 @@ class WeeklyLog(models.Model):
     
     supervisor_approved = models.BooleanField(default=False)
     supervisor_comment = models.TextField(blank=True, null=True)
+    supervisor_signature = models.ImageField(upload_to='signatures/', blank=True, null=True)
     
     lecturer_approved = models.BooleanField(default=False)
     lecturer_comment = models.TextField(blank=True, null=True)

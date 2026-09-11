@@ -157,7 +157,7 @@
 
         <div class="card card-grading-accent">
                 <h3>Final Grading Results</h3>
-                {% if period.lecturer_signed %}
+                {% if period.lecturer_signed and period.week_7_finalized and period.week_12_finalized %}
                     <p style="font-size:24px; margin: 14px 0 10px 0; font-weight: 800;">Final Grade: <strong style="color:var(--kisii-blue);">{{ period.lecturer_grade }}</strong> ({{ period.lecturer_marks }}%)</p>
                     <p style="margin: 0; color: var(--text-muted); background: var(--bg-light); padding: 12px; border-radius: 8px;"><em>Lecturer Comment: {{ period.lecturer_comment }}</em></p>
                 {% else %}
@@ -172,28 +172,32 @@
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-light); border-radius: 10px; border: 1px solid var(--border-light);">
                         <div>
                             <strong style="font-size: 0.95rem; color: var(--text-dark); display: block;">First Assessment (Week 7)</strong>
-                            {% if period.first_visit_date %}
+                            {% if period.week_7_finalized %}
+                                <span style="font-size: 0.8rem; color: var(--text-muted);">Visit Successful</span>
+                            {% elif period.first_visit_date %}
                                 <span style="font-size: 0.8rem; color: var(--text-muted);">Assessed on: {{ period.first_visit_date }}</span>
                             {% else %}
                                 <span style="font-size: 0.8rem; color: var(--text-muted);">Pending Academic Visit</span>
                             {% endif %}
                         </div>
-                        <span class="badge {% if period.first_visit_comment %}badge-success{% else %}badge-warning{% endif %}">
-                            {% if period.first_visit_comment %}Active{% else %}Pending{% endif %}
+                        <span class="badge {% if period.week_7_finalized %}badge-success{% else %}badge-warning{% endif %}">
+                            {% if period.week_7_finalized %}Successful{% else %}Pending{% endif %}
                         </span>
                     </div>
                     
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-light); border-radius: 10px; border: 1px solid var(--border-light);">
                         <div>
                             <strong style="font-size: 0.95rem; color: var(--text-dark); display: block;">Second Assessment (Week 12)</strong>
-                            {% if period.second_visit_date %}
+                            {% if period.week_12_finalized %}
+                                <span style="font-size: 0.8rem; color: var(--text-muted);">Visit Successful</span>
+                            {% elif period.second_visit_date %}
                                 <span style="font-size: 0.8rem; color: var(--text-muted);">Assessed on: {{ period.second_visit_date }}</span>
                             {% else %}
                                 <span style="font-size: 0.8rem; color: var(--text-muted);">Pending Academic Visit</span>
                             {% endif %}
                         </div>
-                        <span class="badge {% if period.second_visit_comment %}badge-success{% else %}badge-warning{% endif %}">
-                            {% if period.second_visit_comment %}Active{% else %}Pending{% endif %}
+                        <span class="badge {% if period.week_12_finalized %}badge-success{% else %}badge-warning{% endif %}">
+                            {% if period.week_12_finalized %}Successful{% else %}Pending{% endif %}
                         </span>
                     </div>
                 </div>
@@ -380,6 +384,7 @@
 
                     <details style="margin-top: 4px;">
                         <summary style="cursor: pointer; color: #0284c7; font-weight: 600; font-size: 0.88rem;">Re-upload / Replace Report File</summary>
+                        {% if can_upload_final_report %}
                         <form method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 14px; margin-top: 12px;">
                             {% csrf_token %}
                             <div style="background: #ffffff; padding: 16px; border-radius: 10px; border: 1px dashed #cbd5e1;">
@@ -387,9 +392,15 @@
                             </div>
                             <button type="submit" name="upload_report" class="btn btn-blue" style="align-self: flex-start;">Upload New Version</button>
                         </form>
+                        {% else %}
+                        <div style="margin-top:12px; padding:12px; border-radius:8px; background:#f1f5f9; border:1px solid #e2e8f0;">
+                            <p style="margin:0; color:#475569;">Report upload locked — both assessments finalized by your lecturer. Contact your lecturer for further guidance.</p>
+                        </div>
+                        {% endif %}
                     </details>
                 </div>
             {% else %}
+                {% if can_upload_final_report %}
                 <form method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 18px;">
                     {% csrf_token %}
                     <div style="background: var(--bg-light); padding: 20px; border-radius: 12px; border: 1px dashed var(--border-light);">
@@ -398,6 +409,11 @@
                     <button type="submit" name="upload_report" class="btn btn-blue" style="align-self: flex-start;">Upload Report Document</button>
                     <p style="margin: 0; color: #64748b; font-size: 0.9rem;">Status: <strong>Not yet uploaded</strong></p>
                 </form>
+                {% else %}
+                <div style="padding:16px; border-radius:8px; background:#f1f5f9; border:1px solid #e2e8f0;">
+                    <p style="margin:0; color:#475569;">Report upload locked — both assessments finalized by your lecturer. Contact your lecturer for further guidance.</p>
+                </div>
+                {% endif %}
             {% endif %}
         </div>
 

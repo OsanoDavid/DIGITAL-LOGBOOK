@@ -580,7 +580,7 @@
                     <!-- === END PROFILE S                    <!-- Dynamic Wizard Wrappers -->
                     <div id="student_wizard_wrapper" style="display:none;">
                         <button type="button" class="btn-back" onclick="returnToProfileSelector()" style="margin-bottom:15px; padding: 10px 20px;">← Back to Roles</button>
-                        <form method="POST" id="student_registrationForm" onsubmit="handleFormSubmissionSystem(event, 'STUDENT')">
+                        <form method="POST" id="student_registrationForm" class="no-transition" data-ajax="true" onsubmit="handleFormSubmissionSystem(event, 'STUDENT')">
                             {% csrf_token %}
                             <input type="hidden" name="role" value="STUDENT">
                             {% include 'core/studentdetails.html' %}
@@ -641,9 +641,13 @@
             {% if errors %}
             triggerTemporaryNotification("❌ {{ error_summary|default:'Please correct the registration errors displayed in the form.'|escapejs }}", "error");
             // If there were errors on POST, show the form directly
-            document.getElementById('profile-selector-section').style.display = 'none';
-            document.getElementById('registrationForm').style.display = 'block';
-            evaluateRoleConditionalFlows();
+            const chooser = document.getElementById('profile-selector-section');
+            if (chooser) chooser.style.display = 'none';
+            const studentWrapper = document.getElementById('student_wizard_wrapper');
+            if (studentWrapper) {
+                studentWrapper.style.display = 'block';
+                studentWrapper.classList.add('active');
+            }
             {% endif %}
         });
 
@@ -826,12 +830,10 @@
                             errorPanel.style.display = 'none';
                         }
                         triggerTemporaryNotification("🎉 Registration successful! Redirecting to login...", "success");
-                        const destination = "{% url 'core:login' %}?registered=true";
-                        if (window.beginSmoothNavigation) {
-                            window.beginSmoothNavigation(destination);
-                        } else {
+                        const destination = payload.redirect_url || ("{% url 'core:login' %}?registered=true&school=" + encodeURIComponent("{{ school_code|default:'SIST' }}"));
+                        setTimeout(() => {
                             window.location.href = destination;
-                        }
+                        }, 700);
                         return;
                     }
 

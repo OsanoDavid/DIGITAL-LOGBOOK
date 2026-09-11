@@ -284,12 +284,14 @@
         // ===== FORM SUBMIT INTERCEPTOR =====
         document.addEventListener('submit', function (e) {
             const form = e.target;
-            if (form && !form.classList.contains('no-transition')) {
-                e.preventDefault();
-                if (loader) loader.classList.remove('loaded');
-                document.querySelectorAll('.sprouted').forEach(el => el.classList.remove('sprouted'));
-                setTimeout(() => { form.submit(); }, 500);
+            if (e.defaultPrevented || !form || form.classList.contains('no-transition') || form.dataset.transitioning === 'true' || form.dataset.ajax === 'true') {
+                return;
             }
+            form.dataset.transitioning = 'true';
+            e.preventDefault();
+            if (loader) loader.classList.remove('loaded');
+            document.querySelectorAll('.sprouted').forEach(el => el.classList.remove('sprouted'));
+            setTimeout(() => { form.submit(); }, 500);
         });
     });
 })();

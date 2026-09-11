@@ -318,6 +318,95 @@
             from { opacity: 0; transform: translateY(-8px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        .navbar {
+            position: relative;
+            z-index: 100000;
+        }
+
+        /* ── Notification Bell ── */
+        .notif-bell-wrap { position: relative; cursor: pointer; display: flex; align-items: center; margin-right: 10px; z-index: 100001; }
+        .notif-bell-btn {
+            background: rgba(255,255,255,0.15);
+            border: 1.5px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            width: 42px; height: 42px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.25rem;
+            color: #fff;
+            transition: all 0.2s ease;
+            position: relative;
+            cursor: pointer;
+        }
+        .notif-bell-btn:hover { background: rgba(255,255,255,0.28); transform: scale(1.05); }
+        .notif-badge {
+            position: absolute; top: -4px; right: -4px;
+            background: #ef4444; color: #fff;
+            font-size: 0.7rem; font-weight: 800;
+            border-radius: 999px; min-width: 18px; height: 18px;
+            display: none; align-items: center; justify-content: center;
+            padding: 0 5px; border: 2px solid #0f4c81;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+        }
+        @keyframes bell-glow {
+            0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+            50% { box-shadow: 0 0 0 8px rgba(239,68,68,0.45); }
+        }
+        .notif-bell-btn.has-unread { animation: bell-glow 1.4s ease-in-out infinite; }
+        .notif-bell-btn.has-unread .notif-badge { display: flex; }
+
+        .notif-dropdown {
+            position: absolute;
+            top: calc(100% + 12px);
+            right: 0;
+            width: 380px;
+            max-width: calc(100vw - 32px);
+            background: #ffffff !important;
+            border-radius: 18px;
+            box-shadow: 0 24px 64px rgba(15, 23, 42, 0.32), 0 4px 16px rgba(0, 0, 0, 0.12);
+            border: 1.5px solid #cbd5e1;
+            z-index: 100002;
+            overflow: hidden;
+            display: none;
+        }
+        .notif-dropdown.open { display: block; animation: slideDown 0.2s ease forwards; }
+        .notif-header {
+            padding: 14px 18px;
+            font-weight: 800; font-size: 0.96rem; color: #0f172a;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .notif-mark-all {
+            font-size: 0.8rem; color: #0284c7; cursor: pointer; font-weight: 700;
+            background: none; border: none; padding: 0;
+        }
+        .notif-mark-all:hover { text-decoration: underline; color: #0369a1; }
+        .notif-list { max-height: 380px; overflow-y: auto; background: #ffffff; }
+        .notif-item {
+            padding: 16px 18px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            background: #ffffff;
+            transition: background 0.15s ease;
+        }
+        .notif-item:hover { background: #f8fafc; }
+        .notif-item:last-child { border-bottom: none; }
+        .notif-icon { font-size: 1.35rem; flex-shrink: 0; margin-top: 2px; }
+        .notif-body { flex: 1; }
+        .notif-title { font-weight: 800; font-size: 0.94rem; color: #0f172a; margin-bottom: 4px; line-height: 1.3; }
+        .notif-msg { font-size: 0.88rem; color: #334155; line-height: 1.55; word-break: break-word; }
+        .notif-read-btn {
+            font-size: 0.78rem; font-weight: 700;
+            background: #f1f5f9; border: 1px solid #e2e8f0;
+            border-radius: 6px; padding: 5px 12px;
+            color: #475569; cursor: pointer; margin-top: 10px;
+            transition: all 0.15s ease;
+        }
+        .notif-read-btn:hover { background: #e2e8f0; color: #0f172a; }
+        .notif-empty { padding: 36px 18px; text-align: center; color: #64748b; font-size: 0.95rem; font-weight: 600; background: #ffffff; }
     </style>
 </head>
 <body>
@@ -332,7 +421,23 @@
         </div>
 
         
-        <div class="nav-right">
+        <div class="nav-right" style="display:flex;align-items:center;gap:8px;">
+
+            <!-- Notification Bell -->
+            <div class="notif-bell-wrap" id="notifBellWrap">
+                <button class="notif-bell-btn" id="notifBellBtn" onclick="toggleNotifDropdown(event)" title="Notifications">
+                    🔔
+                    <span class="notif-badge" id="notifBadge">0</span>
+                </button>
+                <div class="notif-dropdown" id="notifDropdown">
+                    <div class="notif-header">
+                        <span>Announcements</span>
+                        <button class="notif-mark-all" onclick="markAllRead()">Mark all as read</button>
+                    </div>
+                    <div class="notif-list" id="notifList"></div>
+                </div>
+            </div>
+
             <div class="profile-container" id="profileContainer">
                 <div class="profile-trigger" id="profileTrigger">
                     <div class="avatar-wrapper" onclick="event.stopPropagation(); document.getElementById('avatar-input').click();" title="Click icon to change picture">
@@ -420,24 +525,26 @@
         </form>
 
         <div class="stats-row">
-            <div class="stat-card">
+            <a href="#assigned-students" class="stat-card stat-link" style="text-decoration: none; color: inherit;">
                 <div class="stat-value">{{ students|length }}</div>
                 <div class="stat-label">Assigned students</div>
-            </div>
-            <div class="stat-card">
+            </a>
+            <a href="#ready-logs" class="stat-card stat-link" style="text-decoration: none; color: inherit;">
                 <div class="stat-value">{{ ready_for_lecturer_count|default:0 }}</div>
                 <div class="stat-label">Supervisor-approved logs ready</div>
-            </div>
-            <div class="stat-card">
+            </a>
+            <a href="#final-reports" class="stat-card stat-link" style="text-decoration: none; color: inherit;">
                 <div class="stat-value">{{ pending_reports|length }}</div>
                 <div class="stat-label">Submitted final reports</div>
-            </div>
-            <div class="stat-card">
+            </a>
+            <a href="#rec-letters" class="stat-card stat-link" style="text-decoration: none; color: inherit;">
                 <div class="stat-value">{{ recommendation_letters|length }}</div>
                 <div class="stat-label">Stamped Rec. Letters</div>
-            </div>
+            </a>
         </div>
 
+        <div id="ready-logs"></div>
+        <div id="assigned-students"></div>
         {% regroup students by student.course as course_list %}
 
         {% for course in course_list %}
@@ -517,8 +624,18 @@
                                                                     <div style="margin-top:6px;"><a href="{{ p.week_7_returned_doc.url }}" target="_blank">View Returned Doc</a></div>
                                                                 {% endif %}
 
+                                                                {% if p.week_7_supervisor_marks is not None and not p.week_7_finalized %}
+                                                                    <form method="post" action="{% url 'core:submit_assessment_form' p.id %}" style="margin-top:10px;">
+                                                                        {% csrf_token %}
+                                                                        <input type="hidden" name="finalize_week_7" value="1">
+                                                                        <button type="submit" class="action-btn small" style="background:#16a34a;">Mark Week 7 Done</button>
+                                                                    </form>
+                                                                {% elif p.week_7_finalized %}
+                                                                    <span style="display:inline-block; margin-top:10px; color:#15803d; font-weight:700;">Week 7: Successful — Closed</span>
+                                                                {% endif %}
+
                                                                 <!-- Upload form for lecturer to send doc to supervisor -->
-                                                                <div style="margin-top:10px;">
+                                                                {% if not p.week_7_finalized %}<div style="margin-top:10px;">
                                                                     <form method="post" action="{% url 'core:submit_assessment_form' p.id %}" enctype="multipart/form-data" style="display:flex; gap:8px; align-items:center;">
                                                                         {% csrf_token %}
                                                                         <input type="file" name="week_7_grading_doc" accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" class="file-input-week7" />
@@ -526,6 +643,7 @@
                                                                     </form>
                                                                     <div class="muted" style="font-size:0.82rem; margin-top:6px;">Upload and send when Week 7 has been reached and supervisor-approved log is available.</div>
                                                                 </div>
+                                                                {% endif %}
                                                             </div>
                                                             <!-- Hidden marker: any supervisor-approved weekly log >=7 -->
                                                             <div class="week-ready-marker week7-ready" style="display:none;">
@@ -555,8 +673,18 @@
                                                                     <div style="margin-top:6px;"><a href="{{ p.week_12_returned_doc.url }}" target="_blank">View Returned Doc</a></div>
                                                                 {% endif %}
 
+                                                                {% if p.week_12_supervisor_marks is not None and not p.week_12_finalized %}
+                                                                    <form method="post" action="{% url 'core:submit_assessment_form' p.id %}" style="margin-top:10px;">
+                                                                        {% csrf_token %}
+                                                                        <input type="hidden" name="finalize_week_12" value="1">
+                                                                        <button type="submit" class="action-btn small" style="background:#16a34a;">Mark Week 12 Done</button>
+                                                                    </form>
+                                                                {% elif p.week_12_finalized %}
+                                                                    <span style="display:inline-block; margin-top:10px; color:#15803d; font-weight:700;">Week 12: Successful — Closed</span>
+                                                                {% endif %}
+
                                                                 <!-- Upload form for lecturer to send doc to supervisor -->
-                                                                <div style="margin-top:10px;">
+                                                                {% if not p.week_12_finalized %}<div style="margin-top:10px;">
                                                                     <form method="post" action="{% url 'core:submit_assessment_form' p.id %}" enctype="multipart/form-data" style="display:flex; gap:8px; align-items:center;">
                                                                         {% csrf_token %}
                                                                         <input type="file" name="week_12_grading_doc" accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" class="file-input-week12" />
@@ -564,6 +692,7 @@
                                                                     </form>
                                                                     <div class="muted" style="font-size:0.82rem; margin-top:6px;">Upload and send when Week 12 has been reached and supervisor-approved log is available.</div>
                                                                 </div>
+                                                                {% endif %}
                                                             </div>
                                                             <!-- Hidden marker: any supervisor-approved weekly log >=12 -->
                                                             <div class="week-ready-marker week12-ready" style="display:none;">
@@ -597,8 +726,8 @@
                                                     {% if p.lecturer_signed %}
                                                         <span class="status-pill status-approved">Grade: {{ p.lecturer_grade|default:'A' }} ({{ p.lecturer_marks|default:'-' }}%)</span>
                                                         <a href="{% url 'core:final_grading' p.id %}" class="action-btn secondary" style="margin-left:8px;">Edit</a>
-                                                    {% elif p.supervisor_signed or p.weekly_logs.all|length >= 1 or p.final_report or p.first_visit_comment or p.second_visit_comment %}
-                                                        <a href="{% url 'core:final_grading' p.id %}" class="action-btn">Allocate Grade</a>
+                                                    {% elif p.week_7_finalized and p.week_12_finalized %}
+                                                        <span class="muted">Awaiting report, recommendation letter, or automatic report score</span>
                                                     {% else %}
                                                         <div class="muted">Locked until completion</div>
                                                     {% endif %}
@@ -623,7 +752,7 @@
         {% endfor %}
 
         <div id="reportQueues" style="display:none;">
-            <div class="course-section">
+            <div id="final-reports" class="course-section">
             <div class="course-header">
                 <i class="fa-solid fa-file-lines" style="color: #0f4c81; font-size: 1.2rem;"></i>
                 <h2 class="course-title">Final Report Review Queue</h2>
@@ -681,7 +810,7 @@
             </div>
         </div>
 
-        <div class="course-section" style="margin-top: 24px;">
+        <div id="rec-letters" class="course-section" style="margin-top: 24px;">
             <div class="course-header" style="border-left: 4px solid #0284c7;">
                 <i class="fa-solid fa-stamp" style="color: #0284c7; font-size: 1.2rem;"></i>
                 <h2 class="course-title">Organization Recommendation Letters Queue</h2>
@@ -790,6 +919,25 @@
                 btn.innerHTML = '<i class="fa-solid fa-file-lines"></i> Show Report Queues';
             }
         }
+
+        // Smooth scroll for stat-card anchors
+        document.querySelectorAll('.stat-link').forEach(el => {
+            el.addEventListener('click', (e) => {
+                const href = el.getAttribute('href');
+                if (href && href.startsWith('#')) {
+                    e.preventDefault();
+                    const target = document.querySelector(href);
+                    if (target) target.scrollIntoView({ behavior: 'smooth' });
+                    // If the reports queue was clicked, ensure it's visible
+                    if (href === '#final-reports') {
+                        const rq = document.getElementById('reportQueues');
+                        if (rq && rq.style.display === 'none') {
+                            rq.style.display = 'block';
+                        }
+                    }
+                }
+            });
+        });
 
         // Toggle a student's details (open/close)
         function toggleStudentDocs(id) {
@@ -913,5 +1061,57 @@
         </div>
     </div>
 {% include 'core/ui_transitions.html' %}
+
+<script id="broadcastData" type="application/json">[
+    {% for bcast in active_broadcasts %}
+    {"id": {{ bcast.id }}, "title": "{{ bcast.title|escapejs }}", "message": "{{ bcast.message|escapejs }}", "priority": "{{ bcast.priority }}"}
+    {% if not forloop.last %},{% endif %}
+    {% endfor %}
+]</script>
+<script>
+(function() {
+    const USER_KEY = 'notif_read_{{ request.user.username|default:"lecturer" }}';
+    const broadcasts = JSON.parse(document.getElementById('broadcastData').textContent || '[]');
+    function getRead() { try { return JSON.parse(localStorage.getItem(USER_KEY) || '[]'); } catch(e) { return []; } }
+    function setRead(arr) { localStorage.setItem(USER_KEY, JSON.stringify(arr)); }
+    function getUnread() { const read = getRead(); return broadcasts.filter(b => !read.includes(b.id)); }
+    function iconFor(p) { return p==='URGENT'?'🚨':p==='WARNING'?'⚠️':'📢'; }
+    function renderNotifList() {
+        const list = document.getElementById('notifList');
+        const unread = getUnread();
+        list.innerHTML = unread.length ? unread.map(b => `
+            <div class="notif-item" id="notif-item-${b.id}">
+                <div class="notif-icon">${iconFor(b.priority)}</div>
+                <div class="notif-body">
+                    <div class="notif-title">${b.title}</div>
+                    <div class="notif-msg">${b.message}</div>
+                    <button class="notif-read-btn" onclick="markRead(${b.id})">✔ Mark as read</button>
+                </div>
+            </div>`).join('') : '<div class="notif-empty">✅ No new announcements</div>';
+        const btn = document.getElementById('notifBellBtn');
+        const badge = document.getElementById('notifBadge');
+        if (unread.length) { btn.classList.add('has-unread'); badge.textContent = unread.length; badge.style.display = 'flex'; }
+        else { btn.classList.remove('has-unread'); badge.style.display = 'none'; }
+    }
+    window.markRead = function(id) {
+        const read = getRead(); if (!read.includes(id)) read.push(id); setRead(read);
+        const item = document.getElementById('notif-item-' + id);
+        if (item) { item.style.transition='opacity 0.3s'; item.style.opacity='0'; setTimeout(()=>renderNotifList(),300); }
+        else renderNotifList();
+    };
+    window.markAllRead = function() { setRead(broadcasts.map(b=>b.id)); renderNotifList(); };
+    window.toggleNotifDropdown = function(e) {
+        e.stopPropagation();
+        const dd = document.getElementById('notifDropdown');
+        dd.classList.toggle('open');
+        if (dd.classList.contains('open')) renderNotifList();
+    };
+    document.addEventListener('click', function(e) {
+        const wrap = document.getElementById('notifBellWrap');
+        if (wrap && !wrap.contains(e.target)) document.getElementById('notifDropdown').classList.remove('open');
+    });
+    renderNotifList();
+})();
+</script>
 </body>
 </html>

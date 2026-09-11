@@ -68,6 +68,17 @@
                     </div>
                     <form method="POST" id="reviewLogForm">
                         {% csrf_token %}
+                        {% if role == 'Supervisor' %}
+                        <div style="margin-bottom:12px;">
+                            <label style="display:block;font-weight:700;margin-bottom:6px;">Supervisor Digital Signature</label>
+                            <canvas id="signaturePad" width="520" height="180" style="border:1px solid #dbeafe;border-radius:8px;background:#ffffff;touch-action: none;"></canvas>
+                            <div style="margin-top:8px;display:flex;gap:8px;align-items:center;">
+                                <button type="button" id="clearSigBtn" class="btn">Clear</button>
+                                <small style="color:#64748b;">Draw your signature using mouse or touch, then check the approval box and Save.</small>
+                            </div>
+                            <input type="hidden" name="supervisor_signature_data" id="supervisor_signature_data" />
+                        </div>
+                        {% endif %}
                         <div class="log-form-grid">
                             {% for field in form %}
                                 {% if field.field.widget.input_type == 'checkbox' %}
@@ -123,6 +134,72 @@
         }
         syncButtonState();
     });
+    // Signature pad implementation
+    (function() {
+        const canvas = document.getElementById('signaturePad');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        let drawing = false;
+        let lastX = 0, lastY = 0;
+
+        function resizeCanvasForDPI() {
+            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+            const w = canvas.width;
+            const h = canvas.height;
+            canvas.width = w * ratio;
+            canvas.height = h * ratio;
+            canvas.style.width = w + 'px';
+            canvas.style.height = h + 'px';
+            ctx.scale(ratio, ratio);
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            ctx.lineWidth = 2.5;
+            ctx.strokeStyle = '#0f172a';
+        }
+        resizeCanvasForDPI();
+
+        function start(e) {
+            drawing = true;
+            const rect = canvas.getBoundingClientRect();
+            lastX = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+            lastY = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+        }
+        function draw(e) {
+            if (!drawing) return;
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+            const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            lastX = x; lastY = y;
+        }
+        function stop() { drawing = false; }
+
+        canvas.addEventListener('mousedown', start);
+        canvas.addEventListener('touchstart', start, {passive: true});
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('touchmove', draw, {passive: false});
+        canvas.addEventListener('mouseup', stop);
+        canvas.addEventListener('mouseleave', stop);
+        canvas.addEventListener('touchend', stop);
+
+        document.getElementById('clearSigBtn').addEventListener('click', function() {
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            // reset to original scale
+            resizeCanvasForDPI();
+            document.getElementById('supervisor_signature_data').value = '';
+        });
+
+        // Before form submit, copy canvas data to hidden input
+        const form = document.getElementById('reviewLogForm');
+        form.addEventListener('submit', function() {
+            const dataUrl = canvas.toDataURL('image/png');
+            document.getElementById('supervisor_signature_data').value = dataUrl;
+        });
+    })();
     </script>
 {% include 'core/ui_transitions.html' %}
 </body>
